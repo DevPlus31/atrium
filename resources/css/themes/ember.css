@@ -1,0 +1,43 @@
+/*
+ * Ember preset — warm brand variant.
+ *
+ * Pure token-value overrides; no component may reference this preset by
+ * name. Scoped to the `data-theme` attribute the server stamps on <html>
+ * (`:root` is added for specificity over the base `:root` / `.dark`
+ * blocks, which otherwise share the attribute selector's weight).
+ *
+ * WCAG AA (measured, see THEMING.md): light primary pair 6.17:1,
+ * dark primary pair 7.11:1.
+ */
+
+:root[data-theme='ember'] {
+    --primary: oklch(0.5 0.17 35);
+    --primary-foreground: oklch(0.985 0.012 60);
+    --ring: oklch(0.62 0.16 35);
+    --chart-1: oklch(0.646 0.222 41.116);
+    --chart-2: oklch(0.577 0.245 27.325);
+    --chart-3: oklch(0.769 0.188 70.08);
+    --chart-4: oklch(0.645 0.246 16.439);
+    --chart-5: oklch(0.553 0.117 66.442);
+    --sidebar-primary: oklch(0.5 0.17 35);
+    --sidebar-primary-foreground: oklch(0.985 0.012 60);
+    --sidebar-accent: oklch(0.94 0.03 45);
+    --sidebar-accent-foreground: oklch(0.35 0.08 35);
+    --sidebar-ring: oklch(0.62 0.16 35);
+}
+
+:root[data-theme='ember'].dark {
+    --primary: oklch(0.72 0.16 45);
+    --primary-foreground: oklch(0.185 0.03 40);
+    --ring: oklch(0.6 0.14 40);
+    --chart-1: oklch(0.72 0.16 45);
+    --chart-2: oklch(0.637 0.237 25.331);
+    --chart-3: oklch(0.828 0.189 84.429);
+    --chart-4: oklch(0.704 0.191 22.216);
+    --chart-5: oklch(0.666 0.124 66.442);
+    --sidebar-primary: oklch(0.72 0.16 45);
+    --sidebar-primary-foreground: oklch(0.185 0.03 40);
+    --sidebar-accent: oklch(0.3 0.04 40);
+    --sidebar-accent-foreground: oklch(0.95 0.02 50);
+    --sidebar-ring: oklch(0.6 0.14 40);
+}

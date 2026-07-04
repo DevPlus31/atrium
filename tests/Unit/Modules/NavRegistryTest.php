@@ -53,7 +53,22 @@ it('serializes items into the shared nav shape', function (): void {
             'icon' => 'users',
             'group' => 'Content',
             'sort' => 1,
+            'external' => false,
         ]);
+});
+
+it('marks items declared as external', function (): void {
+    $registry = new NavRegistry();
+
+    $registry->add(module: 'alpha', label: 'Alpha', routeName: 'admin.alpha.index', external: true);
+    $registry->add(module: 'alpha', label: 'Bravo', routeName: 'admin.bravo.index');
+
+    $user = User::factory()->create();
+
+    $items = $registry->itemsFor($user);
+
+    expect($items[0]->external)->toBeTrue()
+        ->and($items[1]->external)->toBeFalse();
 });
 
 it('filters items the user has no permission for', function (): void {

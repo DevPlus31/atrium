@@ -8,6 +8,7 @@ declare namespace App {
                 icon: string | null;
                 group: string | null;
                 sort: number;
+                external: boolean;
             };
         }
     }
@@ -56,8 +57,24 @@ declare namespace Illuminate {
         Illuminate.LengthAwarePaginator<TKey, TValue>;
 }
 declare namespace Modules {
+    namespace Dashboard {
+        namespace Data {
+            export type WidgetDescriptorData = {
+                key: string;
+                sort: number;
+            };
+        }
+    }
     namespace Users {
         namespace Data {
+            export type RecentUsersWidgetData = {
+                users: {
+                    id: string;
+                    name: string;
+                    email: string;
+                    created_at: string;
+                }[];
+            };
             export type UserData = {
                 id: string;
                 name: string;
@@ -69,6 +86,13 @@ declare namespace Modules {
                     update: boolean;
                     delete: boolean;
                 };
+            };
+            export type UsersTotalWidgetData = {
+                total: number;
+                series: {
+                    date: string;
+                    count: number;
+                }[];
             };
         }
     }

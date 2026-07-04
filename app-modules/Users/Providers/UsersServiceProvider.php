@@ -8,8 +8,11 @@ use App\Models\User;
 use App\Modules\ModuleServiceProvider;
 use App\Modules\NavRegistry;
 use App\Modules\PermissionRegistry;
+use App\Modules\WidgetRegistry;
 use Illuminate\Support\Facades\Gate;
 use Modules\Users\Policies\UserPolicy;
+use Modules\Users\Widgets\RecentUsersWidget;
+use Modules\Users\Widgets\UsersTotalWidget;
 
 final class UsersServiceProvider extends ModuleServiceProvider
 {
@@ -43,5 +46,24 @@ final class UsersServiceProvider extends ModuleServiceProvider
         $permissions->declare('users.update', roles: ['admin']);
         $permissions->declare('users.delete', roles: ['admin']);
         $permissions->declare('users.export', roles: ['admin']);
+    }
+
+    protected function widgets(WidgetRegistry $widgets): void
+    {
+        $widgets->declare(
+            module: $this->name(),
+            key: 'users.total',
+            resolver: UsersTotalWidget::class,
+            permission: 'users.view',
+            sort: 0,
+        );
+
+        $widgets->declare(
+            module: $this->name(),
+            key: 'users.recent',
+            resolver: RecentUsersWidget::class,
+            permission: 'users.view',
+            sort: 10,
+        );
     }
 }

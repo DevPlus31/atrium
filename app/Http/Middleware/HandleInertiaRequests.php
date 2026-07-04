@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Actions\ResolveUserPreferences;
 use App\Models\User;
 use App\Modules\NavRegistry;
 use Illuminate\Http\Request;
@@ -18,8 +19,10 @@ final class HandleInertiaRequests extends Middleware
      */
     protected $rootView = 'app';
 
-    public function __construct(private readonly NavRegistry $nav)
-    {
+    public function __construct(
+        private readonly NavRegistry $nav,
+        private readonly ResolveUserPreferences $preferences,
+    ) {
         //
     }
 
@@ -39,6 +42,7 @@ final class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         $user = $request->user();
+        $preferences = $this->preferences->handle($request);
 
         return [
             ...parent::share($request),
@@ -46,6 +50,9 @@ final class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $user,
             ],
+            'appearance' => $preferences['appearance']->value,
+            'theme' => $preferences['theme']->value,
+            'layout' => $preferences['layout'],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'nav' => $user instanceof User ? $this->nav->itemsFor($user) : [],
             'flash' => [

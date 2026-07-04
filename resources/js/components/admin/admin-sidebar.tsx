@@ -86,10 +86,17 @@ export function AdminSidebar({
                                             isActive={isCurrentUrl(item.href)}
                                             tooltip={{ children: item.label }}
                                         >
-                                            <Link href={item.href} prefetch>
-                                                <ItemIcon />
-                                                <span>{item.label}</span>
-                                            </Link>
+                                            {item.external ? (
+                                                <a href={item.href}>
+                                                    <ItemIcon />
+                                                    <span>{item.label}</span>
+                                                </a>
+                                            ) : (
+                                                <Link href={item.href} prefetch>
+                                                    <ItemIcon />
+                                                    <span>{item.label}</span>
+                                                </Link>
+                                            )}
                                         </SidebarMenuButton>
                                     </SidebarMenuItem>
                                 );

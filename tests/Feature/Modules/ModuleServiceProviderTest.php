@@ -72,8 +72,8 @@ it('invokes the module registry hooks on boot', function (): void {
         ->and($navItem?->href)->toBe(route('admin.test-module.index'));
 
     $widgets = $this->app->make(WidgetRegistry::class)->widgetsFor($user);
+    $widget = collect($widgets)->firstWhere('key', 'test-module.stats');
 
-    expect($widgets)->toHaveCount(1)
-        ->and($widgets[0]['key'])->toBe('test-module.stats')
-        ->and($widgets[0]['data']->toArray())->toBe(['count' => 3]);
+    expect($widget)->not->toBeNull()
+        ->and($widget['data']->toArray())->toBe(['count' => 3]);
 });

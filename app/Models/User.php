@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\Appearance;
+use App\Enums\ThemePreset;
 use Carbon\CarbonInterface;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -25,6 +27,9 @@ use Spatie\Permission\Traits\HasRoles;
  * @property-read string|null $two_factor_secret
  * @property-read string|null $two_factor_recovery_codes
  * @property-read CarbonInterface|null $two_factor_confirmed_at
+ * @property-read Appearance|null $appearance
+ * @property-read ThemePreset|null $theme
+ * @property-read array<string, string>|null $layout
  * @property-read CarbonInterface $created_at
  * @property-read CarbonInterface $updated_at
  */
@@ -59,6 +64,9 @@ final class User extends Authenticatable implements MustVerifyEmail
             'two_factor_secret' => 'string',
             'two_factor_recovery_codes' => 'string',
             'two_factor_confirmed_at' => 'datetime',
+            'appearance' => Appearance::class,
+            'theme' => ThemePreset::class,
+            'layout' => 'array',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];

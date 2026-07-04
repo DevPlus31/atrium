@@ -136,6 +136,7 @@ it('shares nav items for authenticated users', function (): void {
             'icon' => 'boxes',
             'group' => 'Modules',
             'sort' => 1,
+            'external' => false,
         ]);
 });
 

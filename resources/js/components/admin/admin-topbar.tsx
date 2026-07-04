@@ -93,17 +93,28 @@ export function AdminTopbar({
                                                 item.icon,
                                             );
 
-                                            return (
+                                            const itemClassName = cn(
+                                                'flex items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium hover:bg-accent hover:text-accent-foreground',
+                                                isCurrentUrl(item.href)
+                                                    ? 'bg-accent text-accent-foreground'
+                                                    : 'text-muted-foreground',
+                                            );
+
+                                            return item.external ? (
+                                                <a
+                                                    key={item.routeName}
+                                                    href={item.href}
+                                                    className={itemClassName}
+                                                >
+                                                    <ItemIcon className="size-4" />
+                                                    <span>{item.label}</span>
+                                                </a>
+                                            ) : (
                                                 <Link
                                                     key={item.routeName}
                                                     href={item.href}
                                                     prefetch
-                                                    className={cn(
-                                                        'flex items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium hover:bg-accent hover:text-accent-foreground',
-                                                        isCurrentUrl(item.href)
-                                                            ? 'bg-accent text-accent-foreground'
-                                                            : 'text-muted-foreground',
-                                                    )}
+                                                    className={itemClassName}
                                                 >
                                                     <ItemIcon className="size-4" />
                                                     <span>{item.label}</span>
@@ -145,9 +156,13 @@ export function AdminTopbar({
                                             : 'text-muted-foreground',
                                     )}
                                 >
-                                    <Link href={item.href} prefetch>
-                                        {item.label}
-                                    </Link>
+                                    {item.external ? (
+                                        <a href={item.href}>{item.label}</a>
+                                    ) : (
+                                        <Link href={item.href} prefetch>
+                                            {item.label}
+                                        </Link>
+                                    )}
                                 </Button>
                             ))
                         ) : (
@@ -183,10 +198,24 @@ export function AdminTopbar({
                                                 key={item.routeName}
                                                 asChild
                                             >
-                                                <Link href={item.href} prefetch>
-                                                    <ItemIcon />
-                                                    <span>{item.label}</span>
-                                                </Link>
+                                                {item.external ? (
+                                                    <a href={item.href}>
+                                                        <ItemIcon />
+                                                        <span>
+                                                            {item.label}
+                                                        </span>
+                                                    </a>
+                                                ) : (
+                                                    <Link
+                                                        href={item.href}
+                                                        prefetch
+                                                    >
+                                                        <ItemIcon />
+                                                        <span>
+                                                            {item.label}
+                                                        </span>
+                                                    </Link>
+                                                )}
                                             </DropdownMenuItem>
                                         );
                                     })}

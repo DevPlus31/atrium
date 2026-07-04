@@ -79,7 +79,7 @@ export default defineConfig({
                 ? {}
                 : {
                       command:
-                          'docker compose run --rm app php artisan wayfinder:generate',
+                          'docker compose run --rm app php artisan wayfinder:generate --with-form',
                   }),
         }),
     ],

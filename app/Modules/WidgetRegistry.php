@@ -45,19 +45,40 @@ final class WidgetRegistry
      */
     public function widgetsFor(User $user): array
     {
-        $permitted = array_values(array_filter(
-            $this->widgets,
-            static fn (array $widget): bool => Feature::for($user)->active('module:'.$widget['module'])
-                && ($widget['permission'] === null || $user->can($widget['permission'])),
-        ));
-
-        usort($permitted, static fn (array $a, array $b): int => [$a['sort'], $a['key']] <=> [$b['sort'], $b['key']]);
-
         return array_map(static fn (array $widget): array => [
             'key' => $widget['key'],
             'sort' => $widget['sort'],
             'data' => self::resolve($widget['resolver']),
-        ], $permitted);
+        ], $this->permittedFor($user));
+    }
+
+    /**
+     * The descriptors of the widgets the given user is permitted to see,
+     * sorted by sort order, without resolving their data.
+     *
+     * @return list<array{key: string, sort: int}>
+     */
+    public function descriptorsFor(User $user): array
+    {
+        return array_map(static fn (array $widget): array => [
+            'key' => $widget['key'],
+            'sort' => $widget['sort'],
+        ], $this->permittedFor($user));
+    }
+
+    /**
+     * Resolve the data object of a single widget the given user is permitted
+     * to see, or null when the widget is unknown or not permitted.
+     */
+    public function resolveFor(User $user, string $key): ?Data
+    {
+        foreach ($this->permittedFor($user) as $widget) {
+            if ($widget['key'] === $key) {
+                return self::resolve($widget['resolver']);
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -82,5 +103,23 @@ final class WidgetRegistry
         }
 
         return $data;
+    }
+
+    /**
+     * The widgets the given user is permitted to see, sorted by sort order.
+     *
+     * @return list<array{module: string, key: string, resolver: (Closure(): Data)|class-string, permission: string|null, sort: int}>
+     */
+    private function permittedFor(User $user): array
+    {
+        $permitted = array_values(array_filter(
+            $this->widgets,
+            static fn (array $widget): bool => Feature::for($user)->active('module:'.$widget['module'])
+                && ($widget['permission'] === null || $user->can($widget['permission'])),
+        ));
+
+        usort($permitted, static fn (array $a, array $b): int => [$a['sort'], $a['key']] <=> [$b['sort'], $b['key']]);
+
+        return $permitted;
     }
 }

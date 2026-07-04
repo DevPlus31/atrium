@@ -6,13 +6,19 @@ use App\Modules\ModuleServiceProvider;
 use App\Modules\NavRegistry;
 use App\Modules\PermissionRegistry;
 use App\Modules\WidgetRegistry;
+use App\Providers\HorizonServiceProvider;
 use App\Providers\TypeScriptTransformerServiceProvider;
+use Modules\Dashboard\Providers\DashboardServiceProvider;
+use Modules\System\Providers\SystemServiceProvider;
 use Modules\Users\Providers\UsersServiceProvider;
 
 arch()->preset()->php();
 arch()->preset()->strict()->ignoring([
+    HorizonServiceProvider::class,
     ModuleServiceProvider::class,
     TypeScriptTransformerServiceProvider::class,
+    DashboardServiceProvider::class,
+    SystemServiceProvider::class,
     UsersServiceProvider::class,
 ]);
 arch()->preset()->laravel()->ignoring(ModuleServiceProvider::class);
@@ -40,12 +46,19 @@ arch('module service providers extend the module contract')
     ->expect([
         'Tests\Fixtures\Modules\TestModule\Providers',
         'Tests\Fixtures\Modules\BareModule\Providers',
+        'Modules\Dashboard\Providers',
+        'Modules\System\Providers',
         'Modules\Users\Providers',
     ])
     ->toExtend(ModuleServiceProvider::class);
 
 arch('module actions are final and readonly')
     ->expect('Modules\Users\Actions')
+    ->toBeFinal()
+    ->toBeReadonly();
+
+arch('module widget resolvers are final and readonly')
+    ->expect('Modules\Users\Widgets')
     ->toBeFinal()
     ->toBeReadonly();
 

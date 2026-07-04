@@ -42,6 +42,13 @@ export function AdminCommandPalette({
 
     const navigateTo = (item: NavItem) => {
         onOpenChange(false);
+
+        if (item.external) {
+            window.location.assign(item.href);
+
+            return;
+        }
+
         router.visit(item.href);
     };
 

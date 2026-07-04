@@ -11,7 +11,7 @@ use Laravel\Pennant\Feature;
 final class NavRegistry
 {
     /**
-     * @var list<array{module: string, label: string, routeName: string, icon: string|null, permission: string|null, group: string|null, sort: int}>
+     * @var list<array{module: string, label: string, routeName: string, icon: string|null, permission: string|null, group: string|null, sort: int, external: bool}>
      */
     private array $items = [];
 
@@ -23,6 +23,7 @@ final class NavRegistry
         ?string $permission = null,
         ?string $group = null,
         int $sort = 0,
+        bool $external = false,
     ): void {
         $this->items[] = [
             'module' => $module,
@@ -32,6 +33,7 @@ final class NavRegistry
             'permission' => $permission,
             'group' => $group,
             'sort' => $sort,
+            'external' => $external,
         ];
     }
 
@@ -57,6 +59,7 @@ final class NavRegistry
             icon: $item['icon'],
             group: $item['group'],
             sort: $item['sort'],
+            external: $item['external'],
         ), $visible);
     }
 }

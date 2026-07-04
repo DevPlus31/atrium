@@ -16,5 +16,8 @@ test('to array', function (): void {
             'two_factor_confirmed_at',
             'created_at',
             'updated_at',
+            'appearance',
+            'theme',
+            'layout',
         ]);
 });

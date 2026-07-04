@@ -15,6 +15,7 @@ final class NavItemData extends Data
         public ?string $icon,
         public ?string $group,
         public int $sort,
+        public bool $external = false,
     ) {
         //
     }

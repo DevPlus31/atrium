@@ -17,4 +17,11 @@ parameters:
 
     level: max
 
+    excludePaths:
+        # Vendor-published files (kept as published; not held to level max).
+        - config/horizon.php
+        - config/log-viewer.php
+        - config/pulse.php
+        - database/migrations/2026_07_04_183657_create_pulse_tables.php
+
     tmpDir: /tmp/phpstan

@@ -2,13 +2,14 @@
 
 declare(strict_types=1);
 
+use App\Actions\ResolveUserPreferences;
 use App\Http\Middleware\HandleAppearance;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\View;
 
 it('shares appearance cookie value with views', function (): void {
-    $middleware = new HandleAppearance();
+    $middleware = new HandleAppearance(new ResolveUserPreferences());
 
     $request = Request::create('/', 'GET');
     $request->cookies->set('appearance', 'dark');
@@ -20,7 +21,7 @@ it('shares appearance cookie value with views', function (): void {
 });
 
 it('defaults to system when appearance cookie not present', function (): void {
-    $middleware = new HandleAppearance();
+    $middleware = new HandleAppearance(new ResolveUserPreferences());
 
     $request = Request::create('/', 'GET');
 
@@ -31,7 +32,7 @@ it('defaults to system when appearance cookie not present', function (): void {
 });
 
 it('handles light appearance', function (): void {
-    $middleware = new HandleAppearance();
+    $middleware = new HandleAppearance(new ResolveUserPreferences());
 
     $request = Request::create('/', 'GET');
     $request->cookies->set('appearance', 'light');
@@ -42,7 +43,7 @@ it('handles light appearance', function (): void {
 });
 
 it('handles system appearance', function (): void {
-    $middleware = new HandleAppearance();
+    $middleware = new HandleAppearance(new ResolveUserPreferences());
 
     $request = Request::create('/', 'GET');
     $request->cookies->set('appearance', 'system');
@@ -50,4 +51,32 @@ it('handles system appearance', function (): void {
     $middleware->handle($request, fn ($req): Response => response('OK'));
 
     expect(View::shared('appearance'))->toBe('system');
+});
+
+it('shares the theme preset and hides the default preset', function (): void {
+    $middleware = new HandleAppearance(new ResolveUserPreferences());
+
+    $request = Request::create('/', 'GET');
+    $request->cookies->set('theme', 'ember');
+
+    $middleware->handle($request, fn ($req): Response => response('OK'));
+
+    expect(View::shared('theme'))->toBe('ember');
+
+    $request = Request::create('/', 'GET');
+
+    $middleware->handle($request, fn ($req): Response => response('OK'));
+
+    expect(View::shared('theme'))->toBeNull();
+});
+
+it('shares the resolved direction', function (): void {
+    $middleware = new HandleAppearance(new ResolveUserPreferences());
+
+    $request = Request::create('/', 'GET');
+    $request->cookies->set('layout', json_encode(['direction' => 'rtl']));
+
+    $middleware->handle($request, fn ($req): Response => response('OK'));
+
+    expect(View::shared('direction'))->toBe('rtl');
 });
