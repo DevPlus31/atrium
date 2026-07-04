@@ -1,6 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import { ChevronDown, Menu, Search } from 'lucide-react';
 import { groupNavItems, resolveNavIcon } from '@/components/admin/nav';
+import { ThemeSettingsMenu } from '@/components/admin/theme-settings-menu';
 import AppLogo from '@/components/app-logo';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -238,6 +239,7 @@ export function AdminTopbar({
                             Ctrl K
                         </kbd>
                     </Button>
+                    <ThemeSettingsMenu />
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button

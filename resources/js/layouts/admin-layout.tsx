@@ -1,4 +1,5 @@
 import { usePage } from '@inertiajs/react';
+import { DirectionProvider } from '@radix-ui/react-direction';
 import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
 import { AdminCommandPalette } from '@/components/admin/admin-command-palette';
@@ -10,16 +11,6 @@ import { AppShell } from '@/components/app-shell';
 import { useSharedFlashToast } from '@/hooks/use-flash-toast';
 import { cn } from '@/lib/utils';
 import type { BreadcrumbItem } from '@/types';
-import type { LayoutConfig, NavItem } from '@/types/admin';
-
-const defaultLayoutConfig: LayoutConfig = {
-    nav_placement: 'sidebar-left',
-    sidebar_variant: 'sidebar',
-    sidebar_collapsible: 'icon',
-    content_width: 'fluid',
-    header: 'sticky',
-    direction: 'ltr',
-};
 
 type AdminLayoutProps = {
     children: ReactNode;
@@ -34,12 +25,7 @@ export default function AdminLayout({
     children,
     breadcrumbs = [],
 }: AdminLayoutProps) {
-    const props = usePage().props;
-    const nav = (props.nav as NavItem[] | undefined) ?? [];
-    const layout: LayoutConfig = {
-        ...defaultLayoutConfig,
-        ...(props.layout as Partial<LayoutConfig> | undefined),
-    };
+    const { nav, layout } = usePage().props;
 
     const [paletteOpen, setPaletteOpen] = useState(false);
 
@@ -62,43 +48,50 @@ export default function AdminLayout({
             nav={nav}
             open={paletteOpen}
             onOpenChange={setPaletteOpen}
+            withSidebarToggle={layout.nav_placement !== 'topbar'}
         />
     );
 
     if (layout.nav_placement === 'topbar') {
         return (
-            <div className="flex min-h-svh w-full flex-col bg-background">
-                <AdminTopbar
-                    nav={nav}
-                    breadcrumbs={breadcrumbs}
-                    onOpenCommandPalette={openCommandPalette}
-                    className={headerClassName}
-                />
-                <main className={contentClassName}>{children}</main>
-                {commandPalette}
-            </div>
+            <DirectionProvider dir={layout.direction}>
+                <div className="flex min-h-svh w-full flex-col bg-background">
+                    <AdminTopbar
+                        nav={nav}
+                        breadcrumbs={breadcrumbs}
+                        onOpenCommandPalette={openCommandPalette}
+                        className={headerClassName}
+                    />
+                    <main className={contentClassName}>{children}</main>
+                    {commandPalette}
+                </div>
+            </DirectionProvider>
         );
     }
 
     return (
-        <AppShell variant="sidebar">
-            <AdminSidebar
-                nav={nav}
-                side={
-                    layout.nav_placement === 'sidebar-right' ? 'right' : 'left'
-                }
-                variant={layout.sidebar_variant}
-                collapsible={layout.sidebar_collapsible}
-                onOpenCommandPalette={openCommandPalette}
-            />
-            <AppContent variant="sidebar" className="overflow-x-hidden">
-                <AdminHeader
-                    breadcrumbs={breadcrumbs}
-                    className={headerClassName}
+        <DirectionProvider dir={layout.direction}>
+            <AppShell variant="sidebar">
+                <AdminSidebar
+                    nav={nav}
+                    side={
+                        layout.nav_placement === 'sidebar-right'
+                            ? 'right'
+                            : 'left'
+                    }
+                    variant={layout.sidebar_variant}
+                    collapsible={layout.sidebar_collapsible}
+                    onOpenCommandPalette={openCommandPalette}
                 />
-                <div className={contentClassName}>{children}</div>
-            </AppContent>
-            {commandPalette}
-        </AppShell>
+                <AppContent variant="sidebar" className="overflow-x-hidden">
+                    <AdminHeader
+                        breadcrumbs={breadcrumbs}
+                        className={headerClassName}
+                    />
+                    <div className={contentClassName}>{children}</div>
+                </AppContent>
+                {commandPalette}
+            </AppShell>
+        </DirectionProvider>
     );
 }

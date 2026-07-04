@@ -31,7 +31,7 @@ final readonly class HandleAppearance
 
         View::share('appearance', $resolved['appearance']->value);
         View::share('theme', $resolved['theme'] === ThemePreset::Default ? null : $resolved['theme']->value);
-        View::share('direction', $resolved['layout']['direction']);
+        View::share('direction', $resolved['layout']->direction->value);
 
         return $next($request);
     }

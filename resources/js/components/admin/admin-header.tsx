@@ -1,3 +1,4 @@
+import { ThemeSettingsMenu } from '@/components/admin/theme-settings-menu';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
@@ -19,6 +20,9 @@ export function AdminHeader({ breadcrumbs = [], className }: AdminHeaderProps) {
             <div className="flex items-center gap-2">
                 <SidebarTrigger className="-ms-1" />
                 <Breadcrumbs breadcrumbs={breadcrumbs} />
+            </div>
+            <div className="ms-auto flex items-center">
+                <ThemeSettingsMenu />
             </div>
         </header>
     );

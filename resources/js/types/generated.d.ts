@@ -1,6 +1,24 @@
 declare namespace App {
+    namespace Enums {
+        export type Appearance = 'light' | 'dark' | 'system';
+        export type ContentWidth = 'fluid' | 'boxed';
+        export type Direction = 'ltr' | 'rtl';
+        export type HeaderMode = 'sticky' | 'static';
+        export type NavPlacement = 'sidebar-left' | 'sidebar-right' | 'topbar';
+        export type SidebarCollapsible = 'offcanvas' | 'icon' | 'none';
+        export type SidebarVariant = 'sidebar' | 'floating' | 'inset';
+        export type ThemePreset = 'default' | 'ember' | 'contrast';
+    }
     namespace Modules {
         namespace Data {
+            export type LayoutConfigData = {
+                nav_placement: App.Enums.NavPlacement;
+                sidebar_variant: App.Enums.SidebarVariant;
+                sidebar_collapsible: App.Enums.SidebarCollapsible;
+                content_width: App.Enums.ContentWidth;
+                header: App.Enums.HeaderMode;
+                direction: App.Enums.Direction;
+            };
             export type NavItemData = {
                 label: string;
                 routeName: string;

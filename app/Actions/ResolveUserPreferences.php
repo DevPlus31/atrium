@@ -13,6 +13,7 @@ use App\Enums\SidebarCollapsible;
 use App\Enums\SidebarVariant;
 use App\Enums\ThemePreset;
 use App\Models\User;
+use App\Modules\Data\LayoutConfigData;
 use BackedEnum;
 use Illuminate\Http\Request;
 
@@ -33,8 +34,8 @@ final readonly class ResolveUserPreferences
     ];
 
     /**
-     * Server-side layout defaults, kept in sync with the frontend
-     * `LayoutConfig` defaults (resources/js/hooks/use-theme-preference.tsx).
+     * Server-side layout defaults. The resolved layout always carries every
+     * key, so the client never needs its own default values.
      *
      * @var array<string, string>
      */
@@ -53,7 +54,7 @@ final readonly class ResolveUserPreferences
      * authenticated users; cookies cover guests; invalid or missing values
      * fall back to the defaults.
      *
-     * @return array{appearance: Appearance, theme: ThemePreset, layout: array<string, string>}
+     * @return array{appearance: Appearance, theme: ThemePreset, layout: LayoutConfigData}
      */
     public function handle(Request $request): array
     {
@@ -67,11 +68,11 @@ final readonly class ResolveUserPreferences
             'theme' => $user->theme
                 ?? ThemePreset::tryFrom($this->cookieValue($request, 'theme'))
                 ?? ThemePreset::Default,
-            'layout' => [
+            'layout' => LayoutConfigData::from([
                 ...self::DEFAULT_LAYOUT,
                 ...$this->validLayoutOptions($this->cookieLayout($request)),
                 ...$this->validLayoutOptions($user->layout ?? []),
-            ],
+            ]),
         ];
     }
 

@@ -6,6 +6,7 @@ namespace App\Providers;
 
 use Spatie\LaravelTypeScriptTransformer\LaravelData\LaravelDataTypeScriptTransformerExtension;
 use Spatie\LaravelTypeScriptTransformer\TypeScriptTransformerApplicationServiceProvider;
+use Spatie\TypeScriptTransformer\Transformers\EnumTransformer;
 use Spatie\TypeScriptTransformer\TypeScriptTransformerConfigFactory;
 use Spatie\TypeScriptTransformer\Writers\GlobalNamespaceWriter;
 
@@ -15,6 +16,7 @@ final class TypeScriptTransformerServiceProvider extends TypeScriptTransformerAp
     {
         $config
             ->extension(new LaravelDataTypeScriptTransformerExtension())
+            ->transformer(new EnumTransformer())
             ->transformDirectories(app_path(), base_path('app-modules'))
             ->outputDirectory(resource_path('js/types'))
             ->writer(new GlobalNamespaceWriter('generated.d.ts'));

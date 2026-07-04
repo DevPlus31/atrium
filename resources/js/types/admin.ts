@@ -13,14 +13,7 @@ export type Flash = {
     error: string | null;
 };
 
-export type LayoutConfig = {
-    nav_placement: 'sidebar-left' | 'sidebar-right' | 'topbar';
-    sidebar_variant: 'sidebar' | 'floating' | 'inset';
-    sidebar_collapsible: 'offcanvas' | 'icon' | 'none';
-    content_width: 'fluid' | 'boxed';
-    header: 'sticky' | 'static';
-    direction: 'ltr' | 'rtl';
-};
+export type LayoutConfig = App.Modules.Data.LayoutConfigData;
 
 export type PaginationMeta = {
     current_page: number;
