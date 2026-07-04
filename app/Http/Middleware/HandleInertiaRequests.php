@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Models\User;
+use App\Modules\NavRegistry;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -15,6 +17,11 @@ final class HandleInertiaRequests extends Middleware
      * @var string
      */
     protected $rootView = 'app';
+
+    public function __construct(private readonly NavRegistry $nav)
+    {
+        //
+    }
 
     /**
      * @see https://inertiajs.com/asset-versioning
@@ -31,13 +38,20 @@ final class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $user = $request->user();
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
             'auth' => [
-                'user' => $request->user(),
+                'user' => $user,
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'nav' => $user instanceof User ? $this->nav->itemsFor($user) : [],
+            'flash' => [
+                'success' => $request->hasSession() ? $request->session()->get('success') : null,
+                'error' => $request->hasSession() ? $request->session()->get('error') : null,
+            ],
         ];
     }
 }

@@ -13,8 +13,12 @@
         "inertiajs/inertia-laravel": "v3.0.6",
         "laravel/fortify": "^1.37.2",
         "laravel/framework": "^13.18.0",
+        "laravel/pennant": "^1.24.0",
         "laravel/wayfinder": "^0.1.20",
-        "nunomaduro/essentials": "^1.2.0"
+        "nunomaduro/essentials": "^1.2.0",
+        "spatie/laravel-data": "^4.23.0",
+        "spatie/laravel-permission": "^8.3.0",
+        "spatie/laravel-typescript-transformer": "^3.3.0"
     },
     "require-dev": {
         "driftingly/rector-laravel": "^2.5.0",
@@ -38,7 +42,8 @@
         "psr-4": {
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
-            "Database\\Seeders\\": "database/seeders/"
+            "Database\\Seeders\\": "database/seeders/",
+            "Modules\\": "app-modules/"
         }
     },
     "autoload-dev": {
