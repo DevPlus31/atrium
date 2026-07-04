@@ -27,3 +27,4 @@ Homestead.yaml
 /tmp/
 
 docker-compose.override.yml
+tests/Browser/Screenshots/
