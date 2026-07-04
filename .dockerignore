@@ -1,0 +1,82 @@
+# === VCS / CI ===
+.git
+.github
+.gitattributes
+
+# === Dependencies & build artifacts (rebuilt inside the image) ===
+node_modules
+vendor
+public/build
+public/hot
+public/storage
+bootstrap/ssr
+bootstrap/cache/*.php
+resources/js/actions
+resources/js/routes
+resources/js/wayfinder
+
+# === Environment & secrets (runtime env comes from env_file / orchestrator) ===
+.env
+.env.*
+!.env.example
+auth.json
+storage/*.key
+storage/*.key.lock
+
+# === Local databases ===
+database/*.sqlite
+database/*.sqlite-journal
+database/*.sqlite-shm
+database/*.sqlite-wal
+
+# === Runtime state (keep directory skeleton via .gitignore files) ===
+storage/logs/*
+!storage/logs/.gitignore
+storage/framework/cache/data/*
+storage/framework/sessions/*
+storage/framework/views/*
+storage/framework/testing
+storage/app/public/*
+!storage/app/public/.gitignore
+storage/app/private/*
+!storage/app/private/.gitignore
+storage/pail
+
+# === Tests & dev-only tooling ===
+tests
+.phpunit.cache
+.phpunit.result.cache
+phpunit.xml
+phpstan.neon
+pint.json
+rector.php
+boost.json
+
+# === Docker (build needs docker/prod for Caddyfile/php.ini/entrypoint) ===
+docker-compose*.yml
+docker/dev
+
+# === Editors / agent & docs config ===
+.claude
+.cursor
+.junie
+.gemini
+.codex
+.agents
+.ai
+.amp
+.mcp.json
+opencode.json
+.idea
+.vscode
+.fleet
+.nova
+.zed
+.editorconfig
+.prettierignore
+.DS_Store
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+README.md
+tmp

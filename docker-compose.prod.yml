@@ -1,0 +1,87 @@
+# Production stack.
+#
+#   cp .env.production.example .env.production   # then fill in the secrets
+#   docker compose -f docker-compose.prod.yml up -d --build
+#
+# The app container serves HTTP directly via FrankenPHP on internal port 8080;
+# it is published on ${APP_PORT:-80}. Terminate TLS at your edge proxy.
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/prod/Dockerfile
+      target: app
+    image: atrium-prod
+    env_file: .env.production
+    ports:
+      - "${APP_PORT:-80}:8080"
+    volumes:
+      - storage-app:/app/storage/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Queue worker. Laravel Horizon is not installed yet — this service will
+  # crash-loop harmlessly (restart: unless-stopped) until the horizon package
+  # lands; remove this note once it does.
+  horizon:
+    image: atrium-prod
+    command: php artisan horizon
+    env_file: .env.production
+    environment:
+      RUN_MIGRATIONS: "false"
+      RUN_OPTIMIZE: "true"
+    volumes:
+      - storage-app:/app/storage/app
+    depends_on:
+      app:
+        condition: service_healthy
+    restart: unless-stopped
+
+  scheduler:
+    image: atrium-prod
+    command: php artisan schedule:work
+    env_file: .env.production
+    environment:
+      RUN_MIGRATIONS: "false"
+      RUN_OPTIMIZE: "true"
+    volumes:
+      - storage-app:/app/storage/app
+    depends_on:
+      app:
+        condition: service_healthy
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:17-alpine
+    # POSTGRES_* values live in .env.production and must match DB_* there.
+    env_file: .env.production
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:8-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  storage-app:
+  postgres-data:
+  redis-data:

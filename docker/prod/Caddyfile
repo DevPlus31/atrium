@@ -1,0 +1,38 @@
+{
+	frankenphp
+	admin off
+	persist_config off
+}
+
+# Container listens on :8080 (non-root). Terminate TLS at your edge proxy /
+# load balancer and forward plain HTTP here. Override with SERVER_NAME if you
+# want FrankenPHP to handle TLS itself (requires cap_net_bind_service or >1024).
+{$SERVER_NAME::8080} {
+	log {
+		output stderr
+		format json
+	}
+
+	root * /app/public
+	encode zstd br gzip
+
+	# Aligned with upload_max_filesize / post_max_size in php.ini.
+	request_body {
+		max_size 32MB
+	}
+
+	# Plumbing healthcheck endpoint — answered by Caddy, no PHP involved.
+	respond /healthz 200
+
+	# Vite emits content-hashed filenames under /build — cache forever.
+	@immutable path /build/*
+	header @immutable Cache-Control "public, max-age=31536000, immutable"
+
+	@static path *.ico *.svg *.png *.jpg *.jpeg *.webp *.gif *.woff *.woff2 *.ttf
+	header @static Cache-Control "public, max-age=86400"
+
+	header -Server
+	header -X-Powered-By
+
+	php_server
+}
