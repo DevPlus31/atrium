@@ -6,4 +6,5 @@ return [
     App\Providers\AppServiceProvider::class,
     App\Providers\FortifyServiceProvider::class,
     App\Providers\TypeScriptTransformerServiceProvider::class,
+    Modules\Users\Providers\UsersServiceProvider::class,
 ];

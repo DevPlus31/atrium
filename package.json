@@ -5,8 +5,8 @@
         "build": "vp build",
         "build:ssr": "vp build && vp build --ssr",
         "dev": "vp dev",
-        "lint": "NODE_OPTIONS='--experimental-strip-types' vp fmt resources/ && NODE_OPTIONS='--experimental-strip-types' vp lint --fix",
-        "test:lint": "NODE_OPTIONS='--experimental-strip-types' vp fmt --check resources/ && NODE_OPTIONS='--experimental-strip-types' vp lint",
+        "lint": "NODE_OPTIONS='--experimental-strip-types' vp fmt resources/ app-modules/ && NODE_OPTIONS='--experimental-strip-types' vp lint --fix",
+        "test:lint": "NODE_OPTIONS='--experimental-strip-types' vp fmt --check resources/ app-modules/ && NODE_OPTIONS='--experimental-strip-types' vp lint",
         "test:types": "tsc --noEmit"
     },
     "devDependencies": {
@@ -47,6 +47,7 @@
         "cmdk": "1.1.1",
         "concurrently": "^10.0.3",
         "input-otp": "^1.4.2",
+        "laravel-precognition-react-inertia": "^0.8.0",
         "laravel-vite-plugin": "^3.1.0",
         "lucide-react": "^1.22.0",
         "radix-ui": "^1.6.1",

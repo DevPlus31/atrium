@@ -18,6 +18,7 @@
     <source>
         <include>
             <directory>app</directory>
+            <directory>app-modules</directory>
         </include>
     </source>
     <php>

@@ -15,7 +15,7 @@ final class TypeScriptTransformerServiceProvider extends TypeScriptTransformerAp
     {
         $config
             ->extension(new LaravelDataTypeScriptTransformerExtension())
-            ->transformDirectories(app_path())
+            ->transformDirectories(app_path(), base_path('app-modules'))
             ->outputDirectory(resource_path('js/types'))
             ->writer(new GlobalNamespaceWriter('generated.d.ts'));
     }

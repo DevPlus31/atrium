@@ -55,6 +55,24 @@ declare namespace Illuminate {
     export type LengthAwarePaginatorInterface<TKey, TValue> =
         Illuminate.LengthAwarePaginator<TKey, TValue>;
 }
+declare namespace Modules {
+    namespace Users {
+        namespace Data {
+            export type UserData = {
+                id: string;
+                name: string;
+                email: string;
+                email_verified_at: string | null;
+                roles: string[];
+                created_at: string;
+                can: {
+                    update: boolean;
+                    delete: boolean;
+                };
+            };
+        }
+    }
+}
 declare namespace Spatie {
     namespace LaravelData {
         export type CursorPaginatedDataCollection<TKey, TValue> =

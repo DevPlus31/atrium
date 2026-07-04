@@ -40,7 +40,8 @@
         <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
 
         @viteReactRefresh
-        @vite(['resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])
+        {{-- Module pages (<module>::<path>) are lazy-loaded through the page resolver glob --}}
+        @vite(str_contains($page['component'], '::') ? ['resources/js/app.tsx'] : ['resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])
         @inertiaHead
     </head>
     <body class="font-sans antialiased">

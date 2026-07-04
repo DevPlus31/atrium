@@ -16,9 +16,12 @@
         "laravel/pennant": "^1.24.0",
         "laravel/wayfinder": "^0.1.20",
         "nunomaduro/essentials": "^1.2.0",
+        "spatie/laravel-activitylog": "^5.0.0",
         "spatie/laravel-data": "^4.23.0",
         "spatie/laravel-permission": "^8.3.0",
-        "spatie/laravel-typescript-transformer": "^3.3.0"
+        "spatie/laravel-query-builder": "^7.3.0",
+        "spatie/laravel-typescript-transformer": "^3.3.0",
+        "spatie/simple-excel": "^3.10.0"
     },
     "require-dev": {
         "driftingly/rector-laravel": "^2.5.0",

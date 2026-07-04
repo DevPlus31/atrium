@@ -66,10 +66,10 @@ it('invokes the module registry hooks on boot', function (): void {
     $user->assignRole('super-admin');
 
     $navItems = $this->app->make(NavRegistry::class)->itemsFor($user);
+    $navItem = collect($navItems)->firstWhere('label', 'Test Module');
 
-    expect($navItems)->toHaveCount(1)
-        ->and($navItems[0]->label)->toBe('Test Module')
-        ->and($navItems[0]->href)->toBe(route('admin.test-module.index'));
+    expect($navItem)->not->toBeNull()
+        ->and($navItem?->href)->toBe(route('admin.test-module.index'));
 
     $widgets = $this->app->make(WidgetRegistry::class)->widgetsFor($user);
 

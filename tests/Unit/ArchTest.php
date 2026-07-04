@@ -7,11 +7,13 @@ use App\Modules\NavRegistry;
 use App\Modules\PermissionRegistry;
 use App\Modules\WidgetRegistry;
 use App\Providers\TypeScriptTransformerServiceProvider;
+use Modules\Users\Providers\UsersServiceProvider;
 
 arch()->preset()->php();
 arch()->preset()->strict()->ignoring([
     ModuleServiceProvider::class,
     TypeScriptTransformerServiceProvider::class,
+    UsersServiceProvider::class,
 ]);
 arch()->preset()->laravel()->ignoring(ModuleServiceProvider::class);
 arch()->preset()->security()->ignoring([
@@ -38,7 +40,13 @@ arch('module service providers extend the module contract')
     ->expect([
         'Tests\Fixtures\Modules\TestModule\Providers',
         'Tests\Fixtures\Modules\BareModule\Providers',
+        'Modules\Users\Providers',
     ])
     ->toExtend(ModuleServiceProvider::class);
+
+arch('module actions are final and readonly')
+    ->expect('Modules\Users\Actions')
+    ->toBeFinal()
+    ->toBeReadonly();
 
 //

@@ -6,6 +6,11 @@ use App\Modules\PermissionRegistry;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
+beforeEach(function (): void {
+    // Isolate from permissions declared by the application's real modules.
+    $this->app->instance(PermissionRegistry::class, new PermissionRegistry());
+});
+
 it('creates declared permissions', function (): void {
     $registry = $this->app->make(PermissionRegistry::class);
     $registry->declare('users.view', roles: ['admin']);
