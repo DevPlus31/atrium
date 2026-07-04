@@ -1,11 +1,16 @@
-# Laravel
-/vendor
+/.phpunit.cache
+/bootstrap/ssr
 /node_modules
 /public/build
 /public/hot
 /public/storage
+/resources/js/actions
+/resources/js/routes
+/resources/js/wayfinder
 /storage/*.key
 /storage/pail
+/vendor
+.DS_Store
 .env
 .env.backup
 .env.production
@@ -13,14 +18,12 @@
 .phpunit.result.cache
 Homestead.json
 Homestead.yaml
-auth.json
-npm-debug.log
-yarn-error.log
+/auth.json
 /.fleet
 /.idea
 /.nova
 /.vscode
 /.zed
+/tmp/
 
-# Docker
 docker-compose.override.yml

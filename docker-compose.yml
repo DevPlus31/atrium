@@ -1,0 +1,23 @@
+services:
+  app:
+    build:
+      context: docker/dev
+    command: php artisan serve --host=0.0.0.0 --port=8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/var/www/html
+      - ./docker/dev/playwright-shim:/var/www/html/node_modules/.bin/playwright
+    environment:
+      XDEBUG_MODE: ${XDEBUG_MODE:-off}
+      REDIS_HOST: redis
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:8-alpine
+    volumes:
+      - redis-data:/data
+
+volumes:
+  redis-data:
