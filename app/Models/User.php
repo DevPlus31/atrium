@@ -14,6 +14,8 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Lab404\Impersonate\Models\Impersonate;
+use Lab404\Impersonate\Services\ImpersonateManager;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Spatie\Permission\Traits\HasRoles;
 
@@ -46,8 +48,42 @@ final class User extends Authenticatable implements MustVerifyEmail
 
     use HasRoles;
     use HasUuids;
+    use Impersonate;
     use Notifiable;
     use TwoFactorAuthenticatable;
+
+    /**
+     * Whether the user may impersonate other users.
+     */
+    public function canImpersonate(): bool
+    {
+        return $this->can('users.impersonate');
+    }
+
+    /**
+     * Whether the user may be impersonated. Anyone who can impersonate —
+     * including super-admins via the global Gate::before hook — is protected.
+     */
+    public function canBeImpersonated(): bool
+    {
+        return ! $this->can('users.impersonate');
+    }
+
+    /**
+     * Start impersonating the given user.
+     */
+    public function impersonate(self $user): bool
+    {
+        return resolve(ImpersonateManager::class)->take($this, $user);
+    }
+
+    /**
+     * Leave the current impersonation and restore the impersonator.
+     */
+    public function leaveImpersonation(): bool
+    {
+        return resolve(ImpersonateManager::class)->leave();
+    }
 
     /**
      * @return array<string, string>

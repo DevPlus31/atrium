@@ -21,6 +21,7 @@ function formatDate(value: string): string {
 
 export function buildUserColumns(
     onDelete: (user: UserRow) => void,
+    onImpersonate: (user: UserRow) => void,
 ): ColumnDef<UserRow, unknown>[] {
     return [
         {
@@ -96,7 +97,11 @@ export function buildUserColumns(
             cell: ({ row }) => {
                 const user = row.original;
 
-                if (!user.can.update && !user.can.delete) {
+                if (
+                    !user.can.update &&
+                    !user.can.delete &&
+                    !user.can.impersonate
+                ) {
                     return null;
                 }
 
@@ -110,6 +115,13 @@ export function buildUserColumns(
                                             <Link href={edit(user.id)}>
                                                 Edit
                                             </Link>
+                                        </DropdownMenuItem>
+                                    )}
+                                    {user.can.impersonate && (
+                                        <DropdownMenuItem
+                                            onSelect={() => onImpersonate(user)}
+                                        >
+                                            Impersonate
                                         </DropdownMenuItem>
                                     )}
                                     {user.can.delete && (

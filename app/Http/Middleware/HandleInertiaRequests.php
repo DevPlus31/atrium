@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Modules\NavRegistry;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use Lab404\Impersonate\Services\ImpersonateManager;
 
 final class HandleInertiaRequests extends Middleware
 {
@@ -22,6 +23,7 @@ final class HandleInertiaRequests extends Middleware
     public function __construct(
         private readonly NavRegistry $nav,
         private readonly ResolveUserPreferences $preferences,
+        private readonly ImpersonateManager $impersonate,
     ) {
         //
     }
@@ -55,10 +57,27 @@ final class HandleInertiaRequests extends Middleware
             'layout' => $preferences['layout'],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'nav' => $user instanceof User ? $this->nav->itemsFor($user) : [],
+            'impersonation' => $this->impersonation(),
             'flash' => [
                 'success' => $request->hasSession() ? $request->session()->get('success') : null,
                 'error' => $request->hasSession() ? $request->session()->get('error') : null,
             ],
         ];
+    }
+
+    /**
+     * The minimal impersonation state the admin shell banner needs.
+     *
+     * @return array{impersonator: string}|null
+     */
+    private function impersonation(): ?array
+    {
+        if (! $this->impersonate->isImpersonating()) {
+            return null;
+        }
+
+        $impersonator = $this->impersonate->getImpersonator();
+
+        return $impersonator instanceof User ? ['impersonator' => $impersonator->name] : null;
     }
 }

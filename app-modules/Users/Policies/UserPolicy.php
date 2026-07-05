@@ -32,4 +32,11 @@ final readonly class UserPolicy
     {
         return $user->can('users.export');
     }
+
+    public function impersonate(User $user, User $model): bool
+    {
+        return $user->canImpersonate()
+            && $user->isNot($model)
+            && $model->canBeImpersonated();
+    }
 }

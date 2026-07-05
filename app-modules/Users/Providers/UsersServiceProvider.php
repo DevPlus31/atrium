@@ -46,6 +46,7 @@ final class UsersServiceProvider extends ModuleServiceProvider
         $permissions->declare('users.update', roles: ['admin']);
         $permissions->declare('users.delete', roles: ['admin']);
         $permissions->declare('users.export', roles: ['admin']);
+        $permissions->declare('users.impersonate', roles: ['admin']);
     }
 
     protected function widgets(WidgetRegistry $widgets): void

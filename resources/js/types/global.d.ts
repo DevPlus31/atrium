@@ -1,4 +1,9 @@
-import type { Flash, LayoutConfig, NavItem } from '@/types/admin';
+import type {
+    Flash,
+    Impersonation,
+    LayoutConfig,
+    NavItem,
+} from '@/types/admin';
 import type { Auth } from '@/types/auth';
 import type { FlashToast } from '@/types/ui';
 
@@ -15,6 +20,7 @@ declare module '@inertiajs/core' {
             theme: App.Enums.ThemePreset;
             layout: LayoutConfig;
             nav: NavItem[];
+            impersonation: Impersonation | null;
             flash: Flash;
             [key: string]: unknown;
         };

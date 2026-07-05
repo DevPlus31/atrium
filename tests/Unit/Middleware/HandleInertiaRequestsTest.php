@@ -140,6 +140,32 @@ it('shares nav items for authenticated users', function (): void {
         ]);
 });
 
+it('shares no impersonation state by default', function (): void {
+    $middleware = $this->app->make(HandleInertiaRequests::class);
+
+    $request = Request::create('/', 'GET');
+
+    $shared = $middleware->share($request);
+
+    expect($shared['impersonation'])->toBeNull();
+});
+
+it('shares the impersonator name while impersonating', function (): void {
+    $admin = User::factory()->create(['name' => 'Admin User']);
+    $target = User::factory()->create();
+
+    session()->put('impersonated_by', $admin->id);
+
+    $middleware = $this->app->make(HandleInertiaRequests::class);
+
+    $request = Request::create('/', 'GET');
+    $request->setUserResolver(fn (): User => $target);
+
+    $shared = $middleware->share($request);
+
+    expect($shared['impersonation'])->toBe(['impersonator' => 'Admin User']);
+});
+
 it('shares null flash messages when the request has no session', function (): void {
     $middleware = $this->app->make(HandleInertiaRequests::class);
 

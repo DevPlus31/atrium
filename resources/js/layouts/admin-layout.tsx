@@ -6,6 +6,7 @@ import { AdminCommandPalette } from '@/components/admin/admin-command-palette';
 import { AdminHeader } from '@/components/admin/admin-header';
 import { AdminSidebar } from '@/components/admin/admin-sidebar';
 import { AdminTopbar } from '@/components/admin/admin-topbar';
+import { ImpersonationBanner } from '@/components/admin/impersonation-banner';
 import { AppContent } from '@/components/app-content';
 import { AppShell } from '@/components/app-shell';
 import { useSharedFlashToast } from '@/hooks/use-flash-toast';
@@ -56,6 +57,7 @@ export default function AdminLayout({
         return (
             <DirectionProvider dir={layout.direction}>
                 <div className="flex min-h-svh w-full flex-col bg-background">
+                    <ImpersonationBanner />
                     <AdminTopbar
                         nav={nav}
                         breadcrumbs={breadcrumbs}
@@ -84,6 +86,7 @@ export default function AdminLayout({
                     onOpenCommandPalette={openCommandPalette}
                 />
                 <AppContent variant="sidebar" className="overflow-x-hidden">
+                    <ImpersonationBanner />
                     <AdminHeader
                         breadcrumbs={breadcrumbs}
                         className={headerClassName}

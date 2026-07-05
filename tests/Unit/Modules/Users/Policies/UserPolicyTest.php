@@ -7,7 +7,7 @@ use Modules\Users\Policies\UserPolicy;
 use Spatie\Permission\Models\Permission;
 
 beforeEach(function (): void {
-    foreach (['users.view', 'users.create', 'users.update', 'users.delete', 'users.export'] as $permission) {
+    foreach (['users.view', 'users.create', 'users.update', 'users.delete', 'users.export', 'users.impersonate'] as $permission) {
         Permission::findOrCreate($permission);
     }
 
@@ -71,4 +71,32 @@ it('allows exporting users only with the users.export permission', function (): 
     $user->givePermissionTo('users.export');
 
     expect($this->policy->export($user->refresh()))->toBeTrue();
+});
+
+it('allows impersonating other users only with the users.impersonate permission', function (): void {
+    $user = User::factory()->create();
+    $other = User::factory()->create();
+
+    expect($this->policy->impersonate($user, $other))->toBeFalse();
+
+    $user->givePermissionTo('users.impersonate');
+
+    expect($this->policy->impersonate($user->refresh(), $other))->toBeTrue();
+});
+
+it('denies self-impersonation even with the users.impersonate permission', function (): void {
+    $user = User::factory()->create();
+    $user->givePermissionTo('users.impersonate');
+
+    expect($this->policy->impersonate($user->refresh(), $user))->toBeFalse();
+});
+
+it('denies impersonating a user who can impersonate', function (): void {
+    $user = User::factory()->create();
+    $other = User::factory()->create();
+
+    $user->givePermissionTo('users.impersonate');
+    $other->givePermissionTo('users.impersonate');
+
+    expect($this->policy->impersonate($user->refresh(), $other->refresh()))->toBeFalse();
 });

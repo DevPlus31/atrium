@@ -12,7 +12,7 @@ final class UserData extends Data
 {
     /**
      * @param  list<string>  $roles
-     * @param  array{update: bool, delete: bool}  $can
+     * @param  array{update: bool, delete: bool, impersonate: bool}  $can
      */
     public function __construct(
         public string $id,
@@ -43,6 +43,7 @@ final class UserData extends Data
             can: [
                 'update' => $viewer?->can('update', $user) ?? false,
                 'delete' => $viewer?->can('delete', $user) ?? false,
+                'impersonate' => $viewer?->can('impersonate', $user) ?? false,
             ],
         );
     }

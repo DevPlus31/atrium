@@ -10,7 +10,13 @@ import {
 import { Button } from '@/components/ui/button';
 import { useTableState } from '@/hooks/use-table-state';
 import AdminLayout from '@/layouts/admin-layout';
-import { create, destroy, exportMethod, index } from '@/routes/admin/users';
+import {
+    create,
+    destroy,
+    exportMethod,
+    impersonate,
+    index,
+} from '@/routes/admin/users';
 import type { BreadcrumbItem } from '@/types';
 import type { Paginated } from '@/types/admin';
 import type { UserRow } from '../components/user-columns';
@@ -39,7 +45,9 @@ export default function UsersIndex({ users, roles }: UsersIndexProps) {
         exportMethod.url() +
         (queryIndex === -1 ? '' : pageUrl.slice(queryIndex));
 
-    const columns = buildUserColumns(setPendingDelete);
+    const columns = buildUserColumns(setPendingDelete, (user) => {
+        router.post(impersonate.url(user.id));
+    });
 
     const confirmDelete = () => {
         if (pendingDelete === null) {

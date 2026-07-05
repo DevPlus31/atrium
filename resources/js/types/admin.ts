@@ -15,6 +15,10 @@ export type Flash = {
 
 export type LayoutConfig = App.Modules.Data.LayoutConfigData;
 
+export type Impersonation = {
+    impersonator: string;
+};
+
 export type PaginationMeta = {
     current_page: number;
     from: number | null;

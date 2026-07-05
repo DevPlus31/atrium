@@ -119,6 +119,7 @@ declare namespace Modules {
                 can: {
                     update: boolean;
                     delete: boolean;
+                    impersonate: boolean;
                 };
             };
             export type UsersTotalWidgetData = {

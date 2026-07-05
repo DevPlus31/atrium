@@ -92,8 +92,10 @@ it('ships per-row abilities that forbid self-deletion', function (): void {
         ->where('users.data.0.id', $admin->id)
         ->where('users.data.0.can.update', true)
         ->where('users.data.0.can.delete', false)
+        ->where('users.data.0.can.impersonate', false)
         ->where('users.data.1.id', $other->id)
-        ->where('users.data.1.can.delete', true));
+        ->where('users.data.1.can.delete', true)
+        ->where('users.data.1.can.impersonate', true));
 });
 
 it('applies the search filter to the index', function (): void {

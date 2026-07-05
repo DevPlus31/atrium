@@ -13,6 +13,7 @@ use App\Http\Controllers\UserProfileController;
 use App\Http\Controllers\UserTwoFactorAuthenticationController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use Modules\Users\Http\Controllers\LeaveImpersonationController;
 
 Route::get('/', fn () => Inertia::render('welcome'))->name('home');
 
@@ -44,6 +45,10 @@ Route::middleware('auth')->group(function (): void {
     // User Two-Factor Authentication...
     Route::get('settings/two-factor', [UserTwoFactorAuthenticationController::class, 'show'])
         ->name('two-factor.show');
+
+    // Impersonation (outside the admin group: the impersonated user
+    // usually lacks the admin role, but must always be able to leave)...
+    Route::post('impersonation/leave', LeaveImpersonationController::class)->name('impersonation.leave');
 });
 
 Route::middleware('guest')->group(function (): void {

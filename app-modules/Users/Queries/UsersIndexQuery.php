@@ -39,7 +39,9 @@ final readonly class UsersIndexQuery
             ->allowedSorts('name', 'email', 'created_at')
             ->defaultSort('-created_at');
 
-        $builder->getEloquentBuilder()->with('roles');
+        // Roles feed the index columns; direct permissions feed the per-row
+        // impersonation ability check without an N+1.
+        $builder->getEloquentBuilder()->with(['roles', 'permissions']);
 
         return $builder;
     }
