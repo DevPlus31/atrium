@@ -48,7 +48,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: node_modules
-          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lockb') }}
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
           restore-keys: ${{ runner.os }}-bun-
 
       - name: Install Dependencies
@@ -59,6 +59,13 @@ jobs:
 
       - name: Generate Application Key
         run: php artisan key:generate
+
+      # Wayfinder introspects route-model key types from the schema during
+      # asset builds; without a migrated database it degrades them to string.
+      - name: Prepare Database
+        run: |
+          touch database/database.sqlite
+          php artisan migrate --force
 
       - name: Install Bun Dependencies
         run: bun install
