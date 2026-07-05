@@ -30,6 +30,28 @@ it('creates a user with a hashed password and synced roles', function (): void {
     Event::assertDispatched(Registered::class, fn (Registered $event): bool => $event->user->is($user));
 });
 
+it('creates an unverified user by default and a verified one on demand', function (): void {
+    Role::findOrCreate('editor');
+
+    $unverified = new CreateUser()->handle(
+        name: 'Jane Doe',
+        email: 'jane@example.com',
+        password: 'super-secret-password',
+        roles: ['editor'],
+    );
+
+    $verified = new CreateUser()->handle(
+        name: 'John Doe',
+        email: 'john@example.com',
+        password: 'super-secret-password',
+        roles: ['editor'],
+        verified: true,
+    );
+
+    expect($unverified->hasVerifiedEmail())->toBeFalse()
+        ->and($verified->hasVerifiedEmail())->toBeTrue();
+});
+
 it('writes a created activity with the given attributes', function (): void {
     Role::findOrCreate('editor');
 

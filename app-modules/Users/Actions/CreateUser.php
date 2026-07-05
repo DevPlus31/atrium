@@ -14,13 +14,14 @@ final readonly class CreateUser
     /**
      * @param  list<string>  $roles
      */
-    public function handle(string $name, string $email, #[SensitiveParameter] string $password, array $roles): User
+    public function handle(string $name, string $email, #[SensitiveParameter] string $password, array $roles, bool $verified = false): User
     {
-        return DB::transaction(function () use ($name, $email, $password, $roles): User {
+        return DB::transaction(function () use ($name, $email, $password, $roles, $verified): User {
             $user = User::query()->create([
                 'name' => $name,
                 'email' => $email,
                 'password' => $password,
+                'email_verified_at' => $verified ? now() : null,
             ]);
 
             $user->syncRoles($roles);
