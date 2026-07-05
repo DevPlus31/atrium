@@ -8,6 +8,7 @@ use App\Modules\PermissionRegistry;
 use App\Modules\WidgetRegistry;
 use App\Providers\HorizonServiceProvider;
 use App\Providers\TypeScriptTransformerServiceProvider;
+use Modules\Audit\Providers\AuditServiceProvider;
 use Modules\Dashboard\Providers\DashboardServiceProvider;
 use Modules\Roles\Providers\RolesServiceProvider;
 use Modules\System\Providers\SystemServiceProvider;
@@ -18,6 +19,7 @@ arch()->preset()->strict()->ignoring([
     HorizonServiceProvider::class,
     ModuleServiceProvider::class,
     TypeScriptTransformerServiceProvider::class,
+    AuditServiceProvider::class,
     DashboardServiceProvider::class,
     RolesServiceProvider::class,
     SystemServiceProvider::class,
@@ -48,6 +50,7 @@ arch('module service providers extend the module contract')
     ->expect([
         'Tests\Fixtures\Modules\TestModule\Providers',
         'Tests\Fixtures\Modules\BareModule\Providers',
+        'Modules\Audit\Providers',
         'Modules\Dashboard\Providers',
         'Modules\Roles\Providers',
         'Modules\System\Providers',

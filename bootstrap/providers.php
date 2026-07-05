@@ -7,6 +7,7 @@ return [
     App\Providers\FortifyServiceProvider::class,
     App\Providers\HorizonServiceProvider::class,
     App\Providers\TypeScriptTransformerServiceProvider::class,
+    Modules\Audit\Providers\AuditServiceProvider::class,
     Modules\Dashboard\Providers\DashboardServiceProvider::class,
     Modules\Roles\Providers\RolesServiceProvider::class,
     Modules\System\Providers\SystemServiceProvider::class,

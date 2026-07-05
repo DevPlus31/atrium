@@ -24,7 +24,10 @@ it('registers the system nav items for permitted admins', function (): void {
     $admin = systemNavAdmin();
 
     $navItems = collect($this->app->make(NavRegistry::class)->itemsFor($admin));
-    $systemItems = $navItems->where('group', 'System')->values();
+    $systemItems = $navItems
+        ->where('group', 'System')
+        ->whereIn('label', ['Pulse', 'Horizon', 'Logs'])
+        ->values();
 
     expect($systemItems)->toHaveCount(3)
         ->and($systemItems[0]->label)->toBe('Pulse')
@@ -50,7 +53,10 @@ it('hides a system nav item when its permission is missing', function (): void {
     $admin = systemNavAdmin();
 
     $navItems = collect($this->app->make(NavRegistry::class)->itemsFor($admin));
-    $systemItems = $navItems->where('group', 'System')->values();
+    $systemItems = $navItems
+        ->where('group', 'System')
+        ->whereIn('label', ['Pulse', 'Horizon', 'Logs'])
+        ->values();
 
     expect($systemItems->pluck('label')->all())->toBe(['Pulse', 'Logs']);
 });
@@ -69,5 +75,6 @@ it('shares the system nav items with the external flag over inertia', function (
     $response->assertOk()->assertInertia(fn ($page) => $page
         ->where('nav', fn ($nav) => collect($nav)
             ->where('group', 'System')
+            ->whereIn('label', ['Pulse', 'Horizon', 'Logs'])
             ->every(fn (array $item): bool => $item['external'] === true)));
 });

@@ -9,6 +9,10 @@ use Illuminate\Support\Sleep;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
+// Xdebug coverage instrumentation slows browser tests well past the default
+// 5s assertion timeout; a higher ceiling keeps the coverage gate deterministic.
+pest()->browser()->timeout(15000);
+
 pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
     ->beforeEach(function (): void {

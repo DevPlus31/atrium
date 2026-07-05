@@ -75,6 +75,24 @@ declare namespace Illuminate {
         Illuminate.LengthAwarePaginator<TKey, TValue>;
 }
 declare namespace Modules {
+    namespace Audit {
+        namespace Data {
+            export type ActivityData = {
+                id: string;
+                log_name: string | null;
+                event: string | null;
+                description: string;
+                causer: {
+                    name: string;
+                    email: string;
+                } | null;
+                subject_type: string | null;
+                subject_id: string | null;
+                changes: Record<string, unknown>;
+                created_at: string;
+            };
+        }
+    }
     namespace Dashboard {
         namespace Data {
             export type WidgetDescriptorData = {
