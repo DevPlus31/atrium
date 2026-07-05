@@ -347,6 +347,43 @@ it('validates the update request', function (): void {
         ->assertSessionDoesntHaveErrors();
 });
 
+it('rejects an admin removing their own admin role', function (): void {
+    $admin = usersModuleAdmin();
+
+    $response = $this->actingAs($admin)
+        ->fromRoute('admin.users.edit', $admin)
+        ->put(route('admin.users.update', $admin), [
+            'name' => $admin->name,
+            'email' => $admin->email,
+            'roles' => [],
+        ]);
+
+    $response->assertRedirectToRoute('admin.users.edit', $admin)
+        ->assertSessionHasErrors(['roles' => 'You cannot remove your own admin role.']);
+
+    expect($admin->refresh()->hasRole('admin'))->toBeTrue();
+});
+
+it('allows an admin updating themselves while keeping the admin role', function (): void {
+    Role::findOrCreate('editor');
+    $admin = usersModuleAdmin();
+
+    $response = $this->actingAs($admin)
+        ->fromRoute('admin.users.edit', $admin)
+        ->put(route('admin.users.update', $admin), [
+            'name' => 'Renamed Admin',
+            'email' => $admin->email,
+            'roles' => ['admin', 'editor'],
+        ]);
+
+    $response->assertRedirectToRoute('admin.users.index')
+        ->assertSessionDoesntHaveErrors();
+
+    expect($admin->refresh()->name)->toBe('Renamed Admin')
+        ->and($admin->hasRole('admin'))->toBeTrue()
+        ->and($admin->hasRole('editor'))->toBeTrue();
+});
+
 it('deletes a user and redirects with a success flash', function (): void {
     $admin = usersModuleAdmin();
     $user = User::factory()->create();
