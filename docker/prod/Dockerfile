@@ -60,9 +60,11 @@ RUN ln -s /usr/local/bin/bun /usr/local/bin/bunx
 WORKDIR /app
 
 # Dummy environment so artisan can boot during the build without real secrets.
+# The APP_KEY below is 32 zero bytes — obviously not a real key; the runtime
+# stage never inherits it, deployments must supply one via environment.
 ENV APP_ENV=production \
     APP_DEBUG=false \
-    APP_KEY=base64:bOGeUUf4Qexn3B8bEGGlwLjX955/rZY1sIQD9VBzcQo= \
+    APP_KEY=base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= \
     DB_CONNECTION=sqlite \
     DB_DATABASE=:memory: \
     CACHE_STORE=array \

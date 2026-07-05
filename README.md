@@ -65,3 +65,16 @@ Tests live in root `tests/` mirroring module namespaces (`tests/Feature/Modules/
 - Modules reading layout config, overriding tokens, or injecting global CSS.
 
 Deliberately deferred (designed-for, not built): DB-driven white-label theming via spatie/laravel-settings, per-user dashboard widget reordering (dnd-kit).
+
+## Using Atrium as a template
+
+Atrium is meant to be the upstream for many projects: the shell is generic, domain code lives in modules.
+
+1. **Start a project**: use GitHub's "Use this template" (or clone), rename, configure `.env`, run the first-run steps above.
+2. **Build only modules**: add your domains under `app-modules/<Name>/` following the Users module as the canonical reference. Do not modify shell code downstream — `app/Modules/`, `resources/js/components/data-table/`, `resources/js/layouts/`, the theming CSS, or the generic modules.
+3. **Pull shell improvements**: `git remote add atrium <this-repo> && git fetch atrium && git merge atrium/main`. Because downstream work is confined to your own modules, merges stay near conflict-free.
+4. **Improve the shell upstream first** (in this repo), then merge down into projects — never the other way around.
+
+## License
+
+MIT. Built on [nunomaduro/laravel-starter-kit-inertia-react](https://github.com/nunomaduro/laravel-starter-kit-inertia-react) (MIT).
