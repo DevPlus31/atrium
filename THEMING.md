@@ -9,7 +9,9 @@ How the admin panel re-skins and re-shapes itself. Governed by
 (`bg-white`, `text-blue-600`), no color literals (hex/rgb/oklch) in
 `className` or styles, and no physical direction utilities (`ml-`, `pl-`,
 `left-`, `text-left`, `rounded-l*`) — use logical ones (`ms-`, `ps-`,
-`start-`, `text-start`, `rounded-s*`). Enforced by `bun scripts/theme-lint.ts`
+`start-`, `text-start`, `rounded-s*`). Enforced by `bun run lint:theme`
+(part of `bun run lint` / `bun run test:lint`, so it runs in every
+`composer test` gate)
 over `resources/js/{layouts,components,pages,hooks}` and every
 `app-modules/*/resources/js`. A genuinely-directional exception is silenced
 with `// theme-lint-allow-next-line <rule>` on the line above.

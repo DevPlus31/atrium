@@ -5,8 +5,9 @@
         "build": "vp build",
         "build:ssr": "vp build && vp build --ssr",
         "dev": "vp dev",
-        "lint": "NODE_OPTIONS='--experimental-strip-types' vp fmt resources/ app-modules/ && NODE_OPTIONS='--experimental-strip-types' vp lint --fix",
-        "test:lint": "NODE_OPTIONS='--experimental-strip-types' vp fmt --check resources/ app-modules/ && NODE_OPTIONS='--experimental-strip-types' vp lint",
+        "lint": "NODE_OPTIONS='--experimental-strip-types' vp fmt resources/ app-modules/ && NODE_OPTIONS='--experimental-strip-types' vp lint --fix && bun run lint:theme",
+        "lint:theme": "bun scripts/theme-lint.ts",
+        "test:lint": "NODE_OPTIONS='--experimental-strip-types' vp fmt --check resources/ app-modules/ && NODE_OPTIONS='--experimental-strip-types' vp lint && bun run lint:theme",
         "test:types": "tsc --noEmit"
     },
     "devDependencies": {
