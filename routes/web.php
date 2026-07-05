@@ -7,6 +7,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserEmailResetNotificationController;
 use App\Http\Controllers\UserEmailVerificationController;
 use App\Http\Controllers\UserEmailVerificationNotificationController;
+use App\Http\Controllers\UserPasskeysController;
 use App\Http\Controllers\UserPasswordController;
 use App\Http\Controllers\UserPreferencesController;
 use App\Http\Controllers\UserProfileController;
@@ -45,6 +46,10 @@ Route::middleware('auth')->group(function (): void {
     // User Two-Factor Authentication...
     Route::get('settings/two-factor', [UserTwoFactorAuthenticationController::class, 'show'])
         ->name('two-factor.show');
+
+    // User Passkeys...
+    Route::get('settings/passkeys', [UserPasskeysController::class, 'show'])
+        ->name('passkeys.show');
 
     // Impersonation (outside the admin group: the impersonated user
     // usually lacks the admin role, but must always be able to leave)...

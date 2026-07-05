@@ -119,6 +119,25 @@ return [
     'limiters' => [
         'login' => 'login',
         'two-factor' => 'two-factor',
+        'passkeys' => 'passkeys',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Passkeys
+    |--------------------------------------------------------------------------
+    |
+    | These options control the WebAuthn relying party used when registering
+    | and authenticating passkeys. Fortify forwards them to the underlying
+    | laravel/passkeys package at runtime, so no separate config exists.
+    |
+    */
+
+    'passkeys' => [
+        'relying_party_id' => parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST),
+        'allowed_origins' => [env('APP_URL', 'http://localhost')],
+        'user_handle_secret' => env('PASSKEYS_USER_HANDLE_SECRET', env('APP_KEY')),
+        'timeout' => 60000,
     ],
 
     /*
@@ -155,6 +174,9 @@ return [
             'confirm' => true,
             'confirmPassword' => true,
             // 'window' => 0
+        ]),
+        Features::passkeys([
+            'confirmPassword' => true,
         ]),
     ],
 

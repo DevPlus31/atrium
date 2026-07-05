@@ -1,4 +1,6 @@
-import { Form, Head } from '@inertiajs/react';
+import { Form, Head, router } from '@inertiajs/react';
+import { usePasskeyVerify } from '@laravel/passkeys/react';
+import { KeyRound } from 'lucide-react';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
 import TextLink from '@/components/text-link';
@@ -8,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import AuthLayout from '@/layouts/auth-layout';
-import { register } from '@/routes';
+import { dashboard, register } from '@/routes';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
 
@@ -23,6 +25,17 @@ export default function Login({
     canResetPassword,
     canRegister,
 }: Props) {
+    const {
+        verify,
+        isLoading: verifyingPasskey,
+        error: passkeyError,
+        isSupported: passkeysSupported,
+    } = usePasskeyVerify({
+        onSuccess: (response) => {
+            router.visit(response.redirect ?? dashboard().url);
+        },
+    });
+
     return (
         <AuthLayout
             title="Log in to your account"
@@ -96,6 +109,32 @@ export default function Login({
                                 {processing && <Spinner />}
                                 Log in
                             </Button>
+
+                            {passkeysSupported && (
+                                <div className="grid gap-2">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        className="w-full"
+                                        tabIndex={6}
+                                        disabled={verifyingPasskey}
+                                        data-test="passkey-login-button"
+                                        onClick={() => {
+                                            void verify();
+                                        }}
+                                    >
+                                        {verifyingPasskey ? (
+                                            <Spinner />
+                                        ) : (
+                                            <KeyRound />
+                                        )}
+                                        Sign in with a passkey
+                                    </Button>
+                                    <InputError
+                                        message={passkeyError ?? undefined}
+                                    />
+                                </div>
+                            )}
                         </div>
 
                         {canRegister && (
