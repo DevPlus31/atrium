@@ -1,5 +1,7 @@
 # Atrium
 
+[![tests](https://github.com/DevPlus31/atrium/actions/workflows/tests.yml/badge.svg)](https://github.com/DevPlus31/atrium/actions/workflows/tests.yml)
+
 Modular, extensible admin panel. Laravel 13 · Inertia v3 · React 19 · TypeScript (strict) · Tailwind v4 · shadcn/ui, built on `nunomaduro/laravel-starter-kit-inertia-react`. Ultra-strict by construction: PHPStan level max, 100% line + type coverage, Rector, Pint, OxLint/Oxfmt, and a custom theme lint — all enforced as gates.
 
 **Governing specs (read before any nontrivial change):** `docs/specs/build-prompt.md` (architecture, module contract, definition of done) and `docs/specs/theming.md` (token-only theming, layout variants, RTL). `THEMING.md` documents the token and layout contracts.
