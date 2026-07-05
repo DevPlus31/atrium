@@ -29,7 +29,7 @@ it('renders the dashboard in every preset and appearance', function (string $the
 
     $page->assertSee('Dashboard')
         ->assertNoJavaScriptErrors()
-        ->screenshot(filename: "dashboard-{$theme}-{$appearance}");
+        ->screenshot(filename: sprintf('dashboard-%s-%s', $theme, $appearance));
 })
     ->with(['default', 'ember', 'contrast'])
     ->with(['light', 'dark']);
@@ -49,12 +49,12 @@ it('renders the reference surfaces in each layout variant', function (array $lay
     visit(route('admin.users.index'))
         ->assertSee('Users')
         ->assertNoJavaScriptErrors()
-        ->screenshot(filename: "users-index-{$name}");
+        ->screenshot(filename: 'users-index-'.$name);
 
     visit(route('admin.users.create'))
         ->assertSee('Create')
         ->assertNoJavaScriptErrors()
-        ->screenshot(filename: "users-create-{$name}");
+        ->screenshot(filename: 'users-create-'.$name);
 })->with([
     'sidebar-left icon' => [['nav_placement' => 'sidebar-left', 'sidebar_collapsible' => 'icon']],
     'sidebar-left offcanvas' => [['nav_placement' => 'sidebar-left', 'sidebar_collapsible' => 'offcanvas']],

@@ -9,6 +9,7 @@ use App\Modules\WidgetRegistry;
 use App\Providers\HorizonServiceProvider;
 use App\Providers\TypeScriptTransformerServiceProvider;
 use Modules\Dashboard\Providers\DashboardServiceProvider;
+use Modules\Roles\Providers\RolesServiceProvider;
 use Modules\System\Providers\SystemServiceProvider;
 use Modules\Users\Providers\UsersServiceProvider;
 
@@ -18,6 +19,7 @@ arch()->preset()->strict()->ignoring([
     ModuleServiceProvider::class,
     TypeScriptTransformerServiceProvider::class,
     DashboardServiceProvider::class,
+    RolesServiceProvider::class,
     SystemServiceProvider::class,
     UsersServiceProvider::class,
 ]);
@@ -47,6 +49,7 @@ arch('module service providers extend the module contract')
         'Tests\Fixtures\Modules\TestModule\Providers',
         'Tests\Fixtures\Modules\BareModule\Providers',
         'Modules\Dashboard\Providers',
+        'Modules\Roles\Providers',
         'Modules\System\Providers',
         'Modules\Users\Providers',
     ])
@@ -54,6 +57,11 @@ arch('module service providers extend the module contract')
 
 arch('module actions are final and readonly')
     ->expect('Modules\Users\Actions')
+    ->toBeFinal()
+    ->toBeReadonly();
+
+arch('roles module actions are final and readonly')
+    ->expect('Modules\Roles\Actions')
     ->toBeFinal()
     ->toBeReadonly();
 
