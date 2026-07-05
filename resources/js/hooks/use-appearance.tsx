@@ -94,6 +94,22 @@ const applyThemePreset = (preset: ThemePreset): void => {
     document.documentElement.setAttribute('data-theme', preset);
 };
 
+const setAppearance = (mode: Appearance): void => {
+    currentAppearance = mode;
+
+    setCookie('appearance', mode);
+    applyAppearance(mode);
+    notify();
+};
+
+const setThemePreset = (preset: ThemePreset): void => {
+    currentTheme = preset;
+
+    setCookie('theme', preset);
+    applyThemePreset(preset);
+    notify();
+};
+
 const subscribe = (callback: () => void) => {
     listeners.add(callback);
 
@@ -131,13 +147,50 @@ export function initializeTheme(): void {
     mediaQuery()?.addEventListener('change', handleSystemThemeChange);
 }
 
+/**
+ * Read-mostly appearance state, safe outside the Inertia component tree
+ * (e.g. the global toaster). `updateAppearance` here persists the cookie
+ * only; the admin shell uses `useThemePreference` so changes also mirror
+ * to the authenticated user's preference columns.
+ */
 export function useAppearance(): UseAppearanceReturn {
-    const { auth, appearance: serverAppearance } = usePage().props;
-
     const appearance: Appearance = useSyncExternalStore(
         subscribe,
         () => currentAppearance,
-        () => (isAppearance(serverAppearance) ? serverAppearance : 'system'),
+        () => 'system',
+    );
+
+    const resolvedAppearance: ResolvedAppearance = isDarkMode(appearance)
+        ? 'dark'
+        : 'light';
+
+    return {
+        appearance,
+        resolvedAppearance,
+        updateAppearance: setAppearance,
+    } as const;
+}
+
+/**
+ * The theme-preference hook (docs/specs/theming.md): current appearance,
+ * preset, and layout config plus setters. Setters stamp the root element
+ * immediately, persist to cookies for guests, and mirror to the user's
+ * preference columns when authenticated. Must render inside the Inertia
+ * component tree.
+ */
+export function useThemePreference(): UseThemePreferenceReturn {
+    const {
+        auth,
+        appearance: serverAppearance,
+        theme: serverTheme,
+        layout,
+    } = usePage().props;
+    const { appearance, resolvedAppearance } = useAppearance();
+
+    const theme: ThemePreset = useSyncExternalStore(
+        subscribe,
+        () => currentTheme,
+        () => (isThemePreset(serverTheme) ? serverTheme : 'default'),
     );
 
     // A fresh server render (another device, login) wins over local state.
@@ -152,45 +205,6 @@ export function useAppearance(): UseAppearanceReturn {
         }
     }, [serverAppearance]);
 
-    const resolvedAppearance: ResolvedAppearance = isDarkMode(appearance)
-        ? 'dark'
-        : 'light';
-
-    const updateAppearance = (mode: Appearance): void => {
-        currentAppearance = mode;
-
-        setCookie('appearance', mode);
-        applyAppearance(mode);
-        notify();
-
-        if (auth.user) {
-            router.patch(
-                update.url(),
-                { appearance: mode },
-                { preserveScroll: true, preserveState: true },
-            );
-        }
-    };
-
-    return { appearance, resolvedAppearance, updateAppearance } as const;
-}
-
-/**
- * The theme-preference hook (docs/specs/theming.md): current appearance,
- * preset, and layout config plus setters. Setters stamp the root element
- * immediately, persist to cookies for guests, and mirror to the user's
- * preference columns when authenticated.
- */
-export function useThemePreference(): UseThemePreferenceReturn {
-    const { auth, theme: serverTheme, layout } = usePage().props;
-    const appearanceApi = useAppearance();
-
-    const theme: ThemePreset = useSyncExternalStore(
-        subscribe,
-        () => currentTheme,
-        () => (isThemePreset(serverTheme) ? serverTheme : 'default'),
-    );
-
     useEffect(() => {
         if (isThemePreset(serverTheme) && serverTheme !== currentTheme) {
             currentTheme = serverTheme;
@@ -199,19 +213,24 @@ export function useThemePreference(): UseThemePreferenceReturn {
         }
     }, [serverTheme]);
 
-    const updateTheme = (preset: ThemePreset): void => {
-        currentTheme = preset;
+    const patchOptions = {
+        preserveScroll: true,
+        preserveState: true,
+    } as const;
 
-        setCookie('theme', preset);
-        applyThemePreset(preset);
-        notify();
+    const updateAppearance = (mode: Appearance): void => {
+        setAppearance(mode);
 
         if (auth.user) {
-            router.patch(
-                update.url(),
-                { theme: preset },
-                { preserveScroll: true, preserveState: true },
-            );
+            router.patch(update.url(), { appearance: mode }, patchOptions);
+        }
+    };
+
+    const updateTheme = (preset: ThemePreset): void => {
+        setThemePreset(preset);
+
+        if (auth.user) {
+            router.patch(update.url(), { theme: preset }, patchOptions);
         }
     };
 
@@ -223,16 +242,14 @@ export function useThemePreference(): UseThemePreferenceReturn {
         }
 
         if (auth.user) {
-            router.patch(
-                update.url(),
-                { layout: options },
-                { preserveScroll: true, preserveState: true },
-            );
+            router.patch(update.url(), { layout: options }, patchOptions);
         }
     };
 
     return {
-        ...appearanceApi,
+        appearance,
+        resolvedAppearance,
+        updateAppearance,
         theme,
         updateTheme,
         layout,
