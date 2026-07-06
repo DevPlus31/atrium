@@ -1,4 +1,5 @@
 import { Link } from '@inertiajs/react';
+import { useLaravelReactI18n } from 'laravel-react-i18n';
 import type { PropsWithChildren } from 'react';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
@@ -41,6 +42,7 @@ const sidebarNavItems: NavItem[] = [
 ];
 
 export default function SettingsLayout({ children }: PropsWithChildren) {
+    const { t } = useLaravelReactI18n();
     const { isCurrentOrParentUrl } = useCurrentUrl();
 
     // When server-side rendering, we only render the layout on the client...
@@ -51,15 +53,15 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
     return (
         <div className="px-4 py-6">
             <Heading
-                title="Settings"
-                description="Manage your profile and account settings"
+                title={t('Settings')}
+                description={t('Manage your profile and account settings')}
             />
 
             <div className="flex flex-col lg:flex-row lg:space-x-12">
                 <aside className="w-full max-w-xl lg:w-48">
                     <nav
                         className="flex flex-col space-y-1 space-x-0"
-                        aria-label="Settings"
+                        aria-label={t('Settings')}
                     >
                         {sidebarNavItems.map((item, index) => (
                             <Button
@@ -75,7 +77,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                                     {item.icon && (
                                         <item.icon className="h-4 w-4" />
                                     )}
-                                    {item.title}
+                                    {t(item.title)}
                                 </Link>
                             </Button>
                         ))}

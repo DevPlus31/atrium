@@ -21,13 +21,17 @@ final readonly class HandleAppearance
     /**
      * Share the resolved appearance, theme preset, and direction with the
      * root Blade view so <html> is stamped before first paint (no flash of
-     * wrong theme, preset, or direction).
+     * wrong theme, preset, or direction), and apply the resolved locale so
+     * every server-rendered string — including <html lang> — matches the
+     * user's preference.
      *
      * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
         $resolved = $this->preferences->handle($request);
+
+        app()->setLocale($resolved['locale']);
 
         View::share('appearance', $resolved['appearance']->value);
         View::share('theme', $resolved['theme'] === ThemePreset::Default ? null : $resolved['theme']->value);

@@ -20,6 +20,16 @@ it('updates the appearance and theme preferences', function (): void {
         ->and($user->theme)->toBe(ThemePreset::Ember);
 });
 
+it('updates the locale preference', function (): void {
+    $user = User::factory()->create();
+
+    $action = resolve(UpdateUserPreferences::class);
+
+    $action->handle($user, ['locale' => 'en']);
+
+    expect($user->refresh()->locale)->toBe('en');
+});
+
 it('merges layout updates over the stored layout', function (): void {
     $user = User::factory()->create([
         'layout' => ['direction' => 'rtl'],
@@ -60,5 +70,6 @@ it('does not touch the user when no preference keys are given', function (): voi
     expect($user->appearance)->toBeNull()
         ->and($user->theme)->toBeNull()
         ->and($user->layout)->toBeNull()
+        ->and($user->locale)->toBeNull()
         ->and($user->updated_at?->equalTo($updatedAt))->toBeTrue();
 });

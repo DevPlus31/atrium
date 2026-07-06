@@ -1,4 +1,5 @@
 import { Head, Link, usePage } from '@inertiajs/react';
+import { useLaravelReactI18n } from 'laravel-react-i18n';
 import AppLogoIcon from '@/components/app-logo-icon';
 import { Button } from '@/components/ui/button';
 import { dashboard, login, register } from '@/routes';
@@ -8,11 +9,12 @@ export default function Welcome({
 }: {
     canRegister?: boolean;
 }) {
+    const { t } = useLaravelReactI18n();
     const { auth, name } = usePage().props;
 
     return (
         <>
-            <Head title="Welcome">
+            <Head title={t('Welcome')}>
                 <link rel="preconnect" href="https://fonts.bunny.net" />
                 <link
                     href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600"
@@ -24,16 +26,18 @@ export default function Welcome({
                     <nav className="flex items-center justify-end gap-2">
                         {auth.user ? (
                             <Button asChild variant="outline" size="sm">
-                                <Link href={dashboard()}>Dashboard</Link>
+                                <Link href={dashboard()}>{t('Dashboard')}</Link>
                             </Button>
                         ) : (
                             <>
                                 <Button asChild variant="ghost" size="sm">
-                                    <Link href={login()}>Log in</Link>
+                                    <Link href={login()}>{t('Log in')}</Link>
                                 </Button>
                                 {canRegister && (
                                     <Button asChild variant="outline" size="sm">
-                                        <Link href={register()}>Register</Link>
+                                        <Link href={register()}>
+                                            {t('Register')}
+                                        </Link>
                                     </Button>
                                 )}
                             </>
@@ -50,9 +54,9 @@ export default function Welcome({
                                 {name}
                             </h1>
                             <p className="mx-auto max-w-md text-balance text-muted-foreground">
-                                A modular admin panel built on the Laravel
-                                starter kit — Inertia, React, and a fully
-                                themable shell.
+                                {t(
+                                    'A modular admin panel built on the Laravel starter kit — Inertia, React, and a fully themable shell.',
+                                )}
                             </p>
                         </div>
                         <div className="flex items-center gap-3">
@@ -62,7 +66,7 @@ export default function Welcome({
                                     target="_blank"
                                     rel="noopener noreferrer"
                                 >
-                                    Read the docs
+                                    {t('Read the docs')}
                                 </a>
                             </Button>
                             <Button asChild variant="secondary">
@@ -71,7 +75,7 @@ export default function Welcome({
                                     target="_blank"
                                     rel="noopener noreferrer"
                                 >
-                                    Watch tutorials
+                                    {t('Watch tutorials')}
                                 </a>
                             </Button>
                         </div>

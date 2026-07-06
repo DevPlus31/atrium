@@ -82,6 +82,21 @@ return [
 
     'locale' => env('APP_LOCALE', 'en'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Available Locales
+    |--------------------------------------------------------------------------
+    |
+    | The locales users may choose from, keyed by locale code with a native
+    | display name. This list is the single source of truth: it drives the
+    | locale switcher, preference validation, and translation resolution.
+    |
+    */
+
+    'available_locales' => [
+        'en' => 'English',
+    ],
+
     'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
 
     'faker_locale' => env('APP_FAKER_LOCALE', 'en_US'),

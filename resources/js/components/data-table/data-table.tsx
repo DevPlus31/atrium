@@ -4,6 +4,7 @@ import {
     getCoreRowModel,
     useReactTable,
 } from '@tanstack/react-table';
+import { useLaravelReactI18n } from 'laravel-react-i18n';
 import { DataTablePagination } from '@/components/data-table/data-table-pagination';
 import {
     Table,
@@ -35,9 +36,10 @@ export function DataTable<TData>({
     columns,
     paginated,
     tableState,
-    emptyMessage = 'No results.',
+    emptyMessage,
     className,
 }: DataTableProps<TData>) {
+    const { t } = useLaravelReactI18n();
     const sorting: SortingState = tableState.sort
         ? [
               {
@@ -117,7 +119,7 @@ export function DataTable<TData>({
                                     colSpan={columns.length}
                                     className="h-24 py-[var(--density,0.5rem)] text-center text-muted-foreground"
                                 >
-                                    {emptyMessage}
+                                    {emptyMessage ?? t('No results.')}
                                 </TableCell>
                             </TableRow>
                         )}

@@ -1,3 +1,4 @@
+import { useLaravelReactI18n } from 'laravel-react-i18n';
 import { Settings2 } from 'lucide-react';
 import {
     appearanceOptions,
@@ -15,11 +16,12 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useThemePreference } from '@/hooks/use-appearance';
+import { useLocalePreference } from '@/hooks/use-locale';
 
 /**
  * The display settings menu required by docs/specs/theming.md: appearance,
- * theme preset, and navigation placement toggles, available from the shell
- * header in every layout variant.
+ * theme preset, navigation placement, and language toggles, available from
+ * the shell header in every layout variant.
  */
 export function ThemeSettingsMenu() {
     const {
@@ -30,6 +32,8 @@ export function ThemeSettingsMenu() {
         layout,
         updateLayout,
     } = useThemePreference();
+    const { locale, locales, updateLocale } = useLocalePreference();
+    const { t } = useLaravelReactI18n();
 
     return (
         <DropdownMenu>
@@ -40,11 +44,11 @@ export function ThemeSettingsMenu() {
                     className="text-muted-foreground"
                 >
                     <Settings2 />
-                    <span className="sr-only">Display settings</span>
+                    <span className="sr-only">{t('Display settings')}</span>
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>Appearance</DropdownMenuLabel>
+                <DropdownMenuLabel>{t('Appearance')}</DropdownMenuLabel>
                 <DropdownMenuRadioGroup value={appearance}>
                     {appearanceOptions.map((option) => (
                         <DropdownMenuRadioItem
@@ -53,12 +57,12 @@ export function ThemeSettingsMenu() {
                             onSelect={() => updateAppearance(option.value)}
                         >
                             <option.icon className="me-2 size-4" />
-                            {option.label}
+                            {t(option.label)}
                         </DropdownMenuRadioItem>
                     ))}
                 </DropdownMenuRadioGroup>
                 <DropdownMenuSeparator />
-                <DropdownMenuLabel>Theme</DropdownMenuLabel>
+                <DropdownMenuLabel>{t('Theme')}</DropdownMenuLabel>
                 <DropdownMenuRadioGroup value={theme}>
                     {themePresetOptions.map((option) => (
                         <DropdownMenuRadioItem
@@ -66,12 +70,12 @@ export function ThemeSettingsMenu() {
                             value={option.value}
                             onSelect={() => updateTheme(option.value)}
                         >
-                            {option.label}
+                            {t(option.label)}
                         </DropdownMenuRadioItem>
                     ))}
                 </DropdownMenuRadioGroup>
                 <DropdownMenuSeparator />
-                <DropdownMenuLabel>Navigation</DropdownMenuLabel>
+                <DropdownMenuLabel>{t('Navigation')}</DropdownMenuLabel>
                 <DropdownMenuRadioGroup value={layout.nav_placement}>
                     {navPlacementOptions.map((option) => (
                         <DropdownMenuRadioItem
@@ -82,7 +86,20 @@ export function ThemeSettingsMenu() {
                             }
                         >
                             <option.icon className="me-2 size-4" />
-                            {option.label}
+                            {t(option.label)}
+                        </DropdownMenuRadioItem>
+                    ))}
+                </DropdownMenuRadioGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel>{t('Language')}</DropdownMenuLabel>
+                <DropdownMenuRadioGroup value={locale}>
+                    {Object.entries(locales).map(([code, label]) => (
+                        <DropdownMenuRadioItem
+                            key={code}
+                            value={code}
+                            onSelect={() => updateLocale(code)}
+                        >
+                            {label}
                         </DropdownMenuRadioItem>
                     ))}
                 </DropdownMenuRadioGroup>

@@ -15,9 +15,9 @@ use Illuminate\Support\Facades\Cookie;
 final readonly class UserPreferencesController
 {
     /**
-     * Update any subset of {appearance, theme, layout} for the current user
-     * and re-issue the matching js-readable cookies so guests-turned-users
-     * and first paints stay consistent.
+     * Update any subset of {appearance, theme, layout, locale} for the
+     * current user and re-issue the matching js-readable cookies so
+     * guests-turned-users and first paints stay consistent.
      */
     public function __invoke(
         UpdateUserPreferencesRequest $request,
@@ -44,6 +44,12 @@ final readonly class UserPreferencesController
         Cookie::queue(Cookie::forever(
             name: 'layout',
             value: json_encode($preferences['layout'], JSON_THROW_ON_ERROR),
+            httpOnly: false,
+            sameSite: 'lax',
+        ));
+        Cookie::queue(Cookie::forever(
+            name: 'locale',
+            value: $preferences['locale'],
             httpOnly: false,
             sameSite: 'lax',
         ));

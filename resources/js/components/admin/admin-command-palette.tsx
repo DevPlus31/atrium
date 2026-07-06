@@ -1,5 +1,6 @@
 import { router } from '@inertiajs/react';
-import { PanelLeftClose } from 'lucide-react';
+import { useLaravelReactI18n } from 'laravel-react-i18n';
+import { Languages, PanelLeftClose } from 'lucide-react';
 import { useEffect } from 'react';
 import { groupNavItems, resolveNavIcon } from '@/components/admin/nav';
 import {
@@ -18,6 +19,7 @@ import {
 } from '@/components/ui/command';
 import { useSidebar } from '@/components/ui/sidebar';
 import { useThemePreference } from '@/hooks/use-appearance';
+import { useLocalePreference } from '@/hooks/use-locale';
 import type { NavItem } from '@/types/admin';
 
 type AdminCommandPaletteProps = {
@@ -29,17 +31,18 @@ type AdminCommandPaletteProps = {
 
 function SidebarToggleCommand({ onDone }: { onDone: () => void }) {
     const { toggleSidebar } = useSidebar();
+    const { t } = useLaravelReactI18n();
 
     return (
         <CommandItem
-            value="Toggle sidebar collapse"
+            value={t('Toggle sidebar collapse')}
             onSelect={() => {
                 onDone();
                 toggleSidebar();
             }}
         >
             <PanelLeftClose />
-            <span>Toggle sidebar</span>
+            <span>{t('Toggle sidebar')}</span>
         </CommandItem>
     );
 }
@@ -53,6 +56,8 @@ export function AdminCommandPalette({
     const groups = groupNavItems(nav);
     const { updateAppearance, updateTheme, updateLayout } =
         useThemePreference();
+    const { locales, updateLocale } = useLocalePreference();
+    const { t } = useLaravelReactI18n();
 
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
@@ -88,16 +93,16 @@ export function AdminCommandPalette({
         <CommandDialog
             open={open}
             onOpenChange={onOpenChange}
-            title="Command palette"
-            description="Search pages and preferences"
+            title={t('Command palette')}
+            description={t('Search pages and preferences')}
         >
-            <CommandInput placeholder="Search pages and preferences..." />
+            <CommandInput placeholder={t('Search pages and preferences...')} />
             <CommandList>
-                <CommandEmpty>No results found.</CommandEmpty>
+                <CommandEmpty>{t('No results found.')}</CommandEmpty>
                 {groups.map((group) => (
                     <CommandGroup
                         key={group.label ?? '__top-level'}
-                        heading={group.label ?? 'General'}
+                        heading={group.label ?? t('General')}
                     >
                         {group.items.map((item) => {
                             const ItemIcon = resolveNavIcon(item.icon);
@@ -116,43 +121,64 @@ export function AdminCommandPalette({
                     </CommandGroup>
                 ))}
                 <CommandSeparator />
-                <CommandGroup heading="Preferences">
+                <CommandGroup heading={t('Preferences')}>
                     {appearanceOptions.map((option) => (
                         <CommandItem
                             key={option.value}
-                            value={`Appearance ${option.label}`}
+                            value={`${t('Appearance')} ${t(option.label)}`}
                             onSelect={() => {
                                 close();
                                 updateAppearance(option.value);
                             }}
                         >
                             <option.icon />
-                            <span>Appearance: {option.label}</span>
+                            <span>
+                                {t('Appearance')}: {t(option.label)}
+                            </span>
                         </CommandItem>
                     ))}
                     {themePresetOptions.map((option) => (
                         <CommandItem
                             key={option.value}
-                            value={`Theme ${option.label}`}
+                            value={`${t('Theme')} ${t(option.label)}`}
                             onSelect={() => {
                                 close();
                                 updateTheme(option.value);
                             }}
                         >
-                            <span>Theme: {option.label}</span>
+                            <span>
+                                {t('Theme')}: {t(option.label)}
+                            </span>
                         </CommandItem>
                     ))}
                     {navPlacementOptions.map((option) => (
                         <CommandItem
                             key={option.value}
-                            value={`Navigation ${option.label}`}
+                            value={`${t('Navigation')} ${t(option.label)}`}
                             onSelect={() => {
                                 close();
                                 updateLayout({ nav_placement: option.value });
                             }}
                         >
                             <option.icon />
-                            <span>Navigation: {option.label}</span>
+                            <span>
+                                {t('Navigation')}: {t(option.label)}
+                            </span>
+                        </CommandItem>
+                    ))}
+                    {Object.entries(locales).map(([code, label]) => (
+                        <CommandItem
+                            key={code}
+                            value={`${t('Language')} ${label}`}
+                            onSelect={() => {
+                                close();
+                                updateLocale(code);
+                            }}
+                        >
+                            <Languages />
+                            <span>
+                                {t('Language')}: {label}
+                            </span>
                         </CommandItem>
                     ))}
                     {withSidebarToggle && (

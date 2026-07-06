@@ -1,4 +1,5 @@
 import { Link, router } from '@inertiajs/react';
+import { useLaravelReactI18n } from 'laravel-react-i18n';
 import { LogOut, Settings } from 'lucide-react';
 import {
     DropdownMenuGroup,
@@ -17,6 +18,7 @@ type Props = {
 };
 
 export function UserMenuContent({ user }: Props) {
+    const { t } = useLaravelReactI18n();
     const cleanup = useMobileNavigation();
 
     const handleLogout = () => {
@@ -41,7 +43,7 @@ export function UserMenuContent({ user }: Props) {
                         onClick={cleanup}
                     >
                         <Settings className="me-2" />
-                        Settings
+                        {t('Settings')}
                     </Link>
                 </DropdownMenuItem>
             </DropdownMenuGroup>
@@ -55,7 +57,7 @@ export function UserMenuContent({ user }: Props) {
                     data-test="logout-button"
                 >
                     <LogOut className="me-2" />
-                    Log out
+                    {t('Log out')}
                 </Link>
             </DropdownMenuItem>
         </>

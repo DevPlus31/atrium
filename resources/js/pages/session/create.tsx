@@ -1,5 +1,6 @@
 import { Form, Head, router } from '@inertiajs/react';
 import { usePasskeyVerify } from '@laravel/passkeys/react';
+import { useLaravelReactI18n } from 'laravel-react-i18n';
 import { KeyRound } from 'lucide-react';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
@@ -25,6 +26,7 @@ export default function Login({
     canResetPassword,
     canRegister,
 }: Props) {
+    const { t } = useLaravelReactI18n();
     const {
         verify,
         isLoading: verifyingPasskey,
@@ -38,10 +40,10 @@ export default function Login({
 
     return (
         <AuthLayout
-            title="Log in to your account"
-            description="Enter your email and password below to log in"
+            title={t('Log in to your account')}
+            description={t('Enter your email and password below to log in')}
         >
-            <Head title="Log in" />
+            <Head title={t('Log in')} />
 
             <Form
                 {...store.form()}
@@ -52,7 +54,9 @@ export default function Login({
                     <>
                         <div className="grid gap-6">
                             <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
+                                <Label htmlFor="email">
+                                    {t('Email address')}
+                                </Label>
                                 <Input
                                     id="email"
                                     type="email"
@@ -61,21 +65,23 @@ export default function Login({
                                     autoFocus
                                     tabIndex={1}
                                     autoComplete="email"
-                                    placeholder="email@example.com"
+                                    placeholder={t('email@example.com')}
                                 />
                                 <InputError message={errors.email} />
                             </div>
 
                             <div className="grid gap-2">
                                 <div className="flex items-center">
-                                    <Label htmlFor="password">Password</Label>
+                                    <Label htmlFor="password">
+                                        {t('Password')}
+                                    </Label>
                                     {canResetPassword && (
                                         <TextLink
                                             href={request()}
                                             className="ms-auto text-sm"
                                             tabIndex={5}
                                         >
-                                            Forgot password?
+                                            {t('Forgot password?')}
                                         </TextLink>
                                     )}
                                 </div>
@@ -85,7 +91,7 @@ export default function Login({
                                     required
                                     tabIndex={2}
                                     autoComplete="current-password"
-                                    placeholder="Password"
+                                    placeholder={t('Password')}
                                 />
                                 <InputError message={errors.password} />
                             </div>
@@ -96,7 +102,9 @@ export default function Login({
                                     name="remember"
                                     tabIndex={3}
                                 />
-                                <Label htmlFor="remember">Remember me</Label>
+                                <Label htmlFor="remember">
+                                    {t('Remember me')}
+                                </Label>
                             </div>
 
                             <Button
@@ -107,7 +115,7 @@ export default function Login({
                                 data-test="login-button"
                             >
                                 {processing && <Spinner />}
-                                Log in
+                                {t('Log in')}
                             </Button>
 
                             {passkeysSupported && (
@@ -128,7 +136,7 @@ export default function Login({
                                         ) : (
                                             <KeyRound />
                                         )}
-                                        Sign in with a passkey
+                                        {t('Sign in with a passkey')}
                                     </Button>
                                     <InputError
                                         message={passkeyError ?? undefined}
@@ -139,9 +147,9 @@ export default function Login({
 
                         {canRegister && (
                             <div className="text-center text-sm text-muted-foreground">
-                                Don't have an account?{' '}
+                                {t("Don't have an account?")}{' '}
                                 <TextLink href={register()} tabIndex={5}>
-                                    Sign up
+                                    {t('Sign up')}
                                 </TextLink>
                             </div>
                         )}

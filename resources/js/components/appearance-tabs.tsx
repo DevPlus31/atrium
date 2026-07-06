@@ -1,3 +1,4 @@
+import { useLaravelReactI18n } from 'laravel-react-i18n';
 import type { LucideIcon } from 'lucide-react';
 import { Monitor, Moon, Sun } from 'lucide-react';
 import type { HTMLAttributes } from 'react';
@@ -9,6 +10,7 @@ export default function AppearanceToggleTab({
     className = '',
     ...props
 }: HTMLAttributes<HTMLDivElement>) {
+    const { t } = useLaravelReactI18n();
     const { appearance, updateAppearance } = useThemePreference();
 
     const tabs: { value: Appearance; icon: LucideIcon; label: string }[] = [
@@ -37,7 +39,7 @@ export default function AppearanceToggleTab({
                     )}
                 >
                     <Icon className="-ms-1 h-4 w-4" />
-                    <span className="ms-1.5 text-sm">{label}</span>
+                    <span className="ms-1.5 text-sm">{t(label)}</span>
                 </button>
             ))}
         </div>

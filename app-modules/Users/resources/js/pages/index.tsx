@@ -1,4 +1,5 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
+import { useLaravelReactI18n } from 'laravel-react-i18n';
 import { Download, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { ConfirmDialog } from '@/components/confirm-dialog';
@@ -27,14 +28,13 @@ type UsersIndexProps = {
     roles: string[];
 };
 
-const breadcrumbs: BreadcrumbItem[] = [{ title: 'Users', href: index() }];
-
 const verifiedOptions = [
     { label: 'Verified', value: 'yes' },
     { label: 'Unverified', value: 'no' },
 ];
 
 export default function UsersIndex({ users, roles }: UsersIndexProps) {
+    const { t } = useLaravelReactI18n();
     const tableState = useTableState('users');
     const [pendingDelete, setPendingDelete] = useState<UserRow | null>(null);
     const [deleting, setDeleting] = useState(false);
@@ -45,7 +45,11 @@ export default function UsersIndex({ users, roles }: UsersIndexProps) {
         exportMethod.url() +
         (queryIndex === -1 ? '' : pageUrl.slice(queryIndex));
 
-    const columns = buildUserColumns(setPendingDelete, (user) => {
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('Users'), href: index() },
+    ];
+
+    const columns = buildUserColumns(t, setPendingDelete, (user) => {
         router.post(impersonate.url(user.id));
     });
 
@@ -66,22 +70,22 @@ export default function UsersIndex({ users, roles }: UsersIndexProps) {
 
     return (
         <AdminLayout breadcrumbs={breadcrumbs}>
-            <Head title="Users" />
+            <Head title={t('Users')} />
             <DataTableToolbar
                 tableState={tableState}
-                searchPlaceholder="Search users..."
+                searchPlaceholder={t('Search users...')}
                 actions={
                     <>
                         <Button variant="outline" size="sm" asChild>
                             <a href={exportHref}>
                                 <Download className="size-4" />
-                                Export
+                                {t('Export')}
                             </a>
                         </Button>
                         <Button size="sm" asChild>
                             <Link href={create()}>
                                 <Plus className="size-4" />
-                                Create user
+                                {t('Create user')}
                             </Link>
                         </Button>
                     </>
@@ -90,7 +94,7 @@ export default function UsersIndex({ users, roles }: UsersIndexProps) {
                 <DataTableFacetedFilter
                     tableState={tableState}
                     field="role"
-                    title="Role"
+                    title={t('Role')}
                     options={roles.map((role) => ({
                         label: role,
                         value: role,
@@ -99,15 +103,18 @@ export default function UsersIndex({ users, roles }: UsersIndexProps) {
                 <DataTableFacetedFilter
                     tableState={tableState}
                     field="verified"
-                    title="Verified"
-                    options={verifiedOptions}
+                    title={t('Verified')}
+                    options={verifiedOptions.map((option) => ({
+                        label: t(option.label),
+                        value: option.value,
+                    }))}
                 />
             </DataTableToolbar>
             <DataTable
                 columns={columns}
                 paginated={users}
                 tableState={tableState}
-                emptyMessage="No users found."
+                emptyMessage={t('No users found.')}
             />
             <ConfirmDialog
                 open={pendingDelete !== null}
@@ -116,9 +123,12 @@ export default function UsersIndex({ users, roles }: UsersIndexProps) {
                         setPendingDelete(null);
                     }
                 }}
-                title="Delete user"
-                description={`This will permanently delete ${pendingDelete?.name ?? 'this user'} and cannot be undone.`}
-                confirmLabel="Delete"
+                title={t('Delete user')}
+                description={t(
+                    'This will permanently delete :name and cannot be undone.',
+                    { name: pendingDelete?.name ?? t('this user') },
+                )}
+                confirmLabel={t('Delete')}
                 processing={deleting}
                 onConfirm={confirmDelete}
             />

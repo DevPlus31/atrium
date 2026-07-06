@@ -1,3 +1,4 @@
+import { useLaravelReactI18n } from 'laravel-react-i18n';
 import { Check, CirclePlus } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -40,6 +41,7 @@ export function DataTableFacetedFilter({
     title,
     options,
 }: DataTableFacetedFilterProps) {
+    const { t } = useLaravelReactI18n();
     const selected = new Set(tableState.filters[field] ?? []);
 
     const toggleValue = (value: string) => {
@@ -82,7 +84,9 @@ export function DataTableFacetedFilter({
                                         variant="secondary"
                                         className="rounded-sm px-1 font-normal"
                                     >
-                                        {selected.size} selected
+                                        {t(':count selected', {
+                                            count: selected.size,
+                                        })}
                                     </Badge>
                                 ) : (
                                     options
@@ -108,7 +112,7 @@ export function DataTableFacetedFilter({
                 <Command>
                     <CommandInput placeholder={title} />
                     <CommandList>
-                        <CommandEmpty>No results found.</CommandEmpty>
+                        <CommandEmpty>{t('No results found.')}</CommandEmpty>
                         <CommandGroup>
                             {options.map((option) => {
                                 const isSelected = selected.has(option.value);
@@ -148,7 +152,7 @@ export function DataTableFacetedFilter({
                                         }
                                         className="justify-center text-center"
                                     >
-                                        Clear filters
+                                        {t('Clear filters')}
                                     </CommandItem>
                                 </CommandGroup>
                             </>

@@ -1,3 +1,4 @@
+import { useLaravelReactI18n } from 'laravel-react-i18n';
 import {
     Card,
     CardContent,
@@ -17,18 +18,21 @@ const dateFormatter = new Intl.DateTimeFormat(undefined, {
 });
 
 export default function RecentUsersWidget({ data }: RecentUsersWidgetProps) {
+    const { t } = useLaravelReactI18n();
     const getInitials = useInitials();
 
     return (
         <Card>
             <CardHeader>
-                <CardDescription>Recent users</CardDescription>
-                <CardTitle className="text-base">Latest sign-ups</CardTitle>
+                <CardDescription>{t('Recent users')}</CardDescription>
+                <CardTitle className="text-base">
+                    {t('Latest sign-ups')}
+                </CardTitle>
             </CardHeader>
             <CardContent>
                 {data.users.length === 0 ? (
                     <p className="text-sm text-muted-foreground">
-                        No users yet.
+                        {t('No users yet.')}
                     </p>
                 ) : (
                     <ul className="flex flex-col gap-3">

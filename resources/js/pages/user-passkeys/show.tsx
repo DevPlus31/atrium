@@ -1,5 +1,6 @@
 import { Head, router } from '@inertiajs/react';
 import { usePasskeyRegister } from '@laravel/passkeys/react';
+import { useLaravelReactI18n } from 'laravel-react-i18n';
 import { KeyRound, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { ConfirmDialog } from '@/components/confirm-dialog';
@@ -28,13 +29,6 @@ type Props = {
     passkeys?: PasskeyItem[];
 };
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Passkeys',
-        href: show(),
-    },
-];
-
 function formatDate(value: string): string {
     return new Date(value).toLocaleDateString(undefined, {
         year: 'numeric',
@@ -47,6 +41,7 @@ export default function Passkeys({
     canManagePasskeys = false,
     passkeys = [],
 }: Props) {
+    const { t } = useLaravelReactI18n();
     const [name, setName] = useState<string>('');
     const [pendingDelete, setPendingDelete] = useState<PasskeyItem | null>(
         null,
@@ -59,6 +54,13 @@ export default function Passkeys({
             router.reload({ only: ['passkeys'] });
         },
     });
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        {
+            title: t('Passkeys'),
+            href: show(),
+        },
+    ];
 
     const confirmDelete = () => {
         if (pendingDelete === null) {
@@ -77,22 +79,23 @@ export default function Passkeys({
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Passkeys" />
+            <Head title={t('Passkeys')} />
             <SettingsLayout>
                 {canManagePasskeys && (
                     <div className="space-y-6">
                         <Heading
                             variant="small"
-                            title="Passkeys"
-                            description="Sign in securely with your device's screen lock or a hardware key"
+                            title={t('Passkeys')}
+                            description={t(
+                                "Sign in securely with your device's screen lock or a hardware key",
+                            )}
                         />
 
                         <div className="flex flex-col items-start justify-start space-y-4">
                             <p className="text-sm text-muted-foreground">
-                                Passkeys replace your password and one-time
-                                codes during login. Your device verifies your
-                                identity with a fingerprint, face, or PIN and
-                                never shares that data with us.
+                                {t(
+                                    'Passkeys replace your password and one-time codes during login. Your device verifies your identity with a fingerprint, face, or PIN and never shares that data with us.',
+                                )}
                             </p>
 
                             <form
@@ -103,7 +106,7 @@ export default function Passkeys({
                                 }}
                             >
                                 <Label htmlFor="passkey-name">
-                                    Passkey name
+                                    {t('Passkey name')}
                                 </Label>
                                 <div className="flex w-full items-center gap-2">
                                     <Input
@@ -112,7 +115,7 @@ export default function Passkeys({
                                         onChange={(event) =>
                                             setName(event.target.value)
                                         }
-                                        placeholder="e.g. Work laptop"
+                                        placeholder={t('e.g. Work laptop')}
                                         maxLength={255}
                                     />
                                     <Button
@@ -124,12 +127,14 @@ export default function Passkeys({
                                         }
                                     >
                                         {isLoading ? <Spinner /> : <KeyRound />}
-                                        Add passkey
+                                        {t('Add passkey')}
                                     </Button>
                                 </div>
                                 {!isSupported && (
                                     <p className="text-sm text-muted-foreground">
-                                        This browser does not support passkeys.
+                                        {t(
+                                            'This browser does not support passkeys.',
+                                        )}
                                     </p>
                                 )}
                                 <InputError message={error ?? undefined} />
@@ -153,18 +158,29 @@ export default function Passkeys({
                                                     ? `${passkey.authenticator} · `
                                                     : ''}
                                                 {passkey.last_used_at !== null
-                                                    ? `Last used ${formatDate(passkey.last_used_at)}`
+                                                    ? t('Last used :date', {
+                                                          date: formatDate(
+                                                              passkey.last_used_at,
+                                                          ),
+                                                      })
                                                     : passkey.created_at !==
                                                         null
-                                                      ? `Added ${formatDate(passkey.created_at)}`
-                                                      : 'Never used'}
+                                                      ? t('Added :date', {
+                                                            date: formatDate(
+                                                                passkey.created_at,
+                                                            ),
+                                                        })
+                                                      : t('Never used')}
                                             </p>
                                         </div>
                                         <Button
                                             variant="ghost"
                                             size="icon"
                                             className="ms-auto text-destructive hover:text-destructive"
-                                            aria-label={`Delete passkey ${passkey.name}`}
+                                            aria-label={t(
+                                                'Delete passkey :name',
+                                                { name: passkey.name },
+                                            )}
                                             onClick={() =>
                                                 setPendingDelete(passkey)
                                             }
@@ -183,9 +199,16 @@ export default function Passkeys({
                                     setPendingDelete(null);
                                 }
                             }}
-                            title="Delete passkey"
-                            description={`This will permanently delete ${pendingDelete?.name ?? 'this passkey'} and it can no longer be used to sign in.`}
-                            confirmLabel="Delete"
+                            title={t('Delete passkey')}
+                            description={t(
+                                'This will permanently delete :name and it can no longer be used to sign in.',
+                                {
+                                    name:
+                                        pendingDelete?.name ??
+                                        t('this passkey'),
+                                },
+                            )}
+                            confirmLabel={t('Delete')}
                             processing={deleting}
                             onConfirm={confirmDelete}
                         />

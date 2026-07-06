@@ -1,3 +1,4 @@
+import { useLaravelReactI18n } from 'laravel-react-i18n';
 import {
     Area,
     AreaChart,
@@ -31,26 +32,33 @@ function formatDate(date: string): string {
 }
 
 function SeriesTooltip({ active, payload, label }: TooltipContentProps) {
+    const { tChoice } = useLaravelReactI18n();
+
     if (!active || payload.length === 0) {
         return null;
     }
+
+    const count = Number(payload[0]?.value ?? 0);
 
     return (
         <div className="rounded-md border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-md">
             <p className="font-medium">{formatDate(String(label))}</p>
             <p className="text-muted-foreground">
-                {numberFormatter.format(Number(payload[0]?.value ?? 0))} new
-                users
+                {tChoice(':count new user|:count new users', count, {
+                    count: numberFormatter.format(count),
+                })}
             </p>
         </div>
     );
 }
 
 export default function UsersTotalWidget({ data }: UsersTotalWidgetProps) {
+    const { t } = useLaravelReactI18n();
+
     return (
         <Card>
             <CardHeader>
-                <CardDescription>Total users</CardDescription>
+                <CardDescription>{t('Total users')}</CardDescription>
                 <CardTitle className="text-3xl tabular-nums">
                     {numberFormatter.format(data.total)}
                 </CardTitle>
@@ -97,7 +105,7 @@ export default function UsersTotalWidget({ data }: UsersTotalWidgetProps) {
                     </ResponsiveContainer>
                 </div>
                 <p className="mt-2 text-xs text-muted-foreground">
-                    New users over the last 14 days
+                    {t('New users over the last 14 days')}
                 </p>
             </CardContent>
         </Card>

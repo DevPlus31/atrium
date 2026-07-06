@@ -16,6 +16,7 @@ use App\Models\User;
 use App\Modules\Data\LayoutConfigData;
 use BackedEnum;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Config;
 
 final readonly class ResolveUserPreferences
 {
@@ -49,12 +50,12 @@ final readonly class ResolveUserPreferences
     ];
 
     /**
-     * Resolve the effective appearance, theme preset, and layout config for
-     * the current request. Database preferences are the source of truth for
-     * authenticated users; cookies cover guests; invalid or missing values
-     * fall back to the defaults.
+     * Resolve the effective appearance, theme preset, layout config, and
+     * locale for the current request. Database preferences are the source of
+     * truth for authenticated users; cookies cover guests; invalid or missing
+     * values fall back to the defaults.
      *
-     * @return array{appearance: Appearance, theme: ThemePreset, layout: LayoutConfigData}
+     * @return array{appearance: Appearance, theme: ThemePreset, layout: LayoutConfigData, locale: string}
      */
     public function handle(Request $request): array
     {
@@ -73,6 +74,9 @@ final readonly class ResolveUserPreferences
                 ...$this->validLayoutOptions($this->cookieLayout($request)),
                 ...$this->validLayoutOptions($user->layout ?? []),
             ]),
+            'locale' => $this->validLocale($user?->locale)
+                ?? $this->validLocale($this->cookieValue($request, 'locale'))
+                ?? Config::string('app.locale'),
         ];
     }
 
@@ -91,6 +95,21 @@ final readonly class ResolveUserPreferences
         $decoded = json_decode($this->cookieValue($request, 'layout'), true);
 
         return is_array($decoded) ? $decoded : [];
+    }
+
+    /**
+     * Keep the locale only when it is one of the available locales
+     * (config/app.php `available_locales`).
+     */
+    private function validLocale(?string $locale): ?string
+    {
+        if ($locale === null) {
+            return null;
+        }
+
+        return array_key_exists($locale, Config::array('app.available_locales'))
+            ? $locale
+            : null;
     }
 
     /**

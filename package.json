@@ -51,6 +51,7 @@
         "concurrently": "^10.0.3",
         "input-otp": "^1.4.2",
         "laravel-precognition-react-inertia": "^0.8.0",
+        "laravel-react-i18n": "^2.0.5",
         "laravel-vite-plugin": "^3.1.0",
         "lucide-react": "^1.22.0",
         "radix-ui": "^1.6.1",
@@ -67,5 +68,9 @@
         "@rollup/rollup-linux-x64-gnu": "4.62.2",
         "@tailwindcss/oxide-linux-x64-gnu": "^4.3.2",
         "lightningcss-linux-x64-gnu": "^1.32.0"
+    },
+    "overrides": {
+        "react": "$react",
+        "react-dom": "$react-dom"
     }
 }

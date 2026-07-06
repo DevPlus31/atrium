@@ -1,4 +1,5 @@
 import { createInertiaApp } from '@inertiajs/react';
+import { LaravelReactI18nProvider } from 'laravel-react-i18n';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Toaster } from '@/components/ui/sonner';
@@ -14,13 +15,20 @@ void createInertiaApp({
     resolve: resolvePage,
     setup({ el, App, props }) {
         const root = createRoot(el);
+        const { locale } = props.initialPage.props;
 
         root.render(
             <StrictMode>
-                <TooltipProvider delayDuration={0}>
-                    <App {...props} />
-                    <Toaster />
-                </TooltipProvider>
+                <LaravelReactI18nProvider
+                    locale={typeof locale === 'string' ? locale : 'en'}
+                    fallbackLocale="en"
+                    files={import.meta.glob('/lang/*.json', { eager: true })}
+                >
+                    <TooltipProvider delayDuration={0}>
+                        <App {...props} />
+                        <Toaster />
+                    </TooltipProvider>
+                </LaravelReactI18nProvider>
             </StrictMode>,
         );
     },

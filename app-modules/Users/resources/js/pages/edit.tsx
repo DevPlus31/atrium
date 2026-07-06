@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { useForm } from 'laravel-precognition-react-inertia';
+import { useLaravelReactI18n } from 'laravel-react-i18n';
 import type { FormEvent } from 'react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -25,8 +26,10 @@ type UsersEditProps = {
 };
 
 export default function UsersEdit({ user, roles }: UsersEditProps) {
+    const { t } = useLaravelReactI18n();
+
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Users', href: index() },
+        { title: t('Users'), href: index() },
         { title: user.name, href: edit(user.id) },
     ];
 
@@ -43,19 +46,20 @@ export default function UsersEdit({ user, roles }: UsersEditProps) {
 
     return (
         <AdminLayout breadcrumbs={breadcrumbs}>
-            <Head title={`Edit ${user.name}`} />
+            <Head title={t('Edit :name', { name: user.name })} />
             <Card className="max-w-2xl">
                 <CardHeader>
-                    <CardTitle>Edit user</CardTitle>
+                    <CardTitle>{t('Edit user')}</CardTitle>
                     <CardDescription>
-                        Update the user's details and roles. Changing the email
-                        address resets its verification.
+                        {t(
+                            "Update the user's details and roles. Changing the email address resets its verification.",
+                        )}
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={submit} className="grid gap-6">
                         <div className="grid gap-2">
-                            <Label htmlFor="name">Name</Label>
+                            <Label htmlFor="name">{t('Name')}</Label>
                             <Input
                                 id="name"
                                 type="text"
@@ -66,13 +70,13 @@ export default function UsersEdit({ user, roles }: UsersEditProps) {
                                     form.setData('name', event.target.value)
                                 }
                                 onBlur={() => form.validate('name')}
-                                placeholder="Full name"
+                                placeholder={t('Full name')}
                             />
                             <InputError message={form.errors.name} />
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="email">Email address</Label>
+                            <Label htmlFor="email">{t('Email address')}</Label>
                             <Input
                                 id="email"
                                 type="email"
@@ -101,10 +105,10 @@ export default function UsersEdit({ user, roles }: UsersEditProps) {
                         <div className="flex items-center gap-2">
                             <Button type="submit" disabled={form.processing}>
                                 {form.processing && <Spinner />}
-                                Save changes
+                                {t('Save changes')}
                             </Button>
                             <Button variant="ghost" asChild>
-                                <Link href={index()}>Cancel</Link>
+                                <Link href={index()}>{t('Cancel')}</Link>
                             </Button>
                         </div>
                     </form>

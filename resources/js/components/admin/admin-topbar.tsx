@@ -1,4 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
+import { useLaravelReactI18n } from 'laravel-react-i18n';
 import { ChevronDown, Menu, Search } from 'lucide-react';
 import { groupNavItems, resolveNavIcon } from '@/components/admin/nav';
 import { ThemeSettingsMenu } from '@/components/admin/theme-settings-menu';
@@ -41,6 +42,7 @@ export function AdminTopbar({
     onOpenCommandPalette,
     className,
 }: AdminTopbarProps) {
+    const { t } = useLaravelReactI18n();
     const { auth } = usePage().props;
     const getInitials = useInitials();
     const { isCurrentUrl } = useCurrentUrl();
@@ -65,7 +67,9 @@ export function AdminTopbar({
                                 className="-ms-1"
                             >
                                 <Menu />
-                                <span className="sr-only">Open navigation</span>
+                                <span className="sr-only">
+                                    {t('Open navigation')}
+                                </span>
                             </Button>
                         </SheetTrigger>
                         <SheetContent
@@ -73,7 +77,7 @@ export function AdminTopbar({
                             className="w-64 overflow-y-auto bg-sidebar"
                         >
                             <SheetTitle className="sr-only">
-                                Navigation menu
+                                {t('Navigation menu')}
                             </SheetTitle>
                             <SheetHeader className="text-start">
                                 <AppLogo />
@@ -234,7 +238,7 @@ export function AdminTopbar({
                         onClick={onOpenCommandPalette}
                     >
                         <Search />
-                        <span className="hidden sm:inline">Search</span>
+                        <span className="hidden sm:inline">{t('Search')}</span>
                         <kbd className="pointer-events-none hidden text-xs select-none sm:inline">
                             Ctrl K
                         </kbd>

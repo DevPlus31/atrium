@@ -1,3 +1,4 @@
+import { useLaravelReactI18n } from 'laravel-react-i18n';
 import type { ComponentPropsWithoutRef } from 'react';
 import {
     SidebarGroup,
@@ -16,6 +17,8 @@ export function NavFooter({
 }: ComponentPropsWithoutRef<typeof SidebarGroup> & {
     items: NavItem[];
 }) {
+    const { t } = useLaravelReactI18n();
+
     return (
         <SidebarGroup
             {...props}
@@ -37,7 +40,7 @@ export function NavFooter({
                                     {item.icon && (
                                         <item.icon className="h-5 w-5" />
                                     )}
-                                    <span>{item.title}</span>
+                                    <span>{t(item.title)}</span>
                                 </a>
                             </SidebarMenuButton>
                         </SidebarMenuItem>

@@ -1,3 +1,4 @@
+import { useLaravelReactI18n } from 'laravel-react-i18n';
 import { Search, X } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
@@ -18,11 +19,12 @@ export type DataTableToolbarProps = {
 
 export function DataTableToolbar({
     tableState,
-    searchPlaceholder = 'Search...',
+    searchPlaceholder,
     children,
     actions,
     className,
 }: DataTableToolbarProps) {
+    const { t } = useLaravelReactI18n();
     const [searchValue, setSearchValue] = useState(tableState.search);
     const showReset = tableState.hasActiveFilters || searchValue !== '';
 
@@ -37,7 +39,7 @@ export function DataTableToolbar({
                         setSearchValue(event.target.value);
                         tableState.setSearch(event.target.value);
                     }}
-                    placeholder={searchPlaceholder}
+                    placeholder={searchPlaceholder ?? t('Search...')}
                     className="h-8 w-40 ps-8 lg:w-64"
                 />
             </div>
@@ -52,7 +54,7 @@ export function DataTableToolbar({
                         tableState.reset();
                     }}
                 >
-                    Reset
+                    {t('Reset')}
                     <X className="size-4" />
                 </Button>
             )}

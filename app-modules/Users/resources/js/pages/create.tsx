@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { useForm } from 'laravel-precognition-react-inertia';
+import { useLaravelReactI18n } from 'laravel-react-i18n';
 import type { FormEvent } from 'react';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
@@ -23,12 +24,14 @@ type UsersCreateProps = {
     roles: string[];
 };
 
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Users', href: index() },
-    { title: 'Create', href: create() },
-];
-
 export default function UsersCreate({ roles }: UsersCreateProps) {
+    const { t } = useLaravelReactI18n();
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('Users'), href: index() },
+        { title: t('Create'), href: create() },
+    ];
+
     const form = useForm('post', store.url(), {
         name: '',
         email: '',
@@ -44,18 +47,18 @@ export default function UsersCreate({ roles }: UsersCreateProps) {
 
     return (
         <AdminLayout breadcrumbs={breadcrumbs}>
-            <Head title="Create user" />
+            <Head title={t('Create user')} />
             <Card className="max-w-2xl">
                 <CardHeader>
-                    <CardTitle>Create user</CardTitle>
+                    <CardTitle>{t('Create user')}</CardTitle>
                     <CardDescription>
-                        Add a new user and assign their roles.
+                        {t('Add a new user and assign their roles.')}
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={submit} className="grid gap-6">
                         <div className="grid gap-2">
-                            <Label htmlFor="name">Name</Label>
+                            <Label htmlFor="name">{t('Name')}</Label>
                             <Input
                                 id="name"
                                 type="text"
@@ -67,13 +70,13 @@ export default function UsersCreate({ roles }: UsersCreateProps) {
                                     form.setData('name', event.target.value)
                                 }
                                 onBlur={() => form.validate('name')}
-                                placeholder="Full name"
+                                placeholder={t('Full name')}
                             />
                             <InputError message={form.errors.name} />
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="email">Email address</Label>
+                            <Label htmlFor="email">{t('Email address')}</Label>
                             <Input
                                 id="email"
                                 type="email"
@@ -90,7 +93,7 @@ export default function UsersCreate({ roles }: UsersCreateProps) {
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="password">Password</Label>
+                            <Label htmlFor="password">{t('Password')}</Label>
                             <PasswordInput
                                 id="password"
                                 required
@@ -100,14 +103,14 @@ export default function UsersCreate({ roles }: UsersCreateProps) {
                                     form.setData('password', event.target.value)
                                 }
                                 onBlur={() => form.validate('password')}
-                                placeholder="Password"
+                                placeholder={t('Password')}
                             />
                             <InputError message={form.errors.password} />
                         </div>
 
                         <div className="grid gap-2">
                             <Label htmlFor="password_confirmation">
-                                Confirm password
+                                {t('Confirm password')}
                             </Label>
                             <PasswordInput
                                 id="password_confirmation"
@@ -121,7 +124,7 @@ export default function UsersCreate({ roles }: UsersCreateProps) {
                                     )
                                 }
                                 onBlur={() => form.validate('password')}
-                                placeholder="Confirm password"
+                                placeholder={t('Confirm password')}
                             />
                             <InputError
                                 message={form.errors.password_confirmation}
@@ -141,10 +144,10 @@ export default function UsersCreate({ roles }: UsersCreateProps) {
                         <div className="flex items-center gap-2">
                             <Button type="submit" disabled={form.processing}>
                                 {form.processing && <Spinner />}
-                                Create user
+                                {t('Create user')}
                             </Button>
                             <Button variant="ghost" asChild>
-                                <Link href={index()}>Cancel</Link>
+                                <Link href={index()}>{t('Cancel')}</Link>
                             </Button>
                         </div>
                     </form>

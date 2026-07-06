@@ -19,5 +19,6 @@ test('to array', function (): void {
             'appearance',
             'theme',
             'layout',
+            'locale',
         ]);
 });

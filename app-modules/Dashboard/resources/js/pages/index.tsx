@@ -1,4 +1,5 @@
 import { Deferred, Head, usePage } from '@inertiajs/react';
+import { useLaravelReactI18n } from 'laravel-react-i18n';
 import type { ReactNode } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import AdminLayout from '@/layouts/admin-layout';
@@ -12,8 +13,6 @@ type WidgetDescriptor = Modules.Dashboard.Data.WidgetDescriptorData;
 type DashboardIndexProps = {
     widgets: WidgetDescriptor[];
 };
-
-const breadcrumbs: BreadcrumbItem[] = [{ title: 'Dashboard', href: index() }];
 
 /**
  * Maps registry widget keys to their components; unknown keys render
@@ -67,9 +66,15 @@ function DeferredWidget({ descriptor }: { descriptor: WidgetDescriptor }) {
 }
 
 export default function DashboardIndex({ widgets }: DashboardIndexProps) {
+    const { t } = useLaravelReactI18n();
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('Dashboard'), href: index() },
+    ];
+
     return (
         <AdminLayout breadcrumbs={breadcrumbs}>
-            <Head title="Dashboard" />
+            <Head title={t('Dashboard')} />
             <div className="grid auto-rows-min gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {widgets.map((descriptor) => (
                     <DeferredWidget
@@ -80,7 +85,7 @@ export default function DashboardIndex({ widgets }: DashboardIndexProps) {
             </div>
             {widgets.length === 0 && (
                 <p className="text-sm text-muted-foreground">
-                    No widgets available.
+                    {t('No widgets available.')}
                 </p>
             )}
         </AdminLayout>

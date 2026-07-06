@@ -8,6 +8,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { edit } from '@/routes/admin/users';
+import type { Translator } from '@/types/ui';
 
 export type UserRow = Modules.Users.Data.UserData;
 
@@ -20,6 +21,7 @@ function formatDate(value: string): string {
 }
 
 export function buildUserColumns(
+    t: Translator,
     onDelete: (user: UserRow) => void,
     onImpersonate: (user: UserRow) => void,
 ): ColumnDef<UserRow, unknown>[] {
@@ -29,7 +31,7 @@ export function buildUserColumns(
             accessorKey: 'name',
             enableSorting: true,
             header: ({ column }) => (
-                <DataTableColumnHeader column={column} title="Name" />
+                <DataTableColumnHeader column={column} title={t('Name')} />
             ),
             cell: ({ row }) => (
                 <span className="font-medium">{row.original.name}</span>
@@ -40,13 +42,13 @@ export function buildUserColumns(
             accessorKey: 'email',
             enableSorting: true,
             header: ({ column }) => (
-                <DataTableColumnHeader column={column} title="Email" />
+                <DataTableColumnHeader column={column} title={t('Email')} />
             ),
         },
         {
             id: 'roles',
             enableSorting: false,
-            header: 'Roles',
+            header: t('Roles'),
             cell: ({ row }) =>
                 row.original.roles.length > 0 ? (
                     <div className="flex flex-wrap gap-1">
@@ -63,17 +65,17 @@ export function buildUserColumns(
         {
             id: 'verified',
             enableSorting: false,
-            header: 'Verified',
+            header: t('Verified'),
             cell: ({ row }) =>
                 row.original.email_verified_at === null ? (
                     <span className="flex items-center gap-1.5 text-muted-foreground">
                         <CircleDashed className="size-4" />
-                        Unverified
+                        {t('Unverified')}
                     </span>
                 ) : (
                     <span className="flex items-center gap-1.5">
                         <BadgeCheck className="size-4" />
-                        Verified
+                        {t('Verified')}
                     </span>
                 ),
         },
@@ -82,7 +84,7 @@ export function buildUserColumns(
             accessorKey: 'created_at',
             enableSorting: true,
             header: ({ column }) => (
-                <DataTableColumnHeader column={column} title="Created" />
+                <DataTableColumnHeader column={column} title={t('Created')} />
             ),
             cell: ({ row }) => (
                 <span className="text-muted-foreground">
@@ -93,7 +95,7 @@ export function buildUserColumns(
         {
             id: 'actions',
             enableSorting: false,
-            header: () => <span className="sr-only">Actions</span>,
+            header: () => <span className="sr-only">{t('Actions')}</span>,
             cell: ({ row }) => {
                 const user = row.original;
 
@@ -113,7 +115,7 @@ export function buildUserColumns(
                                     {user.can.update && (
                                         <DropdownMenuItem asChild>
                                             <Link href={edit(user.id)}>
-                                                Edit
+                                                {t('Edit')}
                                             </Link>
                                         </DropdownMenuItem>
                                     )}
@@ -121,7 +123,7 @@ export function buildUserColumns(
                                         <DropdownMenuItem
                                             onSelect={() => onImpersonate(user)}
                                         >
-                                            Impersonate
+                                            {t('Impersonate')}
                                         </DropdownMenuItem>
                                     )}
                                     {user.can.delete && (
@@ -129,7 +131,7 @@ export function buildUserColumns(
                                             variant="destructive"
                                             onSelect={() => onDelete(user)}
                                         >
-                                            Delete
+                                            {t('Delete')}
                                         </DropdownMenuItem>
                                     )}
                                 </>

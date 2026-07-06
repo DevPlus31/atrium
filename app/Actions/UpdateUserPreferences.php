@@ -9,9 +9,9 @@ use App\Models\User;
 final readonly class UpdateUserPreferences
 {
     /**
-     * Persist a validated subset of {appearance, theme, layout} preferences.
-     * Layout updates merge over the user's stored layout so partial updates
-     * never drop previously chosen options.
+     * Persist a validated subset of {appearance, theme, layout, locale}
+     * preferences. Layout updates merge over the user's stored layout so
+     * partial updates never drop previously chosen options.
      *
      * @param  array<string, mixed>  $attributes
      */
@@ -25,6 +25,10 @@ final readonly class UpdateUserPreferences
 
         if (array_key_exists('theme', $attributes)) {
             $payload['theme'] = $attributes['theme'];
+        }
+
+        if (array_key_exists('locale', $attributes)) {
+            $payload['locale'] = $attributes['locale'];
         }
 
         if (is_array($attributes['layout'] ?? null)) {

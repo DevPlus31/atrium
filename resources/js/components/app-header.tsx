@@ -1,4 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
+import { useLaravelReactI18n } from 'laravel-react-i18n';
 import { BookOpen, Folder, LayoutGrid, Menu, Search } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import AppLogoIcon from '@/components/app-logo-icon';
@@ -63,6 +64,7 @@ const rightNavItems: NavItem[] = [
 const activeItemStyles = 'text-foreground dark:bg-accent';
 
 export function AppHeader({ breadcrumbs = [] }: Props) {
+    const { t } = useLaravelReactI18n();
     const page = usePage();
     const { auth } = page.props;
     const getInitials = useInitials();
@@ -89,7 +91,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                                 className="flex h-full w-64 flex-col items-stretch justify-between bg-sidebar"
                             >
                                 <SheetTitle className="sr-only">
-                                    Navigation menu
+                                    {t('Navigation menu')}
                                 </SheetTitle>
                                 <SheetHeader className="flex justify-start text-start">
                                     <AppLogoIcon className="h-6 w-6 fill-current text-foreground" />
@@ -106,7 +108,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                                                     {item.icon && (
                                                         <item.icon className="h-5 w-5" />
                                                     )}
-                                                    <span>{item.title}</span>
+                                                    <span>{t(item.title)}</span>
                                                 </Link>
                                             ))}
                                         </div>
@@ -123,7 +125,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                                                     {item.icon && (
                                                         <item.icon className="h-5 w-5" />
                                                     )}
-                                                    <span>{item.title}</span>
+                                                    <span>{t(item.title)}</span>
                                                 </a>
                                             ))}
                                         </div>
@@ -164,7 +166,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                                             {item.icon && (
                                                 <item.icon className="me-2 h-4 w-4" />
                                             )}
-                                            {item.title}
+                                            {t(item.title)}
                                         </Link>
                                         {isCurrentUrl(item.href) && (
                                             <div className="absolute start-0 bottom-0 h-0.5 w-full translate-y-px bg-foreground"></div>
@@ -195,7 +197,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                                                 className="group inline-flex h-9 w-9 items-center justify-center rounded-md bg-transparent p-0 text-sm font-medium text-accent-foreground ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
                                             >
                                                 <span className="sr-only">
-                                                    {item.title}
+                                                    {t(item.title)}
                                                 </span>
                                                 {item.icon && (
                                                     <item.icon className="size-5 opacity-80 group-hover:opacity-100" />
@@ -203,7 +205,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                                             </a>
                                         </TooltipTrigger>
                                         <TooltipContent>
-                                            <p>{item.title}</p>
+                                            <p>{t(item.title)}</p>
                                         </TooltipContent>
                                     </Tooltip>
                                 ))}

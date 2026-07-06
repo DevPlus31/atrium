@@ -80,3 +80,27 @@ it('shares the resolved direction', function (): void {
 
     expect(View::shared('direction'))->toBe('rtl');
 });
+
+it('applies the locale from the cookie', function (): void {
+    config()->set('app.available_locales', ['en' => 'English', 'fr' => 'Français']);
+
+    $middleware = new HandleAppearance(new ResolveUserPreferences());
+
+    $request = Request::create('/', 'GET');
+    $request->cookies->set('locale', 'fr');
+
+    $middleware->handle($request, fn ($req): Response => response('OK'));
+
+    expect(app()->getLocale())->toBe('fr');
+});
+
+it('falls back to the default locale when the cookie locale is not available', function (): void {
+    $middleware = new HandleAppearance(new ResolveUserPreferences());
+
+    $request = Request::create('/', 'GET');
+    $request->cookies->set('locale', 'xx');
+
+    $middleware->handle($request, fn ($req): Response => response('OK'));
+
+    expect(app()->getLocale())->toBe('en');
+});

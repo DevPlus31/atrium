@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { useForm } from 'laravel-precognition-react-inertia';
+import { useLaravelReactI18n } from 'laravel-react-i18n';
 import type { FormEvent } from 'react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -25,8 +26,10 @@ type RolesEditProps = {
 };
 
 export default function RolesEdit({ role, permissions }: RolesEditProps) {
+    const { t } = useLaravelReactI18n();
+
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Roles', href: index() },
+        { title: t('Roles'), href: index() },
         { title: role.name, href: edit(Number(role.id)) },
     ];
 
@@ -42,18 +45,18 @@ export default function RolesEdit({ role, permissions }: RolesEditProps) {
 
     return (
         <AdminLayout breadcrumbs={breadcrumbs}>
-            <Head title={`Edit ${role.name}`} />
+            <Head title={t('Edit :name', { name: role.name })} />
             <Card className="max-w-2xl">
                 <CardHeader>
-                    <CardTitle>Edit role</CardTitle>
+                    <CardTitle>{t('Edit role')}</CardTitle>
                     <CardDescription>
-                        Update the role's name and permissions.
+                        {t("Update the role's name and permissions.")}
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={submit} className="grid gap-6">
                         <div className="grid gap-2">
-                            <Label htmlFor="name">Name</Label>
+                            <Label htmlFor="name">{t('Name')}</Label>
                             <Input
                                 id="name"
                                 type="text"
@@ -65,11 +68,11 @@ export default function RolesEdit({ role, permissions }: RolesEditProps) {
                                     form.setData('name', event.target.value)
                                 }
                                 onBlur={() => form.validate('name')}
-                                placeholder="Role name"
+                                placeholder={t('Role name')}
                             />
                             {role.is_system && (
                                 <p className="text-sm text-muted-foreground">
-                                    System role names cannot be changed.
+                                    {t('System role names cannot be changed.')}
                                 </p>
                             )}
                             <InputError message={form.errors.name} />
@@ -88,10 +91,10 @@ export default function RolesEdit({ role, permissions }: RolesEditProps) {
                         <div className="flex items-center gap-2">
                             <Button type="submit" disabled={form.processing}>
                                 {form.processing && <Spinner />}
-                                Save changes
+                                {t('Save changes')}
                             </Button>
                             <Button variant="ghost" asChild>
-                                <Link href={index()}>Cancel</Link>
+                                <Link href={index()}>{t('Cancel')}</Link>
                             </Button>
                         </div>
                     </form>

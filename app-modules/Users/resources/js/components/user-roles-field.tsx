@@ -1,3 +1,4 @@
+import { useLaravelReactI18n } from 'laravel-react-i18n';
 import InputError from '@/components/input-error';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -15,6 +16,8 @@ export function UserRolesField({
     onChange,
     error,
 }: UserRolesFieldProps) {
+    const { t } = useLaravelReactI18n();
+
     const toggle = (role: string, checked: boolean) => {
         onChange(
             checked
@@ -25,10 +28,10 @@ export function UserRolesField({
 
     return (
         <div className="grid gap-2">
-            <Label>Roles</Label>
+            <Label>{t('Roles')}</Label>
             {roles.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
-                    No roles available.
+                    {t('No roles available.')}
                 </p>
             ) : (
                 <div className="grid gap-2">

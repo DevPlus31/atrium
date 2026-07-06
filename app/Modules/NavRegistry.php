@@ -52,14 +52,27 @@ final class NavRegistry
 
         usort($visible, static fn (array $a, array $b): int => [$a['group'] ?? '', $a['sort'], $a['label']] <=> [$b['group'] ?? '', $b['sort'], $b['label']]);
 
-        return array_map(static fn (array $item): NavItemData => new NavItemData(
-            label: $item['label'],
+        return array_map(fn (array $item): NavItemData => new NavItemData(
+            label: $this->translate($item['label']),
             routeName: $item['routeName'],
             href: route($item['routeName']),
             icon: $item['icon'],
-            group: $item['group'],
+            group: $item['group'] === null ? null : $this->translate($item['group']),
             sort: $item['sort'],
             external: $item['external'],
         ), $visible);
+    }
+
+    /**
+     * Registered labels are English strings that double as translation keys
+     * (lang/*.json); translation happens here, at render time, so the active
+     * request locale applies — module providers register labels at boot,
+     * before the locale is known.
+     */
+    private function translate(string $label): string
+    {
+        $translated = __($label);
+
+        return is_string($translated) ? $translated : $label;
     }
 }

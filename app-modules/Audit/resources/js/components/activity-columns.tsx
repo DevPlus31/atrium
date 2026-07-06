@@ -1,4 +1,5 @@
 import type { ColumnDef } from '@tanstack/react-table';
+import { useLaravelReactI18n } from 'laravel-react-i18n';
 import { DataTableColumnHeader } from '@/components/data-table';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -6,6 +7,7 @@ import {
     TooltipContent,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
+import type { Translator } from '@/types/ui';
 
 export type ActivityRow = Modules.Audit.Data.ActivityData;
 
@@ -23,14 +25,40 @@ function EmptyValue() {
     return <span className="text-muted-foreground">—</span>;
 }
 
-export function buildActivityColumns(): ColumnDef<ActivityRow, unknown>[] {
+function ChangesCell({ changes }: { changes: Record<string, unknown> }) {
+    const { tChoice } = useLaravelReactI18n();
+    const count = Object.keys(changes).length;
+
+    if (count === 0) {
+        return <EmptyValue />;
+    }
+
+    return (
+        <Tooltip>
+            <TooltipTrigger asChild>
+                <span className="cursor-default text-muted-foreground underline decoration-dotted underline-offset-4">
+                    {tChoice(':count field|:count fields', count)}
+                </span>
+            </TooltipTrigger>
+            <TooltipContent>
+                <pre className="max-h-64 overflow-auto text-xs">
+                    {JSON.stringify(changes, null, 2)}
+                </pre>
+            </TooltipContent>
+        </Tooltip>
+    );
+}
+
+export function buildActivityColumns(
+    t: Translator,
+): ColumnDef<ActivityRow, unknown>[] {
     return [
         {
             id: 'created_at',
             accessorKey: 'created_at',
             enableSorting: true,
             header: ({ column }) => (
-                <DataTableColumnHeader column={column} title="Date" />
+                <DataTableColumnHeader column={column} title={t('Date')} />
             ),
             cell: ({ row }) => (
                 <span className="whitespace-nowrap text-muted-foreground">
@@ -41,7 +69,7 @@ export function buildActivityColumns(): ColumnDef<ActivityRow, unknown>[] {
         {
             id: 'log_name',
             enableSorting: false,
-            header: 'Log',
+            header: t('Log'),
             cell: ({ row }) =>
                 row.original.log_name === null ? (
                     <EmptyValue />
@@ -52,7 +80,7 @@ export function buildActivityColumns(): ColumnDef<ActivityRow, unknown>[] {
         {
             id: 'event',
             enableSorting: false,
-            header: 'Event',
+            header: t('Event'),
             cell: ({ row }) =>
                 row.original.event === null ? (
                     <EmptyValue />
@@ -64,7 +92,7 @@ export function buildActivityColumns(): ColumnDef<ActivityRow, unknown>[] {
             id: 'description',
             accessorKey: 'description',
             enableSorting: false,
-            header: 'Description',
+            header: t('Description'),
             cell: ({ row }) => (
                 <span className="font-medium">{row.original.description}</span>
             ),
@@ -72,7 +100,7 @@ export function buildActivityColumns(): ColumnDef<ActivityRow, unknown>[] {
         {
             id: 'causer',
             enableSorting: false,
-            header: 'Causer',
+            header: t('Causer'),
             cell: ({ row }) => {
                 const causer = row.original.causer;
 
@@ -93,7 +121,7 @@ export function buildActivityColumns(): ColumnDef<ActivityRow, unknown>[] {
         {
             id: 'subject',
             enableSorting: false,
-            header: 'Subject',
+            header: t('Subject'),
             cell: ({ row }) => {
                 const activity = row.original;
 
@@ -114,30 +142,8 @@ export function buildActivityColumns(): ColumnDef<ActivityRow, unknown>[] {
         {
             id: 'changes',
             enableSorting: false,
-            header: 'Changes',
-            cell: ({ row }) => {
-                const changes = row.original.changes;
-                const count = Object.keys(changes).length;
-
-                if (count === 0) {
-                    return <EmptyValue />;
-                }
-
-                return (
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <span className="cursor-default text-muted-foreground underline decoration-dotted underline-offset-4">
-                                {count} {count === 1 ? 'field' : 'fields'}
-                            </span>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                            <pre className="max-h-64 overflow-auto text-xs">
-                                {JSON.stringify(changes, null, 2)}
-                            </pre>
-                        </TooltipContent>
-                    </Tooltip>
-                );
-            },
+            header: t('Changes'),
+            cell: ({ row }) => <ChangesCell changes={row.original.changes} />,
         },
     ];
 }

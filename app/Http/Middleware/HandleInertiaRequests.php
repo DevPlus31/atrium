@@ -55,6 +55,8 @@ final class HandleInertiaRequests extends Middleware
             'appearance' => $preferences['appearance']->value,
             'theme' => $preferences['theme']->value,
             'layout' => $preferences['layout'],
+            'locale' => $preferences['locale'],
+            'locales' => config('app.available_locales'),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'nav' => $user instanceof User ? $this->nav->itemsFor($user) : [],
             'impersonation' => $this->impersonation(),

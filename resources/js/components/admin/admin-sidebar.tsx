@@ -1,4 +1,5 @@
 import { Link } from '@inertiajs/react';
+import { useLaravelReactI18n } from 'laravel-react-i18n';
 import { Search } from 'lucide-react';
 import { groupNavItems, resolveNavIcon } from '@/components/admin/nav';
 import AppLogo from '@/components/app-logo';
@@ -32,6 +33,7 @@ export function AdminSidebar({
     collapsible,
     onOpenCommandPalette,
 }: AdminSidebarProps) {
+    const { t } = useLaravelReactI18n();
     const { isCurrentUrl } = useCurrentUrl();
     const groups = groupNavItems(nav);
     const homeItem = nav.at(0);
@@ -54,10 +56,10 @@ export function AdminSidebar({
                     <SidebarMenuItem>
                         <SidebarMenuButton
                             onClick={onOpenCommandPalette}
-                            tooltip={{ children: 'Search' }}
+                            tooltip={{ children: t('Search') }}
                         >
                             <Search />
-                            <span>Search</span>
+                            <span>{t('Search')}</span>
                             <kbd className="pointer-events-none ms-auto text-xs text-muted-foreground select-none group-data-[collapsible=icon]:hidden">
                                 Ctrl K
                             </kbd>

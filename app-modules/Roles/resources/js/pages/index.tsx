@@ -1,4 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
+import { useLaravelReactI18n } from 'laravel-react-i18n';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import { ConfirmDialog } from '@/components/confirm-dialog';
@@ -16,14 +17,17 @@ type RolesIndexProps = {
     roles: Paginated<RoleRow>;
 };
 
-const breadcrumbs: BreadcrumbItem[] = [{ title: 'Roles', href: index() }];
-
 export default function RolesIndex({ roles }: RolesIndexProps) {
+    const { t } = useLaravelReactI18n();
     const tableState = useTableState('roles');
     const [pendingDelete, setPendingDelete] = useState<RoleRow | null>(null);
     const [deleting, setDeleting] = useState(false);
 
-    const columns = buildRoleColumns(setPendingDelete);
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('Roles'), href: index() },
+    ];
+
+    const columns = buildRoleColumns(t, setPendingDelete);
 
     const confirmDelete = () => {
         if (pendingDelete === null) {
@@ -42,15 +46,15 @@ export default function RolesIndex({ roles }: RolesIndexProps) {
 
     return (
         <AdminLayout breadcrumbs={breadcrumbs}>
-            <Head title="Roles" />
+            <Head title={t('Roles')} />
             <DataTableToolbar
                 tableState={tableState}
-                searchPlaceholder="Search roles..."
+                searchPlaceholder={t('Search roles...')}
                 actions={
                     <Button size="sm" asChild>
                         <Link href={create()}>
                             <Plus className="size-4" />
-                            Create role
+                            {t('Create role')}
                         </Link>
                     </Button>
                 }
@@ -59,7 +63,7 @@ export default function RolesIndex({ roles }: RolesIndexProps) {
                 columns={columns}
                 paginated={roles}
                 tableState={tableState}
-                emptyMessage="No roles found."
+                emptyMessage={t('No roles found.')}
             />
             <ConfirmDialog
                 open={pendingDelete !== null}
@@ -68,9 +72,12 @@ export default function RolesIndex({ roles }: RolesIndexProps) {
                         setPendingDelete(null);
                     }
                 }}
-                title="Delete role"
-                description={`This will permanently delete ${pendingDelete?.name ?? 'this role'} and cannot be undone.`}
-                confirmLabel="Delete"
+                title={t('Delete role')}
+                description={t(
+                    'This will permanently delete :name and cannot be undone.',
+                    { name: pendingDelete?.name ?? t('this role') },
+                )}
+                confirmLabel={t('Delete')}
                 processing={deleting}
                 onConfirm={confirmDelete}
             />

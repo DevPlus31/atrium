@@ -1,3 +1,4 @@
+import { useLaravelReactI18n } from 'laravel-react-i18n';
 import InputError from '@/components/input-error';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -34,6 +35,7 @@ export function RolePermissionsField({
     onChange,
     error,
 }: RolePermissionsFieldProps) {
+    const { t } = useLaravelReactI18n();
     const groups = groupByModule(permissions);
 
     const toggle = (permission: string, checked: boolean) => {
@@ -57,10 +59,10 @@ export function RolePermissionsField({
 
     return (
         <div className="grid gap-2">
-            <Label>Permissions</Label>
+            <Label>{t('Permissions')}</Label>
             {permissions.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
-                    No permissions available.
+                    {t('No permissions available.')}
                 </p>
             ) : (
                 <div className="grid gap-4">
@@ -86,7 +88,10 @@ export function RolePermissionsField({
                                                 checked === true,
                                             )
                                         }
-                                        aria-label={`Select all ${prefix} permissions`}
+                                        aria-label={t(
+                                            'Select all :prefix permissions',
+                                            { prefix },
+                                        )}
                                     />
                                     {prefix}
                                 </label>

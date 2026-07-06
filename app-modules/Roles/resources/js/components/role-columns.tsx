@@ -7,6 +7,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { edit } from '@/routes/admin/roles';
+import type { Translator } from '@/types/ui';
 
 export type RoleRow = Modules.Roles.Data.RoleData;
 
@@ -21,6 +22,7 @@ function formatDate(value: string): string {
 }
 
 export function buildRoleColumns(
+    t: Translator,
     onDelete: (role: RoleRow) => void,
 ): ColumnDef<RoleRow, unknown>[] {
     return [
@@ -29,13 +31,13 @@ export function buildRoleColumns(
             accessorKey: 'name',
             enableSorting: true,
             header: ({ column }) => (
-                <DataTableColumnHeader column={column} title="Name" />
+                <DataTableColumnHeader column={column} title={t('Name')} />
             ),
             cell: ({ row }) => (
                 <span className="flex items-center gap-2">
                     <span className="font-medium">{row.original.name}</span>
                     {row.original.is_system && (
-                        <Badge variant="outline">System</Badge>
+                        <Badge variant="outline">{t('System')}</Badge>
                     )}
                 </span>
             ),
@@ -43,7 +45,7 @@ export function buildRoleColumns(
         {
             id: 'permissions',
             enableSorting: false,
-            header: 'Permissions',
+            header: t('Permissions'),
             cell: ({ row }) => {
                 const permissions = row.original.permissions;
 
@@ -63,7 +65,7 @@ export function buildRoleColumns(
                         ))}
                         {remaining > 0 && (
                             <span className="text-xs text-muted-foreground">
-                                +{remaining} more
+                                {t('+:count more', { count: remaining })}
                             </span>
                         )}
                     </div>
@@ -73,7 +75,7 @@ export function buildRoleColumns(
         {
             id: 'users_count',
             enableSorting: false,
-            header: 'Users',
+            header: t('Users'),
             cell: ({ row }) => <span>{row.original.users_count}</span>,
         },
         {
@@ -81,7 +83,7 @@ export function buildRoleColumns(
             accessorKey: 'created_at',
             enableSorting: true,
             header: ({ column }) => (
-                <DataTableColumnHeader column={column} title="Created" />
+                <DataTableColumnHeader column={column} title={t('Created')} />
             ),
             cell: ({ row }) => (
                 <span className="text-muted-foreground">
@@ -92,7 +94,7 @@ export function buildRoleColumns(
         {
             id: 'actions',
             enableSorting: false,
-            header: () => <span className="sr-only">Actions</span>,
+            header: () => <span className="sr-only">{t('Actions')}</span>,
             cell: ({ row }) => {
                 const role = row.original;
 
@@ -108,7 +110,7 @@ export function buildRoleColumns(
                                     {role.can.update && (
                                         <DropdownMenuItem asChild>
                                             <Link href={edit(Number(role.id))}>
-                                                Edit
+                                                {t('Edit')}
                                             </Link>
                                         </DropdownMenuItem>
                                     )}
@@ -117,7 +119,7 @@ export function buildRoleColumns(
                                             variant="destructive"
                                             onSelect={() => onDelete(role)}
                                         >
-                                            Delete
+                                            {t('Delete')}
                                         </DropdownMenuItem>
                                     )}
                                 </>

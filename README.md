@@ -33,6 +33,19 @@ Modular, extensible admin panel. Laravel 13 · Inertia v3 · React 19 · TypeScr
 
 **Theming (see THEMING.md):** semantic design tokens only — raw palette classes, color literals, and physical direction utilities (`ml-`, `left-`…) fail `bun run lint:theme`. Presets: default / ember / contrast, light + dark, per-user appearance, plus an enumerated layout variant system (nav placement, sidebar variants, boxed/fluid, sticky/static header, LTR/RTL) interpreted solely by `AdminLayout`. First paint is stamped server-side (no theme flash). A browser test matrix screenshots every preset × appearance and layout variant.
 
+## Localization
+
+Locale is a per-user preference persisted exactly like appearance/theme/layout: a js-readable `locale` cookie (guests + first paint) mirrored to a `users.locale` column when authenticated, applied server-side by the `HandleAppearance` middleware (`app()->setLocale()` + `<html lang>`), and shared via Inertia props (`locale`, `locales`). Switch it from the display-settings menu or the cmdk palette; switching persists via `PATCH settings/preferences` and re-renders server-sent strings (nav labels, flashes).
+
+One translation file serves both sides: flat `lang/<code>.json` (natural-English keys) is consumed by PHP's `__()` **and** the frontend's `t()` from `laravel-react-i18n` (`useLaravelReactI18n()`). Untranslated keys fall back to the key itself, so English always works.
+
+To add a locale:
+
+1. Copy `lang/en.json` → `lang/<code>.json` and translate the values.
+2. Register it in `config/app.php` → `available_locales` (`'<code>' => 'Native name'`).
+
+Locale is independent of text direction — RTL is a layout option (`direction`), not implied by locale.
+
 ## Modules & features
 
 | Area | What exists |

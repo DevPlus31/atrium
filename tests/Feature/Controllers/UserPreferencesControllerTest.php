@@ -28,6 +28,35 @@ it('validates the appearance, theme, and layout options', function (): void {
     $response->assertSessionHasErrors(['appearance', 'theme', 'layout.nav_placement']);
 });
 
+it('validates the locale against the available locales', function (): void {
+    $user = User::factory()->create();
+
+    $response = $this->actingAs($user)
+        ->fromRoute('dashboard')
+        ->patch(route('preferences.update'), [
+            'locale' => 'xx',
+        ]);
+
+    $response->assertSessionHasErrors(['locale']);
+});
+
+it('persists the locale and re-issues the js-readable locale cookie', function (): void {
+    config()->set('app.available_locales', ['en' => 'English', 'fr' => 'Français']);
+
+    $user = User::factory()->create();
+
+    $response = $this->actingAs($user)
+        ->fromRoute('dashboard')
+        ->patch(route('preferences.update'), [
+            'locale' => 'fr',
+        ]);
+
+    expect($user->refresh()->locale)->toBe('fr');
+
+    $response->assertRedirectToRoute('dashboard')
+        ->assertCookie('locale', 'fr', encrypted: false);
+});
+
 it('rejects unknown layout keys', function (): void {
     $user = User::factory()->create();
 

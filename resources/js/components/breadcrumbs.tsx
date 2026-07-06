@@ -1,4 +1,5 @@
 import { Link } from '@inertiajs/react';
+import { useLaravelReactI18n } from 'laravel-react-i18n';
 import { Fragment } from 'react';
 import {
     Breadcrumb,
@@ -15,6 +16,8 @@ export function Breadcrumbs({
 }: {
     breadcrumbs: BreadcrumbItemType[];
 }) {
+    const { t } = useLaravelReactI18n();
+
     return (
         <>
             {breadcrumbs.length > 0 && (
@@ -27,12 +30,12 @@ export function Breadcrumbs({
                                     <BreadcrumbItem>
                                         {isLast ? (
                                             <BreadcrumbPage>
-                                                {item.title}
+                                                {t(item.title)}
                                             </BreadcrumbPage>
                                         ) : (
                                             <BreadcrumbLink asChild>
                                                 <Link href={item.href}>
-                                                    {item.title}
+                                                    {t(item.title)}
                                                 </Link>
                                             </BreadcrumbLink>
                                         )}

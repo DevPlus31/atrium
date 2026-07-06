@@ -1,4 +1,5 @@
 import { router, usePage } from '@inertiajs/react';
+import { useLaravelReactI18n } from 'laravel-react-i18n';
 import { VenetianMask } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { leave } from '@/routes/impersonation';
@@ -8,6 +9,7 @@ import { leave } from '@/routes/impersonation';
  * Renders nothing when no impersonation is active.
  */
 export function ImpersonationBanner() {
+    const { t } = useLaravelReactI18n();
     const { auth, impersonation } = usePage().props;
 
     if (impersonation === null) {
@@ -19,9 +21,9 @@ export function ImpersonationBanner() {
             <span className="flex items-center gap-2">
                 <VenetianMask aria-hidden className="size-4 shrink-0" />
                 <span>
-                    Impersonating{' '}
-                    <span className="font-medium">{auth.user.name}</span> —
-                    acting as this user.
+                    {t('Impersonating')}{' '}
+                    <span className="font-medium">{auth.user.name}</span>{' '}
+                    {t('— acting as this user.')}
                 </span>
             </span>
             <Button
@@ -30,7 +32,9 @@ export function ImpersonationBanner() {
                 size="sm"
                 onClick={() => router.post(leave.url())}
             >
-                Leave — back to {impersonation.impersonator}
+                {t('Leave — back to :name', {
+                    name: impersonation.impersonator,
+                })}
             </Button>
         </div>
     );

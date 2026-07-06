@@ -1,4 +1,5 @@
 import { Head } from '@inertiajs/react';
+import { useLaravelReactI18n } from 'laravel-react-i18n';
 import {
     DataTable,
     DataTableFacetedFilter,
@@ -18,28 +19,31 @@ type AuditIndexProps = {
     events: string[];
 };
 
-const breadcrumbs: BreadcrumbItem[] = [{ title: 'Audit log', href: index() }];
-
-const columns = buildActivityColumns();
-
 export default function AuditIndex({
     activities,
     logNames,
     events,
 }: AuditIndexProps) {
+    const { t } = useLaravelReactI18n();
     const tableState = useTableState('activities');
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('Audit log'), href: index() },
+    ];
+
+    const columns = buildActivityColumns(t);
 
     return (
         <AdminLayout breadcrumbs={breadcrumbs}>
-            <Head title="Audit log" />
+            <Head title={t('Audit log')} />
             <DataTableToolbar
                 tableState={tableState}
-                searchPlaceholder="Search audit log..."
+                searchPlaceholder={t('Search audit log...')}
             >
                 <DataTableFacetedFilter
                     tableState={tableState}
                     field="log_name"
-                    title="Log"
+                    title={t('Log')}
                     options={logNames.map((logName) => ({
                         label: logName,
                         value: logName,
@@ -48,7 +52,7 @@ export default function AuditIndex({
                 <DataTableFacetedFilter
                     tableState={tableState}
                     field="event"
-                    title="Event"
+                    title={t('Event')}
                     options={events.map((event) => ({
                         label: event,
                         value: event,
@@ -59,7 +63,7 @@ export default function AuditIndex({
                 columns={columns}
                 paginated={activities}
                 tableState={tableState}
-                emptyMessage="No activity found."
+                emptyMessage={t('No activity found.')}
             />
         </AdminLayout>
     );

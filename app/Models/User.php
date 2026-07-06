@@ -36,6 +36,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @property-read Appearance|null $appearance
  * @property-read ThemePreset|null $theme
  * @property-read array<string, string>|null $layout
+ * @property-read string|null $locale
  * @property-read CarbonInterface $created_at
  * @property-read CarbonInterface $updated_at
  * @property-read Collection<int, Passkey> $passkeys

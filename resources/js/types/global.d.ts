@@ -19,6 +19,8 @@ declare module '@inertiajs/core' {
             appearance: App.Enums.Appearance;
             theme: App.Enums.ThemePreset;
             layout: LayoutConfig;
+            locale: string;
+            locales: Record<string, string>;
             nav: NavItem[];
             impersonation: Impersonation | null;
             flash: Flash;

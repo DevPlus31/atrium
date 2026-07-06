@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { useForm } from 'laravel-precognition-react-inertia';
+import { useLaravelReactI18n } from 'laravel-react-i18n';
 import type { FormEvent } from 'react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -22,12 +23,14 @@ type RolesCreateProps = {
     permissions: string[];
 };
 
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Roles', href: index() },
-    { title: 'Create', href: create() },
-];
-
 export default function RolesCreate({ permissions }: RolesCreateProps) {
+    const { t } = useLaravelReactI18n();
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('Roles'), href: index() },
+        { title: t('Create'), href: create() },
+    ];
+
     const form = useForm('post', store.url(), {
         name: '',
         permissions: [] as string[],
@@ -40,18 +43,18 @@ export default function RolesCreate({ permissions }: RolesCreateProps) {
 
     return (
         <AdminLayout breadcrumbs={breadcrumbs}>
-            <Head title="Create role" />
+            <Head title={t('Create role')} />
             <Card className="max-w-2xl">
                 <CardHeader>
-                    <CardTitle>Create role</CardTitle>
+                    <CardTitle>{t('Create role')}</CardTitle>
                     <CardDescription>
-                        Add a new role and choose its permissions.
+                        {t('Add a new role and choose its permissions.')}
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={submit} className="grid gap-6">
                         <div className="grid gap-2">
-                            <Label htmlFor="name">Name</Label>
+                            <Label htmlFor="name">{t('Name')}</Label>
                             <Input
                                 id="name"
                                 type="text"
@@ -63,7 +66,7 @@ export default function RolesCreate({ permissions }: RolesCreateProps) {
                                     form.setData('name', event.target.value)
                                 }
                                 onBlur={() => form.validate('name')}
-                                placeholder="Role name"
+                                placeholder={t('Role name')}
                             />
                             <InputError message={form.errors.name} />
                         </div>
@@ -81,10 +84,10 @@ export default function RolesCreate({ permissions }: RolesCreateProps) {
                         <div className="flex items-center gap-2">
                             <Button type="submit" disabled={form.processing}>
                                 {form.processing && <Spinner />}
-                                Create role
+                                {t('Create role')}
                             </Button>
                             <Button variant="ghost" asChild>
-                                <Link href={index()}>Cancel</Link>
+                                <Link href={index()}>{t('Cancel')}</Link>
                             </Button>
                         </div>
                     </form>

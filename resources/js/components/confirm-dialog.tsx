@@ -1,3 +1,4 @@
+import { useLaravelReactI18n } from 'laravel-react-i18n';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -34,12 +35,14 @@ export function ConfirmDialog({
     onOpenChange,
     title,
     description,
-    confirmLabel = 'Confirm',
-    cancelLabel = 'Cancel',
+    confirmLabel,
+    cancelLabel,
     destructive = true,
     processing = false,
     onConfirm,
 }: ConfirmDialogProps) {
+    const { t } = useLaravelReactI18n();
+
     return (
         <AlertDialog open={open} onOpenChange={onOpenChange}>
             <AlertDialogContent>
@@ -51,7 +54,7 @@ export function ConfirmDialog({
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                     <AlertDialogCancel disabled={processing}>
-                        {cancelLabel}
+                        {cancelLabel ?? t('Cancel')}
                     </AlertDialogCancel>
                     <AlertDialogAction
                         variant={destructive ? 'destructive' : 'default'}
@@ -59,7 +62,7 @@ export function ConfirmDialog({
                         onClick={onConfirm}
                     >
                         {processing && <Spinner />}
-                        {confirmLabel}
+                        {confirmLabel ?? t('Confirm')}
                     </AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
