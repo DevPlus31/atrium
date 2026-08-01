@@ -83,7 +83,7 @@ Deliberately deferred (designed-for, not built): DB-driven white-label theming v
 
 ## Using Atrium as a template
 
-Atrium is meant to be the upstream for many projects: the shell is generic, domain code lives in modules.
+Atrium is meant to be the upstream for many projects: the shell is generic, domain code lives in modules. See [docs/using-the-template.md](docs/using-the-template.md) for the full downstream workflow (generators, DDD, upstream merges).
 
 1. **Start a project**: use GitHub's "Use this template" (or clone), rename, configure `.env`, run the first-run steps above.
 2. **Build only modules**: add your domains under `app-modules/<Name>/` following the Users module as the canonical reference. Do not modify shell code downstream — `app/Modules/`, `resources/js/components/data-table/`, `resources/js/layouts/`, the theming CSS, or the generic modules.
