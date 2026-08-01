@@ -12,7 +12,7 @@ beforeEach(function (): void {
 it('stamps the first paint with the locale from the cookie for guests', function (): void {
     config()->set('app.available_locales', ['en' => 'English', 'fr' => 'Français']);
 
-    $response = $this->withUnencryptedCookie('locale', 'fr')->get('/');
+    $response = $this->withUnencryptedCookie('locale', 'fr')->get(route('login'));
 
     $response->assertOk();
 
@@ -21,7 +21,7 @@ it('stamps the first paint with the locale from the cookie for guests', function
 });
 
 it('falls back to the default locale when the cookie locale is unavailable', function (): void {
-    $response = $this->withUnencryptedCookie('locale', 'xx')->get('/');
+    $response = $this->withUnencryptedCookie('locale', 'xx')->get(route('login'));
 
     $response->assertOk();
 
@@ -36,7 +36,7 @@ it('prefers the authenticated user locale column over the cookie', function (): 
 
     $response = $this->actingAs($user)
         ->withUnencryptedCookie('locale', 'en')
-        ->get(route('dashboard'));
+        ->get(route('user-profile.edit'));
 
     $response->assertOk();
 
@@ -49,7 +49,7 @@ it('shares the locale and the available locales with the frontend', function ():
 
     $user = User::factory()->create(['locale' => 'fr']);
 
-    $response = $this->actingAs($user)->get(route('dashboard'));
+    $response = $this->actingAs($user)->get(route('user-profile.edit'));
 
     $response->assertOk()
         ->assertInertia(

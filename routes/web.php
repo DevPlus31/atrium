@@ -16,10 +16,10 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Modules\Users\Http\Controllers\LeaveImpersonationController;
 
-Route::get('/', fn () => Inertia::render('welcome'))->name('home');
+Route::get('/', fn () => to_route('dashboard'))->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function (): void {
-    Route::get('dashboard', fn () => Inertia::render('dashboard'))->name('dashboard');
+    Route::get('dashboard', fn () => to_route('admin.dashboard.index'))->name('dashboard');
 });
 
 Route::middleware('auth')->group(function (): void {

@@ -11,7 +11,7 @@ export default function AppLogo() {
             </div>
             <div className="ms-1 grid flex-1 text-start text-sm">
                 <span className="mb-0.5 truncate leading-tight font-semibold">
-                    {t('Laravel Starter Kit')}
+                    {t('Atrium')}
                 </span>
             </div>
         </>
