@@ -10,6 +10,8 @@ use App\Modules\NavRegistry;
 use App\Modules\PermissionRegistry;
 use App\Modules\WidgetRegistry;
 use Illuminate\Support\Facades\Gate;
+use Modules\Users\Domain\Repositories\UserRepository;
+use Modules\Users\Infrastructure\Repositories\EloquentUserRepository;
 use Modules\Users\Policies\UserPolicy;
 use Modules\Users\Widgets\RecentUsersWidget;
 use Modules\Users\Widgets\UsersTotalWidget;
@@ -19,6 +21,8 @@ final class UsersServiceProvider extends ModuleServiceProvider
     public function register(): void
     {
         Gate::policy(User::class, UserPolicy::class);
+
+        $this->app->bind(UserRepository::class, EloquentUserRepository::class);
     }
 
     protected function name(): string

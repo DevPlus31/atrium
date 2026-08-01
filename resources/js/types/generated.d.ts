@@ -93,6 +93,25 @@ declare namespace Modules {
             };
         }
     }
+    namespace Catalog {
+        namespace Data {
+            export type ProductData = {
+                id: string;
+                name: string;
+                sku: string;
+                price_cents: number;
+                currency: string;
+                description: string | null;
+                published_at: string | null;
+                created_at: string;
+                can: {
+                    update: boolean;
+                    delete: boolean;
+                    publish: boolean;
+                };
+            };
+        }
+    }
     namespace Dashboard {
         namespace Data {
             export type WidgetDescriptorData = {

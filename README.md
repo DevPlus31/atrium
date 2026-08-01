@@ -4,7 +4,7 @@
 
 Modular, extensible admin panel. Laravel 13 · Inertia v3 · React 19 · TypeScript (strict) · Tailwind v4 · shadcn/ui, built on `nunomaduro/laravel-starter-kit-inertia-react`. Ultra-strict by construction: PHPStan level max, 100% line + type coverage, Rector, Pint, OxLint/Oxfmt, and a custom theme lint — all enforced as gates.
 
-**Governing specs (read before any nontrivial change):** `docs/specs/build-prompt.md` (architecture, module contract, definition of done) and `docs/specs/theming.md` (token-only theming, layout variants, RTL). `THEMING.md` documents the token and layout contracts.
+**Governing specs (read before any nontrivial change):** `docs/specs/build-prompt.md` (architecture, module contract, definition of done), `docs/specs/ddd.md` (pragmatic Domain-Driven Design: layers, value objects, domain events, repositories, generators), and `docs/specs/theming.md` (token-only theming, layout variants, RTL). `THEMING.md` documents the token and layout contracts.
 
 ## Environment (this machine)
 
@@ -83,7 +83,7 @@ Deliberately deferred (designed-for, not built): DB-driven white-label theming v
 
 ## Using Atrium as a template
 
-Atrium is meant to be the upstream for many projects: the shell is generic, domain code lives in modules.
+Atrium is meant to be the upstream for many projects: the shell is generic, domain code lives in modules. See [docs/using-the-template.md](docs/using-the-template.md) for the full downstream workflow (generators, DDD, upstream merges).
 
 1. **Start a project**: use GitHub's "Use this template" (or clone), rename, configure `.env`, run the first-run steps above.
 2. **Build only modules**: add your domains under `app-modules/<Name>/` following the Users module as the canonical reference. Do not modify shell code downstream — `app/Modules/`, `resources/js/components/data-table/`, `resources/js/layouts/`, the theming CSS, or the generic modules.

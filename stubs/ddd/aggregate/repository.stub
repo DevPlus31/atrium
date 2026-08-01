@@ -1,0 +1,15 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\{{ module }}\Domain\Repositories;
+
+use App\Domain\Contracts\Repository;
+use Modules\{{ module }}\Infrastructure\Models\{{ aggregate }};
+
+interface {{ aggregate }}Repository extends Repository
+{
+    public function save({{ aggregate }} ${{ variable }}): void;
+
+    public function delete({{ aggregate }} ${{ variable }}): void;
+}

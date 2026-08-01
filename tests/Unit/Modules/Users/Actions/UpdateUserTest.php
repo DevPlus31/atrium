@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Support\Facades\Notification;
 use Modules\Users\Actions\UpdateUser;
+use Modules\Users\Domain\Exceptions\InvalidEmailException;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Permission\Exceptions\RoleDoesNotExist;
 use Spatie\Permission\Models\Role;
@@ -98,4 +99,17 @@ it('rolls back the transaction when syncing roles fails', function (): void {
 
     expect($user->refresh()->name)->toBe('Old Name')
         ->and(Activity::query()->count())->toBe(0);
+});
+
+it('rejects an invalid email', function (): void {
+    $user = User::factory()->create(['name' => 'Old Name']);
+
+    expect(fn (): User => new UpdateUser()->handle(
+        user: $user,
+        name: 'New Name',
+        email: 'not-an-email',
+        roles: [],
+    ))->toThrow(InvalidEmailException::class);
+
+    expect($user->refresh()->name)->toBe('Old Name');
 });

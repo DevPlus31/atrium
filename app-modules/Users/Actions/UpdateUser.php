@@ -6,6 +6,7 @@ namespace Modules\Users\Actions;
 
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Modules\Users\Domain\ValueObjects\Email;
 
 final readonly class UpdateUser
 {
@@ -14,6 +15,8 @@ final readonly class UpdateUser
      */
     public function handle(User $user, string $name, string $email, array $roles): User
     {
+        $email = (string) new Email($email);
+
         return DB::transaction(function () use ($user, $name, $email, $roles): User {
             $old = [
                 'name' => $user->name,

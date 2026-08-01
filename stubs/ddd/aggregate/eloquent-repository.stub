@@ -1,0 +1,21 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\{{ module }}\Infrastructure\Repositories;
+
+use Modules\{{ module }}\Domain\Repositories\{{ aggregate }}Repository;
+use Modules\{{ module }}\Infrastructure\Models\{{ aggregate }};
+
+final readonly class Eloquent{{ aggregate }}Repository implements {{ aggregate }}Repository
+{
+    public function save({{ aggregate }} ${{ variable }}): void
+    {
+        ${{ variable }}->save();
+    }
+
+    public function delete({{ aggregate }} ${{ variable }}): void
+    {
+        ${{ variable }}->delete();
+    }
+}

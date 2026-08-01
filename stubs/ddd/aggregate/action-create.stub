@@ -1,0 +1,39 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\{{ module }}\Actions;
+
+use Illuminate\Support\Facades\DB;
+use Modules\{{ module }}\Domain\Repositories\{{ aggregate }}Repository;
+use Modules\{{ module }}\Infrastructure\Models\{{ aggregate }};
+
+final readonly class Create{{ aggregate }}
+{
+    public function __construct(private {{ aggregate }}Repository ${{ variablePlural }})
+    {
+        //
+    }
+
+    public function handle(string $name, ?string $description): {{ aggregate }}
+    {
+        return DB::transaction(function () use ($name, $description): {{ aggregate }} {
+            ${{ variable }} = new {{ aggregate }}([
+                'name' => $name,
+                'description' => $description,
+            ]);
+
+            $this->{{ variablePlural }}->save(${{ variable }});
+
+            activity('{{ slug }}')
+                ->performedOn(${{ variable }})
+                ->event('created')
+                ->withProperties([
+                    'attributes' => ['name' => $name],
+                ])
+                ->log('created');
+
+            return ${{ variable }};
+        });
+    }
+}

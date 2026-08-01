@@ -1,0 +1,39 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\{{ module }}\Actions;
+
+use Illuminate\Support\Facades\DB;
+use Modules\{{ module }}\Domain\Repositories\{{ aggregate }}Repository;
+use Modules\{{ module }}\Infrastructure\Models\{{ aggregate }};
+
+final readonly class Update{{ aggregate }}
+{
+    public function __construct(private {{ aggregate }}Repository ${{ variablePlural }})
+    {
+        //
+    }
+
+    public function handle({{ aggregate }} ${{ variable }}, string $name, ?string $description): {{ aggregate }}
+    {
+        return DB::transaction(function () use (${{ variable }}, $name, $description): {{ aggregate }} {
+            ${{ variable }}->fill([
+                'name' => $name,
+                'description' => $description,
+            ]);
+
+            $this->{{ variablePlural }}->save(${{ variable }});
+
+            activity('{{ slug }}')
+                ->performedOn(${{ variable }})
+                ->event('updated')
+                ->withProperties([
+                    'attributes' => ['name' => $name],
+                ])
+                ->log('updated');
+
+            return ${{ variable }}->refresh();
+        });
+    }
+}

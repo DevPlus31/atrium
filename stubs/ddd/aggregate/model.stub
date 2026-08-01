@@ -1,0 +1,45 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\{{ module }}\Infrastructure\Models;
+
+use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Modules\{{ module }}\Database\Factories\{{ aggregate }}Factory;
+
+/**
+ * @property-read string $id
+ * @property string $name
+ * @property string|null $description
+ * @property-read CarbonInterface $created_at
+ * @property-read CarbonInterface $updated_at
+ */
+final class {{ aggregate }} extends Model
+{
+    /** @use HasFactory<{{ aggregate }}Factory> */
+    use HasFactory;
+
+    use HasUuids;
+
+    /**
+     * @return array<string, string>
+     */
+    public function casts(): array
+    {
+        return [
+            'id' => 'string',
+            'name' => 'string',
+            'description' => 'string',
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
+        ];
+    }
+
+    protected static function newFactory(): {{ aggregate }}Factory
+    {
+        return {{ aggregate }}Factory::new();
+    }
+}

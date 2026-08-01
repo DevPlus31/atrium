@@ -1,0 +1,87 @@
+import { Link } from '@inertiajs/react';
+import type { ColumnDef } from '@tanstack/react-table';
+import {
+    DataTableColumnHeader,
+    DataTableRowActions,
+} from '@/components/data-table';
+import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import { edit } from '@/routes/admin/{{ slug }}';
+import type { Translator } from '@/types/ui';
+
+export type {{ aggregate }}Row = Modules.{{ module }}.Data.{{ aggregate }}Data;
+
+function formatDate(value: string): string {
+    return new Date(value).toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+    });
+}
+
+export function build{{ aggregate }}Columns(
+    t: Translator,
+    onDelete: (item: {{ aggregate }}Row) => void,
+): ColumnDef<{{ aggregate }}Row, unknown>[] {
+    return [
+        {
+            id: 'name',
+            accessorKey: 'name',
+            enableSorting: true,
+            header: ({ column }) => (
+                <DataTableColumnHeader column={column} title={t('Name')} />
+            ),
+            cell: ({ row }) => (
+                <span className="font-medium">{row.original.name}</span>
+            ),
+        },
+        {
+            id: 'created_at',
+            accessorKey: 'created_at',
+            enableSorting: true,
+            header: ({ column }) => (
+                <DataTableColumnHeader column={column} title={t('Created')} />
+            ),
+            cell: ({ row }) => (
+                <span className="text-muted-foreground">
+                    {formatDate(row.original.created_at)}
+                </span>
+            ),
+        },
+        {
+            id: 'actions',
+            enableSorting: false,
+            header: () => <span className="sr-only">{t('Actions')}</span>,
+            cell: ({ row }) => {
+                if (!row.original.can.update && !row.original.can.delete) {
+                    return null;
+                }
+
+                return (
+                    <div className="flex justify-end">
+                        <DataTableRowActions row={row}>
+                            {() => (
+                                <>
+                                    {row.original.can.update && (
+                                        <DropdownMenuItem asChild>
+                                            <Link href={edit(row.original.id)}>
+                                                {t('Edit')}
+                                            </Link>
+                                        </DropdownMenuItem>
+                                    )}
+                                    {row.original.can.delete && (
+                                        <DropdownMenuItem
+                                            variant="destructive"
+                                            onSelect={() => onDelete(row.original)}
+                                        >
+                                            {t('Delete')}
+                                        </DropdownMenuItem>
+                                    )}
+                                </>
+                            )}
+                        </DataTableRowActions>
+                    </div>
+                );
+            },
+        },
+    ];
+}

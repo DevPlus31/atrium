@@ -1,0 +1,32 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\{{ studly }}\Providers;
+
+use App\Modules\ModuleServiceProvider;
+use App\Modules\NavRegistry;
+use App\Modules\PermissionRegistry;
+
+final class {{ studly }}ServiceProvider extends ModuleServiceProvider
+{
+    public function register(): void
+    {
+        // @ddd-bindings
+    }
+
+    protected function name(): string
+    {
+        return '{{ kebab }}';
+    }
+
+    protected function navigation(NavRegistry $nav): void
+    {
+        // @ddd-navigation
+    }
+
+    protected function permissions(PermissionRegistry $permissions): void
+    {
+        // @ddd-permissions
+    }
+}
