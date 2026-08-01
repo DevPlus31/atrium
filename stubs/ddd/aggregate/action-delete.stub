@@ -1,0 +1,32 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\{{ module }}\Actions;
+
+use Illuminate\Support\Facades\DB;
+use Modules\{{ module }}\Domain\Repositories\{{ aggregate }}Repository;
+use Modules\{{ module }}\Infrastructure\Models\{{ aggregate }};
+
+final readonly class Delete{{ aggregate }}
+{
+    public function __construct(private {{ aggregate }}Repository ${{ variablePlural }})
+    {
+        //
+    }
+
+    public function handle({{ aggregate }} ${{ variable }}): void
+    {
+        DB::transaction(function () use (${{ variable }}): void {
+            $this->{{ variablePlural }}->delete(${{ variable }});
+
+            activity('{{ slug }}')
+                ->performedOn(${{ variable }})
+                ->event('deleted')
+                ->withProperties([
+                    'attributes' => ['name' => ${{ variable }}->name],
+                ])
+                ->log('deleted');
+        });
+    }
+}

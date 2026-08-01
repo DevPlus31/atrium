@@ -1,0 +1,88 @@
+import { Head, Link, router } from '@inertiajs/react';
+import { useLaravelReactI18n } from 'laravel-react-i18n';
+import { Plus } from 'lucide-react';
+import { useState } from 'react';
+import { ConfirmDialog } from '@/components/confirm-dialog';
+import { DataTable, DataTableToolbar } from '@/components/data-table';
+import { Button } from '@/components/ui/button';
+import { useTableState } from '@/hooks/use-table-state';
+import AdminLayout from '@/layouts/admin-layout';
+import { create, destroy, index } from '@/routes/admin/{{ slug }}';
+import type { BreadcrumbItem } from '@/types';
+import type { Paginated } from '@/types/admin';
+import type { {{ aggregate }}Row } from '../components/{{ slug }}-columns';
+import { build{{ aggregate }}Columns } from '../components/{{ slug }}-columns';
+
+type {{ plural }}IndexProps = {
+    {{ variablePlural }}: Paginated<{{ aggregate }}Row>;
+};
+
+export default function {{ plural }}Index({ {{ variablePlural }} }: {{ plural }}IndexProps) {
+    const { t } = useLaravelReactI18n();
+    const tableState = useTableState('{{ slug }}');
+    const [pendingDelete, setPendingDelete] = useState<{{ aggregate }}Row | null>(
+        null,
+    );
+    const [deleting, setDeleting] = useState(false);
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('{{ label }}'), href: index() },
+    ];
+
+    const columns = build{{ aggregate }}Columns(t, setPendingDelete);
+
+    const confirmDelete = () => {
+        if (pendingDelete === null) {
+            return;
+        }
+
+        router.delete(destroy.url(pendingDelete.id), {
+            preserveScroll: true,
+            onStart: () => setDeleting(true),
+            onFinish: () => {
+                setDeleting(false);
+                setPendingDelete(null);
+            },
+        });
+    };
+
+    return (
+        <AdminLayout breadcrumbs={breadcrumbs}>
+            <Head title={t('{{ label }}')} />
+            <DataTableToolbar
+                tableState={tableState}
+                searchPlaceholder={t('Search {{ slug }}...')}
+                actions={
+                    <Button size="sm" asChild>
+                        <Link href={create()}>
+                            <Plus className="size-4" />
+                            {t('Create {{ variable }}')}
+                        </Link>
+                    </Button>
+                }
+            />
+            <DataTable
+                columns={columns}
+                paginated={{{ variablePlural }}}
+                tableState={tableState}
+                emptyMessage={t('No {{ slug }} found.')}
+            />
+            <ConfirmDialog
+                open={pendingDelete !== null}
+                onOpenChange={(open) => {
+                    if (!open && !deleting) {
+                        setPendingDelete(null);
+                    }
+                }}
+                title={t('Delete {{ variable }}')}
+                description={t(
+                    'This will permanently delete :name and cannot be undone.',
+                    { name: pendingDelete?.name ?? t('this {{ variable }}') },
+                )}
+                confirmLabel={t('Delete')}
+                processing={deleting}
+                onConfirm={confirmDelete}
+            />
+        </AdminLayout>
+    );
+}

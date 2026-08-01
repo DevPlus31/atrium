@@ -1,0 +1,30 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\{{ module }}\Database\Factories;
+
+use Illuminate\Database\Eloquent\Factories\Factory;
+use Modules\{{ module }}\Infrastructure\Models\{{ aggregate }};
+
+/**
+ * @extends Factory<{{ aggregate }}>
+ */
+final class {{ aggregate }}Factory extends Factory
+{
+    /**
+     * @var class-string<{{ aggregate }}>
+     */
+    protected $model = {{ aggregate }}::class;
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function definition(): array
+    {
+        return [
+            'name' => fake()->words(3, true),
+            'description' => fake()->sentence(),
+        ];
+    }
+}

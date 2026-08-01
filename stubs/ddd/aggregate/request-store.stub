@@ -1,0 +1,43 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\{{ module }}\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+use Modules\{{ module }}\Infrastructure\Models\{{ aggregate }};
+
+final class Store{{ aggregate }}Request extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return $this->user()?->can('create', {{ aggregate }}::class) ?? false;
+    }
+
+    /**
+     * @return array<string, array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        return [
+            'name' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string', 'max:2000'],
+        ];
+    }
+
+    public function name(): string
+    {
+        /** @var string $name */
+        $name = $this->validated('name');
+
+        return $name;
+    }
+
+    public function description(): ?string
+    {
+        /** @var string|null $description */
+        $description = $this->validated('description');
+
+        return $description;
+    }
+}

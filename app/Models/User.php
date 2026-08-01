@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Domain\Concerns\InteractsWithDomainEvents;
+use App\Domain\Contracts\RecordsDomainEvents;
 use App\Enums\Appearance;
 use App\Enums\ThemePreset;
 use Carbon\CarbonInterface;
@@ -47,7 +49,7 @@ use Spatie\Permission\Traits\HasRoles;
     'two_factor_secret',
     'two_factor_recovery_codes',
 ])]
-final class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
+final class User extends Authenticatable implements MustVerifyEmail, PasskeyUser, RecordsDomainEvents
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory;
@@ -55,6 +57,7 @@ final class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     use HasRoles;
     use HasUuids;
     use Impersonate;
+    use InteractsWithDomainEvents;
     use Notifiable;
     use PasskeyAuthenticatable;
     use TwoFactorAuthenticatable;

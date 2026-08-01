@@ -4,7 +4,7 @@
 
 Modular, extensible admin panel. Laravel 13 · Inertia v3 · React 19 · TypeScript (strict) · Tailwind v4 · shadcn/ui, built on `nunomaduro/laravel-starter-kit-inertia-react`. Ultra-strict by construction: PHPStan level max, 100% line + type coverage, Rector, Pint, OxLint/Oxfmt, and a custom theme lint — all enforced as gates.
 
-**Governing specs (read before any nontrivial change):** `docs/specs/build-prompt.md` (architecture, module contract, definition of done) and `docs/specs/theming.md` (token-only theming, layout variants, RTL). `THEMING.md` documents the token and layout contracts.
+**Governing specs (read before any nontrivial change):** `docs/specs/build-prompt.md` (architecture, module contract, definition of done), `docs/specs/ddd.md` (pragmatic Domain-Driven Design: layers, value objects, domain events, repositories, generators), and `docs/specs/theming.md` (token-only theming, layout variants, RTL). `THEMING.md` documents the token and layout contracts.
 
 ## Environment (this machine)
 

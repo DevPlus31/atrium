@@ -1,0 +1,75 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\{{ module }}\Http\Controllers;
+
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Routing\Attributes\Controllers\Authorize;
+use Inertia\Inertia;
+use Inertia\Response;
+use Modules\{{ module }}\Actions\Create{{ aggregate }};
+use Modules\{{ module }}\Actions\Delete{{ aggregate }};
+use Modules\{{ module }}\Actions\Update{{ aggregate }};
+use Modules\{{ module }}\Data\{{ aggregate }}Data;
+use Modules\{{ module }}\Http\Requests\Store{{ aggregate }}Request;
+use Modules\{{ module }}\Http\Requests\Update{{ aggregate }}Request;
+use Modules\{{ module }}\Infrastructure\Models\{{ aggregate }};
+use Modules\{{ module }}\Queries\{{ plural }}IndexQuery;
+use Spatie\LaravelData\PaginatedDataCollection;
+
+final readonly class {{ aggregate }}Controller
+{
+    #[Authorize('viewAny', {{ aggregate }}::class)]
+    public function index({{ plural }}IndexQuery $query): Response
+    {
+        return Inertia::render('{{ moduleLower }}::index', [
+            '{{ variablePlural }}' => {{ aggregate }}Data::collect($query->paginate(), PaginatedDataCollection::class),
+        ]);
+    }
+
+    #[Authorize('create', {{ aggregate }}::class)]
+    public function create(): Response
+    {
+        return Inertia::render('{{ moduleLower }}::create');
+    }
+
+    #[Authorize('create', {{ aggregate }}::class)]
+    public function store(Store{{ aggregate }}Request $request, Create{{ aggregate }} $action): RedirectResponse
+    {
+        $action->handle(
+            name: $request->name(),
+            description: $request->description(),
+        );
+
+        return to_route('admin.{{ slug }}.index')->with('success', __('{{ aggregate }} created.'));
+    }
+
+    #[Authorize('update', '{{ variable }}')]
+    public function edit({{ aggregate }} ${{ variable }}): Response
+    {
+        return Inertia::render('{{ moduleLower }}::edit', [
+            '{{ variable }}' => {{ aggregate }}Data::from(${{ variable }}),
+        ]);
+    }
+
+    #[Authorize('update', '{{ variable }}')]
+    public function update(Update{{ aggregate }}Request $request, {{ aggregate }} ${{ variable }}, Update{{ aggregate }} $action): RedirectResponse
+    {
+        $action->handle(
+            {{ variable }}: ${{ variable }},
+            name: $request->name(),
+            description: $request->description(),
+        );
+
+        return to_route('admin.{{ slug }}.index')->with('success', __('{{ aggregate }} updated.'));
+    }
+
+    #[Authorize('delete', '{{ variable }}')]
+    public function destroy({{ aggregate }} ${{ variable }}, Delete{{ aggregate }} $action): RedirectResponse
+    {
+        $action->handle(${{ variable }});
+
+        return to_route('admin.{{ slug }}.index')->with('success', __('{{ aggregate }} deleted.'));
+    }
+}

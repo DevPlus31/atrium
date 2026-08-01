@@ -1,0 +1,30 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\{{ module }}\Policies;
+
+use App\Models\User;
+
+final readonly class {{ aggregate }}Policy
+{
+    public function viewAny(User $user): bool
+    {
+        return $user->can('{{ slug }}.view');
+    }
+
+    public function create(User $user): bool
+    {
+        return $user->can('{{ slug }}.create');
+    }
+
+    public function update(User $user): bool
+    {
+        return $user->can('{{ slug }}.update');
+    }
+
+    public function delete(User $user): bool
+    {
+        return $user->can('{{ slug }}.delete');
+    }
+}

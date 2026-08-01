@@ -1,0 +1,41 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\{{ module }}\Data;
+
+use Illuminate\Support\Facades\Auth;
+use Modules\{{ module }}\Infrastructure\Models\{{ aggregate }};
+use Spatie\LaravelData\Data;
+
+final class {{ aggregate }}Data extends Data
+{
+    /**
+     * @param  array{update: bool, delete: bool}  $can
+     */
+    public function __construct(
+        public string $id,
+        public string $name,
+        public ?string $description,
+        public string $created_at,
+        public array $can,
+    ) {
+        //
+    }
+
+    public static function fromModel({{ aggregate }} ${{ variable }}): self
+    {
+        $viewer = Auth::user();
+
+        return new self(
+            id: ${{ variable }}->id,
+            name: ${{ variable }}->name,
+            description: ${{ variable }}->description,
+            created_at: ${{ variable }}->created_at->toIso8601String(),
+            can: [
+                'update' => $viewer?->can('update', ${{ variable }}) ?? false,
+                'delete' => $viewer?->can('delete', ${{ variable }}) ?? false,
+            ],
+        );
+    }
+}

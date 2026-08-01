@@ -7,6 +7,7 @@ use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
 use Modules\Users\Actions\CreateUser;
+use Modules\Users\Domain\Exceptions\InvalidEmailException;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Permission\Exceptions\RoleDoesNotExist;
 use Spatie\Permission\Models\Role;
@@ -15,7 +16,7 @@ it('creates a user with a hashed password and synced roles', function (): void {
     Role::findOrCreate('editor');
     Event::fake([Registered::class]);
 
-    $user = new CreateUser()->handle(
+    $user = resolve(CreateUser::class)->handle(
         name: 'Jane Doe',
         email: 'jane@example.com',
         password: 'super-secret-password',
@@ -33,14 +34,14 @@ it('creates a user with a hashed password and synced roles', function (): void {
 it('creates an unverified user by default and a verified one on demand', function (): void {
     Role::findOrCreate('editor');
 
-    $unverified = new CreateUser()->handle(
+    $unverified = resolve(CreateUser::class)->handle(
         name: 'Jane Doe',
         email: 'jane@example.com',
         password: 'super-secret-password',
         roles: ['editor'],
     );
 
-    $verified = new CreateUser()->handle(
+    $verified = resolve(CreateUser::class)->handle(
         name: 'John Doe',
         email: 'john@example.com',
         password: 'super-secret-password',
@@ -55,7 +56,7 @@ it('creates an unverified user by default and a verified one on demand', functio
 it('writes a created activity with the given attributes', function (): void {
     Role::findOrCreate('editor');
 
-    $user = new CreateUser()->handle(
+    $user = resolve(CreateUser::class)->handle(
         name: 'Jane Doe',
         email: 'jane@example.com',
         password: 'super-secret-password',
@@ -74,7 +75,7 @@ it('writes a created activity with the given attributes', function (): void {
 });
 
 it('rolls back the transaction when syncing roles fails', function (): void {
-    expect(fn (): User => new CreateUser()->handle(
+    expect(fn (): User => resolve(CreateUser::class)->handle(
         name: 'Jane Doe',
         email: 'jane@example.com',
         password: 'super-secret-password',
@@ -83,4 +84,15 @@ it('rolls back the transaction when syncing roles fails', function (): void {
 
     expect(User::query()->count())->toBe(0)
         ->and(Activity::query()->count())->toBe(0);
+});
+
+it('rejects an invalid email before creating anything', function (): void {
+    expect(fn (): User => resolve(CreateUser::class)->handle(
+        name: 'Jane Doe',
+        email: 'not-an-email',
+        password: 'super-secret-password',
+        roles: [],
+    ))->toThrow(InvalidEmailException::class);
+
+    expect(User::query()->count())->toBe(0);
 });
