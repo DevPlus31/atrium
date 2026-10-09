@@ -10,13 +10,15 @@ use Stringable;
 
 final readonly class Sku implements Stringable, ValueObject
 {
+    public const string PATTERN = '/^[A-Z0-9][A-Z0-9-]{2,31}$/';
+
     public string $value;
 
     public function __construct(string $value)
     {
         $normalized = mb_strtoupper(mb_trim($value));
 
-        if (in_array(preg_match('/^[A-Z0-9][A-Z0-9-]{2,31}$/', $normalized), [0, false], true)) {
+        if (in_array(preg_match(self::PATTERN, $normalized), [0, false], true)) {
             throw InvalidSkuException::forValue($value);
         }
 

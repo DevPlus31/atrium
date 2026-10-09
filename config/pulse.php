@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Models\User;
+use App\Modules\Middleware\EnsureModuleIsEnabled;
 use Laravel\Pulse\Http\Middleware\Authorize;
 use Laravel\Pulse\Pulse;
 use Laravel\Pulse\Recorders\CacheInteractions;
@@ -135,7 +137,8 @@ return [
         'web',
         'auth',
         'verified',
-        'role:admin',
+        'can:'.User::PANEL_ABILITY,
+        EnsureModuleIsEnabled::class.':system',
         Authorize::class,
     ],
 

@@ -1,9 +1,20 @@
 # DDD Guide — Pragmatic Domain-Driven Design
 
 > Extends `docs/specs/build-prompt.md`. Cross-links `docs/specs/theming.md`.
-> Canonical reference module: **Catalog** (`app-modules/Catalog`). Lightweight example: **Users**.
+> Canonical reference module: **Catalog** (`app-modules/Catalog`). Richest example: **Shop**. Lightweight examples (vendor models): **Roles**, **Users**.
 
 Atrium models each module as a **bounded context** and adds a small, enforced tactical-DDD layer on top of the existing Action pattern. This is **pragmatic Laravel-DDD**, not full hexagonal: the Eloquent model *is* the entity and the persistence mechanism. We add Value Objects, Domain Events, Domain Exceptions, and Repository interfaces — without rewriting the kit's Actions/Queries/Http conventions.
+
+## When to use the domain layer
+
+Use it for **anything with business rules**: invariants ("a system role keeps its name"), state machines ("pending → paid → shipped"), one-time transitions ("an invitation is accepted once, before it expires") or values that must always be valid (SKU, email, money). Plumbing without rules — settings screens, token management, dashboards, log viewers — stays as plain Actions over Eloquent or settings classes; do not add repositories for their own sake.
+
+Two shapes, depending on who owns the model:
+
+- **Our model → full aggregate.** Behaviour lives on the model (`Order::place()`, `->transitionTo()`, `Invitation::issue()`, `->accept()`, `->renew()`): it checks its invariants, throws a module `DomainException`, and records domain events. Actions load or create it, call the behaviour, save through the repository inside `DB::transaction`, then `flushDomainEvents()`. Side effects (emails, notifications) are listeners on those events. Examples: **Shop** (orders), **Catalog** (products), **Users** (invitations).
+- **A vendor or shell model (Spatie `Role`, `App\Models\User`) → lightweight.** The rules go into a value object and the actions: `RoleName::isSystem()` decides what is protected, `UpdateRole`/`DeleteRole` throw `SystemRoleProtected`, and a repository owns the writes. Policies, FormRequests and DTOs ask the same value object, so the rule exists once. Examples: **Roles**, **Users** (`Email`, `UserRepository`).
+
+Rules that depend on *who acts* (you may only grant roles you hold; you cannot remove your own admin role; a token carries only your permissions) are authorization, not domain: they stay in policies and FormRequests.
 
 ## Layers
 
@@ -16,7 +27,7 @@ A module (`app-modules/<Name>/`) is organised into four layers. Existing folders
 | **Application** | `Actions/`, `Queries/`, `Data/` | Actions = command use-cases (own `DB::transaction`, activity log, event flush). Queries = read use-cases (spatie/query-builder). Data = Inertia DTOs. |
 | **Presentation** | `Http/`, `Policies/`, `routes/`, `resources/js/` | Controllers (7 CRUD verbs; non-CRUD ⇒ invokable), FormRequests, Policies, React pages. |
 
-Shared kernel lives in `app/Domain/`: `Contracts/{DomainEvent,RecordsDomainEvents,ValueObject,Repository}`, `Concerns/InteractsWithDomainEvents`, `Exceptions/DomainException`.
+Shared kernel lives in `app/Domain/`: `Contracts/{DomainEvent,RecordsDomainEvents,ValueObject,Repository}`, `Concerns/InteractsWithDomainEvents`, `Exceptions/{DomainException,InvalidMoneyException,LastAdministrator}`, integration events in `Events/` (create it with the first one), and the cross-context value object `ValueObjects/Money` (used by Catalog and Shop). Put a value object in the kernel only when more than one bounded context needs it; modules still never import each other.
 
 ## Dependency rules (enforced by `tests/Unit/Architecture/ModuleBoundariesTest.php`)
 
@@ -29,7 +40,7 @@ These tests iterate `app-modules/*`, so every present and future module is cover
 
 ## Value Objects
 
-Immutable, `final readonly`, validate in the constructor, throw a module `DomainException` on invalid input. Examples: `Modules\Catalog\Domain\ValueObjects\{Sku,Money}`, `Modules\Users\Domain\ValueObjects\Email`.
+Immutable, `final readonly`, validate in the constructor, throw a module `DomainException` on invalid input. Examples: `Modules\Catalog\Domain\ValueObjects\Sku`, `App\Domain\ValueObjects\Money` (shared kernel), `Modules\Users\Domain\ValueObjects\Email`.
 
 **Scalar-DTO rule (critical):** Value Objects must **never** appear as properties on a `spatie/laravel-data` DTO. The TypeScript transformer only understands scalars; a VO property yields `any` or breaks `tsc`. DTOs expose scalars (`price_cents: int`, `currency: string`), and Actions construct VOs internally for validation/normalisation.
 
@@ -48,7 +59,6 @@ A Domain interface (`Domain/Repositories/<Agg>Repository`, extends `App\Domain\C
 ```php
 public function register(): void
 {
-    Gate::policy(Product::class, ProductPolicy::class);
     $this->app->bind(ProductRepository::class, EloquentProductRepository::class);
 }
 ```
@@ -59,7 +69,7 @@ Repositories own **writes** (`save`, `delete`). Reads stay in Query classes and 
 
 ```bash
 php artisan make:module Catalog          # scaffolds the bounded context + registers the provider
-php artisan make:aggregate Catalog Product  # scaffolds the full CRUD DDD slice + tests
+php artisan make:aggregate Catalog Product  # scaffolds the full CRUD DDD slice + tests (one aggregate per module)
 
 php artisan migrate
 php artisan admin:sync-permissions
@@ -67,7 +77,7 @@ php artisan typescript:transform
 php artisan wayfinder:generate --with-form
 ```
 
-`make:module` appends the provider to `bootstrap/providers.php` and the `$moduleProviders` array in `tests/Unit/ArchTest.php` (both idempotent). Generated code and its tests ship gates-green.
+`make:module` appends the provider to `bootstrap/providers.php` (it refuses to run when the module folder already exists); `tests/Unit/ArchTest.php` reads the module providers from that file, so nothing else needs editing. Generated tests go to the module's `tests/` folder. `make:aggregate` adds the strings its pages and controller translate to the module's `lang/en.json` (skipping those the shell catalogue already has) and copies them, still in English, into every other locale's catalogue (it prints how many to translate); `tests/Unit/TranslationKeysTest.php` fails when any translated string is missing. `module:remove` undoes `make:module`. Generated code and its tests pass every gate once the formatters have run (`composer lint && bun run lint`, as the generator prints): line wrapping depends on the names you choose.
 
 Domain-specific pieces the generator cannot infer — Value Objects, Domain Events, and invariants like `publish()` — are added by hand, following the Catalog module and this guide.
 
@@ -77,4 +87,4 @@ PHPStan max · Rector · Pint · Pest 100% line **and** type coverage · `tsc --
 
 ## Downstream continuation
 
-Build only modules. Run the generators, add domain behaviour by following Catalog. Adding a module touches exactly two shell files (both auto-patched). Pull shell/DDD improvements from upstream Atrium via `git merge` — the boundary tests keep every context isolated, so merges stay near conflict-free.
+Build only modules. Run the generators, add domain behaviour by following Catalog. Adding or removing a module touches one shell file, auto-patched: `bootstrap/providers.php`. Everything else — code, pages, translations, tests — lives in the module folder. Pull shell/DDD improvements from upstream Atrium via `git merge` — the boundary tests keep every context isolated, so merges stay near conflict-free.

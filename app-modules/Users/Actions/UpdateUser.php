@@ -6,10 +6,16 @@ namespace Modules\Users\Actions;
 
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Modules\Users\Domain\Repositories\UserRepository;
 use Modules\Users\Domain\ValueObjects\Email;
 
 final readonly class UpdateUser
 {
+    public function __construct(private UserRepository $users)
+    {
+        //
+    }
+
     /**
      * @param  list<string>  $roles
      */
@@ -26,11 +32,13 @@ final readonly class UpdateUser
 
             $emailChanged = $user->email !== $email;
 
-            $user->update([
+            $user->fill([
                 'name' => $name,
                 'email' => $email,
                 ...($emailChanged ? ['email_verified_at' => null] : []),
             ]);
+
+            $this->users->save($user);
 
             $user->syncRoles($roles);
 
@@ -44,7 +52,9 @@ final readonly class UpdateUser
                 ->log('updated');
 
             if ($emailChanged) {
-                $user->sendEmailVerificationNotification();
+                DB::afterCommit(static function () use ($user): void {
+                    $user->sendEmailVerificationNotification();
+                });
             }
 
             return $user->refresh();

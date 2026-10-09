@@ -16,6 +16,7 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { useCurrentUrl } from '@/hooks/use-current-url';
+import { useShortcutLabel } from '@/hooks/use-shortcut-label';
 import type { LayoutConfig, NavItem } from '@/types/admin';
 
 type AdminSidebarProps = {
@@ -34,6 +35,7 @@ export function AdminSidebar({
     onOpenCommandPalette,
 }: AdminSidebarProps) {
     const { t } = useLaravelReactI18n();
+    const shortcutLabel = useShortcutLabel('K');
     const { isCurrentUrl } = useCurrentUrl();
     const groups = groupNavItems(nav);
     const homeItem = nav.at(0);
@@ -61,7 +63,7 @@ export function AdminSidebar({
                             <Search />
                             <span>{t('Search')}</span>
                             <kbd className="pointer-events-none ms-auto text-xs text-muted-foreground select-none group-data-[collapsible=icon]:hidden">
-                                Ctrl K
+                                {shortcutLabel}
                             </kbd>
                         </SidebarMenuButton>
                     </SidebarMenuItem>

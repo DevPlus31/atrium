@@ -8,6 +8,7 @@ use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Str;
 
 #[Description('Scaffold a full CRUD DDD slice (aggregate) inside an existing module')]
@@ -34,6 +35,17 @@ final class MakeAggregateCommand extends Command
             return self::FAILURE;
         }
 
+        $providerPath = $modulePath.'/Providers/'.$module.'ServiceProvider.php';
+
+        if (! str_contains($files->get($providerPath), '// @ddd-bindings')) {
+            $this->components->error(sprintf(
+                'Module [%s] already has an aggregate. make:aggregate scaffolds one aggregate per module; add further aggregates by hand or create a new module.',
+                $module,
+            ));
+
+            return self::FAILURE;
+        }
+
         $plural = Str::pluralStudly($aggregate);
         $slug = Str::kebab($plural);
 
@@ -49,7 +61,7 @@ final class MakeAggregateCommand extends Command
             '{{ label }}' => Str::headline($plural),
         ];
 
-        $this->writeAggregateFiles($files, $modulePath, $module, $aggregate, $plural, $slug, $replacements);
+        $this->writeAggregateFiles($files, $modulePath, $aggregate, $plural, $slug, $replacements);
         $this->wireProvider($files, $modulePath, $module, $aggregate, $slug, $replacements['{{ label }}']);
 
         $this->components->info(sprintf('Aggregate [%s] scaffolded in module [%s].', $aggregate, $module));
@@ -67,7 +79,7 @@ final class MakeAggregateCommand extends Command
     /**
      * @param  array<string, string>  $replacements
      */
-    private function writeAggregateFiles(Filesystem $files, string $modulePath, string $module, string $aggregate, string $plural, string $slug, array $replacements): void
+    private function writeAggregateFiles(Filesystem $files, string $modulePath, string $aggregate, string $plural, string $slug, array $replacements): void
     {
         $timestamp = now()->format('Y_m_d_His');
 
@@ -91,13 +103,88 @@ final class MakeAggregateCommand extends Command
             'aggregate/page-create' => $modulePath.'/resources/js/pages/create.tsx',
             'aggregate/page-edit' => $modulePath.'/resources/js/pages/edit.tsx',
             'aggregate/columns' => $modulePath.'/resources/js/components/'.$slug.'-columns.tsx',
-            'aggregate/test-controller' => base_path('tests/Feature/Modules/'.$module.'/'.$aggregate.'ControllerTest.php'),
+            'aggregate/form-fields' => $modulePath.'/resources/js/components/'.$slug.'-form-fields.tsx',
+            'aggregate/test-controller' => $modulePath.'/tests/Feature/'.$aggregate.'ControllerTest.php',
+            'aggregate/test-actions' => $modulePath.'/tests/Unit/Actions/'.$aggregate.'ActionsTest.php',
         ];
 
         foreach ($map as $stub => $target) {
             $files->ensureDirectoryExists(dirname($target));
             $files->put($target, $this->render($files, $stub, $replacements));
         }
+
+        $this->registerTranslations($files, $modulePath, array_values($map));
+    }
+
+    /**
+     * Add the strings the generated code translates (`t()`, `tChoice()`,
+     * `__()`) to the module's own lang/en.json — unless the shell catalogue
+     * already has them — so translators find them and the module takes them
+     * along wherever it goes.
+     *
+     * @param  list<string>  $paths
+     */
+    private function registerTranslations(Filesystem $files, string $modulePath, array $paths): void
+    {
+        $shell = $this->catalogue($files, base_path('lang/en.json'));
+        $catalogPath = $modulePath.'/lang/en.json';
+        $module = $this->catalogue($files, $catalogPath);
+
+        foreach ($paths as $path) {
+            preg_match_all('/\b(?:t|tChoice|__)\(\s*([\'"])((?:\\\\.|(?!\1).)*)\1/s', $files->get($path), $matches);
+
+            foreach ($matches[2] as $key) {
+                $key = stripslashes($key);
+
+                if (! array_key_exists($key, $shell)) {
+                    $module[$key] ??= $key;
+                }
+            }
+        }
+
+        $this->writeCatalogue($files, $catalogPath, $module);
+
+        // Every other available locale gets the new strings too, in English
+        // until someone translates them, so each catalogue keeps every key.
+        foreach (array_keys(Config::array('app.available_locales')) as $locale) {
+            if ($locale === 'en') {
+                continue;
+            }
+
+            $path = sprintf('%s/lang/%s.json', $modulePath, $locale);
+            $translated = $this->catalogue($files, $path);
+            $untranslated = array_diff_key($module, $translated);
+
+            $this->writeCatalogue($files, $path, [...$translated, ...$untranslated]);
+
+            if ($untranslated !== []) {
+                $this->components->warn(sprintf('Translate %d new string(s) in %s.', count($untranslated), Str::after($path, base_path().'/')));
+            }
+        }
+    }
+
+    /**
+     * @param  array<string, string>  $strings
+     */
+    private function writeCatalogue(Filesystem $files, string $path, array $strings): void
+    {
+        $files->ensureDirectoryExists(dirname($path));
+        $files->put($path, json_encode($strings, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR).PHP_EOL);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function catalogue(Filesystem $files, string $path): array
+    {
+        if (! $files->exists($path)) {
+            return [];
+        }
+
+        /** @var array<string, string> $strings */
+        $strings = json_decode($files->get($path), true, flags: JSON_THROW_ON_ERROR);
+
+        return $strings;
     }
 
     /**
@@ -116,20 +203,15 @@ final class MakeAggregateCommand extends Command
     {
         $path = $modulePath.'/Providers/'.$module.'ServiceProvider.php';
 
+        // The policy needs no registration: Laravel's policy discovery finds
+        // Modules\<Module>\Policies\<Aggregate>Policy for the model.
         $imports = implode(PHP_EOL, [
             'use App\\Modules\\PermissionRegistry;',
-            'use Illuminate\\Support\\Facades\\Gate;',
             sprintf('use Modules\\%s\\Domain\\Repositories\\%sRepository;', $module, $aggregate),
-            sprintf('use Modules\\%s\\Infrastructure\\Models\\%s;', $module, $aggregate),
             sprintf('use Modules\\%s\\Infrastructure\\Repositories\\Eloquent%sRepository;', $module, $aggregate),
-            sprintf('use Modules\\%s\\Policies\\%sPolicy;', $module, $aggregate),
         ]);
 
-        $bindings = implode(PHP_EOL, [
-            sprintf('        Gate::policy(%s::class, %sPolicy::class);', $aggregate, $aggregate),
-            '',
-            sprintf('        $this->app->bind(%sRepository::class, Eloquent%sRepository::class);', $aggregate, $aggregate),
-        ]);
+        $bindings = sprintf('        $this->app->bind(%sRepository::class, Eloquent%sRepository::class);', $aggregate, $aggregate);
 
         $navigation = implode(PHP_EOL, [
             '        $nav->add(',

@@ -13,6 +13,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { useFormatters } from '@/hooks/use-formatters';
 import type { UseTableStateReturn } from '@/hooks/use-table-state';
 import { PER_PAGE_OPTIONS } from '@/hooks/use-table-state';
 import type { PaginationMeta } from '@/types/admin';
@@ -27,16 +28,19 @@ export function DataTablePagination({
     tableState,
 }: DataTablePaginationProps) {
     const { t } = useLaravelReactI18n();
+    const { number } = useFormatters();
     const perPageOptions = PER_PAGE_OPTIONS.includes(meta.per_page)
         ? PER_PAGE_OPTIONS
         : [...PER_PAGE_OPTIONS, meta.per_page].sort((a, b) => a - b);
 
+    // `total` goes first: the i18n replacer substitutes keys in order, so
+    // `:to` would otherwise corrupt `:total`.
     const rangeLabel =
         meta.total > 0 && meta.from !== null && meta.to !== null
             ? t('Showing :from to :to of :total', {
-                  from: meta.from,
-                  to: meta.to,
-                  total: meta.total,
+                  total: number(meta.total),
+                  from: number(meta.from),
+                  to: number(meta.to),
               })
             : t('No results');
 
@@ -52,7 +56,10 @@ export function DataTablePagination({
                             tableState.setPerPage(Number(value))
                         }
                     >
-                        <SelectTrigger className="h-8 w-[4.75rem]">
+                        <SelectTrigger
+                            className="h-8 w-[4.75rem]"
+                            aria-label={t('Rows per page')}
+                        >
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent side="top">
@@ -66,8 +73,8 @@ export function DataTablePagination({
                 </div>
                 <p className="text-sm font-medium">
                     {t('Page :page of :total', {
-                        page: meta.current_page,
-                        total: meta.last_page,
+                        page: number(meta.current_page),
+                        total: number(meta.last_page),
                     })}
                 </p>
                 <div className="flex items-center gap-2">

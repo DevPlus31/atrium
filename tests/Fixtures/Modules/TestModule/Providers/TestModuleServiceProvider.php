@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Fixtures\Modules\TestModule\Providers;
 
+use App\Enums\Area;
 use App\Modules\ModuleServiceProvider;
 use App\Modules\NavRegistry;
 use App\Modules\PermissionRegistry;
@@ -27,6 +28,14 @@ final class TestModuleServiceProvider extends ModuleServiceProvider
             permission: 'test-module.view',
             group: 'Modules',
             sort: 10,
+        );
+
+        $nav->add(
+            module: $this->name(),
+            label: 'Test Module settings',
+            routeName: 'admin.test-module.index',
+            sort: 10,
+            area: Area::Settings,
         );
     }
 

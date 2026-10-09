@@ -1,11 +1,12 @@
-import type { Column } from '@tanstack/react-table';
+import type { RowData } from '@tanstack/react-table';
 import type { LucideIcon } from 'lucide-react';
 import { ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-react';
+import type { DataTableColumnApi } from '@/components/data-table/features';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-export type DataTableColumnHeaderProps<TData, TValue> = {
-    column: Column<TData, TValue>;
+export type DataTableColumnHeaderProps<TData extends RowData, TValue> = {
+    column: DataTableColumnApi<TData, TValue>;
     title: string;
     className?: string;
 };
@@ -15,7 +16,7 @@ export type DataTableColumnHeaderProps<TData, TValue> = {
  * asc → desc → none; the sort change flows through the table's manual
  * sorting handler into the URL state.
  */
-export function DataTableColumnHeader<TData, TValue>({
+export function DataTableColumnHeader<TData extends RowData, TValue>({
     column,
     title,
     className,

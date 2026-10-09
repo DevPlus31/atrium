@@ -16,8 +16,10 @@ export default function Register() {
 
     return (
         <AuthLayout
-            title={t('Create an account')}
-            description={t('Enter your details below to create your account')}
+            title={t('Create your account')}
+            description={t(
+                'It takes a minute. An admin grants your access afterwards.',
+            )}
         >
             <Head title={t('Register')} />
             <Form
@@ -36,15 +38,11 @@ export default function Register() {
                                     type="text"
                                     required
                                     autoFocus
-                                    tabIndex={1}
                                     autoComplete="name"
                                     name="name"
                                     placeholder={t('Full name')}
                                 />
-                                <InputError
-                                    message={errors.name}
-                                    className="mt-2"
-                                />
+                                <InputError message={errors.name} />
                             </div>
 
                             <div className="grid gap-2">
@@ -55,7 +53,6 @@ export default function Register() {
                                     id="email"
                                     type="email"
                                     required
-                                    tabIndex={2}
                                     autoComplete="email"
                                     name="email"
                                     placeholder={t('email@example.com')}
@@ -70,7 +67,6 @@ export default function Register() {
                                 <PasswordInput
                                     id="password"
                                     required
-                                    tabIndex={3}
                                     autoComplete="new-password"
                                     name="password"
                                     placeholder={t('Password')}
@@ -85,7 +81,6 @@ export default function Register() {
                                 <PasswordInput
                                     id="password_confirmation"
                                     required
-                                    tabIndex={4}
                                     autoComplete="new-password"
                                     name="password_confirmation"
                                     placeholder={t('Confirm password')}
@@ -98,7 +93,7 @@ export default function Register() {
                             <Button
                                 type="submit"
                                 className="mt-2 w-full"
-                                tabIndex={5}
+                                disabled={processing}
                                 data-test="register-user-button"
                             >
                                 {processing && <Spinner />}
@@ -106,12 +101,10 @@ export default function Register() {
                             </Button>
                         </div>
 
-                        <div className="text-center text-sm text-muted-foreground">
+                        <p className="text-sm text-muted-foreground">
                             {t('Already have an account?')}{' '}
-                            <TextLink href={login()} tabIndex={6}>
-                                {t('Log in')}
-                            </TextLink>
-                        </div>
+                            <TextLink href={login()}>{t('Log in')}</TextLink>
+                        </p>
                     </>
                 )}
             </Form>

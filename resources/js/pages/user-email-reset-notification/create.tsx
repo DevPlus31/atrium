@@ -1,6 +1,7 @@
 import { Form, Head } from '@inertiajs/react';
 import { useLaravelReactI18n } from 'laravel-react-i18n';
 import { LoaderCircle } from 'lucide-react';
+import { AuthStatus } from '@/components/auth/auth-status';
 // Components
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
@@ -21,11 +22,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
         >
             <Head title={t('Forgot password')} />
 
-            {status && (
-                <div className="mb-4 text-center text-sm font-medium text-success">
-                    {status}
-                </div>
-            )}
+            {status && <AuthStatus>{status}</AuthStatus>}
 
             <div className="space-y-6">
                 <Form {...email.form()}>
@@ -63,10 +60,10 @@ export default function ForgotPassword({ status }: { status?: string }) {
                     )}
                 </Form>
 
-                <div className="space-x-1 text-center text-sm text-muted-foreground">
-                    <span>{t('Or, return to')}</span>
+                <p className="text-sm text-muted-foreground">
+                    {t('Or, return to')}{' '}
                     <TextLink href={login()}>{t('log in')}</TextLink>
-                </div>
+                </p>
             </div>
         </AuthLayout>
     );

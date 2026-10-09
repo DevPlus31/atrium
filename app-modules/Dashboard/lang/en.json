@@ -1,0 +1,22 @@
+{
+    "Dashboard": "Dashboard",
+    "No widgets available.": "No widgets available.",
+    "Home": "Home",
+    "Welcome, :name": "Welcome, :name",
+    "Here is where your account stands.": "Here is where your account stands.",
+    "Nothing here yet.": "Nothing here yet.",
+    "Waiting for access": "Waiting for access",
+    "Your account is set up, but an administrator hasn't given it any access yet. There's nothing you need to do.": "Your account is set up, but an administrator hasn't given it any access yet. There's nothing you need to do.",
+    "If they ask, your account email is :email.": "If they ask, your account email is :email.",
+    "Your account": "Your account",
+    "Sign-in security": "Sign-in security",
+    "Not verified": "Not verified",
+    "On": "On",
+    "Off": "Off",
+    "Manage": "Manage",
+    "Set up": "Set up",
+    ":count passkey|:count passkeys": ":count passkey|:count passkeys",
+    "None yet": "None yet",
+    "Add": "Add",
+    "Member since :date": "Member since :date"
+}

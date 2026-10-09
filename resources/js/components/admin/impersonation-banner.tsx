@@ -21,9 +21,9 @@ export function ImpersonationBanner() {
             <span className="flex items-center gap-2">
                 <VenetianMask aria-hidden className="size-4 shrink-0" />
                 <span>
-                    {t('Impersonating')}{' '}
-                    <span className="font-medium">{auth.user.name}</span>{' '}
-                    {t('— acting as this user.')}
+                    {t('Impersonating :name — acting as this user.', {
+                        name: auth.user.name,
+                    })}
                 </span>
             </span>
             <Button
@@ -31,6 +31,7 @@ export function ImpersonationBanner() {
                 variant="outline"
                 size="sm"
                 onClick={() => router.post(leave.url())}
+                data-test="leave-impersonation"
             >
                 {t('Leave — back to :name', {
                     name: impersonation.impersonator,

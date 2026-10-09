@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Enums\Appearance;
 use App\Enums\ThemePreset;
 use App\Models\User;
+use Inertia\Testing\AssertableInertia;
 
 it('requires authentication', function (): void {
     $response = $this->patch(route('preferences.update'), [
@@ -116,4 +117,34 @@ it('updates a single preference without dropping stored layout options', functio
         'content_width' => 'boxed',
         'direction' => 'rtl',
     ]);
+});
+
+it('persists a chosen timezone and clears it back to automatic', function (): void {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)->patch(route('preferences.update'), ['timezone' => 'Europe/Paris'])->assertRedirect();
+
+    expect($user->refresh()->timezone)->toBe('Europe/Paris');
+
+    $this->actingAs($user)->patch(route('preferences.update'), ['timezone' => null])->assertRedirect();
+
+    expect($user->refresh()->timezone)->toBeNull();
+});
+
+it('rejects unknown timezones', function (): void {
+    $user = User::factory()->create(['timezone' => 'Europe/Paris']);
+
+    $this->actingAs($user)
+        ->patch(route('preferences.update'), ['timezone' => 'Mars/Olympus_Mons'])
+        ->assertSessionHasErrors('timezone');
+
+    expect($user->refresh()->timezone)->toBe('Europe/Paris');
+});
+
+it('shares the chosen timezone with every page', function (): void {
+    $this->withoutVite();
+
+    $this->actingAs(User::factory()->create(['timezone' => 'Asia/Tokyo']))
+        ->get(route('user-profile.edit'))
+        ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->where('timezone', 'Asia/Tokyo'));
 });

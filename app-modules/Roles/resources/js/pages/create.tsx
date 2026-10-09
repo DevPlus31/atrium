@@ -1,5 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
-import { useForm } from 'laravel-precognition-react-inertia';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { useLaravelReactI18n } from 'laravel-react-i18n';
 import type { FormEvent } from 'react';
 import InputError from '@/components/input-error';
@@ -14,7 +13,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import AdminLayout from '@/layouts/admin-layout';
+import { useBreadcrumbs } from '@/hooks/use-breadcrumbs';
 import { create, index, store } from '@/routes/admin/roles';
 import type { BreadcrumbItem } from '@/types';
 import { RolePermissionsField } from '../components/role-permissions-field';
@@ -30,8 +29,9 @@ export default function RolesCreate({ permissions }: RolesCreateProps) {
         { title: t('Roles'), href: index() },
         { title: t('Create'), href: create() },
     ];
+    useBreadcrumbs(breadcrumbs);
 
-    const form = useForm('post', store.url(), {
+    const form = useForm(store(), {
         name: '',
         permissions: [] as string[],
     });
@@ -42,7 +42,7 @@ export default function RolesCreate({ permissions }: RolesCreateProps) {
     };
 
     return (
-        <AdminLayout breadcrumbs={breadcrumbs}>
+        <>
             <Head title={t('Create role')} />
             <Card className="max-w-2xl">
                 <CardHeader>
@@ -58,7 +58,6 @@ export default function RolesCreate({ permissions }: RolesCreateProps) {
                             <Input
                                 id="name"
                                 type="text"
-                                required
                                 autoFocus
                                 autoComplete="off"
                                 value={form.data.name}
@@ -93,6 +92,6 @@ export default function RolesCreate({ permissions }: RolesCreateProps) {
                     </form>
                 </CardContent>
             </Card>
-        </AdminLayout>
+        </>
     );
 }

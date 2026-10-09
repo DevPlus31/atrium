@@ -1,5 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
-import { useForm } from 'laravel-precognition-react-inertia';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { useLaravelReactI18n } from 'laravel-react-i18n';
 import type { FormEvent } from 'react';
 import InputError from '@/components/input-error';
@@ -15,7 +14,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import AdminLayout from '@/layouts/admin-layout';
+import { useBreadcrumbs } from '@/hooks/use-breadcrumbs';
 import { create, index, store } from '@/routes/admin/users';
 import type { BreadcrumbItem } from '@/types';
 import { UserRolesField } from '../components/user-roles-field';
@@ -31,8 +30,9 @@ export default function UsersCreate({ roles }: UsersCreateProps) {
         { title: t('Users'), href: index() },
         { title: t('Create'), href: create() },
     ];
+    useBreadcrumbs(breadcrumbs);
 
-    const form = useForm('post', store.url(), {
+    const form = useForm(store(), {
         name: '',
         email: '',
         password: '',
@@ -46,7 +46,7 @@ export default function UsersCreate({ roles }: UsersCreateProps) {
     };
 
     return (
-        <AdminLayout breadcrumbs={breadcrumbs}>
+        <>
             <Head title={t('Create user')} />
             <Card className="max-w-2xl">
                 <CardHeader>
@@ -62,7 +62,6 @@ export default function UsersCreate({ roles }: UsersCreateProps) {
                             <Input
                                 id="name"
                                 type="text"
-                                required
                                 autoFocus
                                 autoComplete="off"
                                 value={form.data.name}
@@ -80,7 +79,6 @@ export default function UsersCreate({ roles }: UsersCreateProps) {
                             <Input
                                 id="email"
                                 type="email"
-                                required
                                 autoComplete="off"
                                 value={form.data.email}
                                 onChange={(event) =>
@@ -96,7 +94,6 @@ export default function UsersCreate({ roles }: UsersCreateProps) {
                             <Label htmlFor="password">{t('Password')}</Label>
                             <PasswordInput
                                 id="password"
-                                required
                                 autoComplete="new-password"
                                 value={form.data.password}
                                 onChange={(event) =>
@@ -114,7 +111,6 @@ export default function UsersCreate({ roles }: UsersCreateProps) {
                             </Label>
                             <PasswordInput
                                 id="password_confirmation"
-                                required
                                 autoComplete="new-password"
                                 value={form.data.password_confirmation}
                                 onChange={(event) =>
@@ -153,6 +149,6 @@ export default function UsersCreate({ roles }: UsersCreateProps) {
                     </form>
                 </CardContent>
             </Card>
-        </AdminLayout>
+        </>
     );
 }

@@ -1,0 +1,32 @@
+{{-- @branding: every email's frame — logo header and a footer with the support address (MailBrandingComposer). --}}
+<x-mail::layout>
+{{-- Header --}}
+<x-slot:header>
+<x-mail::header :url="config('app.url')" :logo="$logoUrl ?? null">
+{{ config('app.name') }}
+</x-mail::header>
+</x-slot:header>
+
+{{-- Body --}}
+{!! $slot !!}
+
+{{-- Subcopy --}}
+@isset($subcopy)
+<x-slot:subcopy>
+<x-mail::subcopy>
+{!! $subcopy !!}
+</x-mail::subcopy>
+</x-slot:subcopy>
+@endisset
+
+{{-- Footer --}}
+<x-slot:footer>
+<x-mail::footer>
+@if (! empty($supportEmail))
+{{ __('Need help? Contact') }} [{{ $supportEmail }}](mailto:{{ $supportEmail }})
+
+@endif
+© {{ date('Y') }} {{ config('app.name') }}. {{ __('All rights reserved.') }}
+</x-mail::footer>
+</x-slot:footer>
+</x-mail::layout>

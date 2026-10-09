@@ -1,12 +1,13 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { useLaravelReactI18n } from 'laravel-react-i18n';
 import { Plus } from 'lucide-react';
-import { useState } from 'react';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { DataTable, DataTableToolbar } from '@/components/data-table';
 import { Button } from '@/components/ui/button';
+import { useBreadcrumbs } from '@/hooks/use-breadcrumbs';
+import { useDeleteDialog } from '@/hooks/use-delete-dialog';
+import { useFormatters } from '@/hooks/use-formatters';
 import { useTableState } from '@/hooks/use-table-state';
-import AdminLayout from '@/layouts/admin-layout';
 import { create, destroy, index } from '@/routes/admin/roles';
 import type { BreadcrumbItem } from '@/types';
 import type { Paginated } from '@/types/admin';
@@ -15,48 +16,39 @@ import { buildRoleColumns } from '../components/role-columns';
 
 type RolesIndexProps = {
     roles: Paginated<RoleRow>;
+    can: { create: boolean };
 };
 
-export default function RolesIndex({ roles }: RolesIndexProps) {
+export default function RolesIndex({ roles, can }: RolesIndexProps) {
     const { t } = useLaravelReactI18n();
+    const format = useFormatters();
     const tableState = useTableState('roles');
-    const [pendingDelete, setPendingDelete] = useState<RoleRow | null>(null);
-    const [deleting, setDeleting] = useState(false);
+    const deleteDialog = useDeleteDialog<RoleRow>((row) =>
+        destroy.url(Number(row.id)),
+    );
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: t('Roles'), href: index() },
     ];
+    useBreadcrumbs(breadcrumbs);
 
-    const columns = buildRoleColumns(t, setPendingDelete);
-
-    const confirmDelete = () => {
-        if (pendingDelete === null) {
-            return;
-        }
-
-        router.delete(destroy.url(Number(pendingDelete.id)), {
-            preserveScroll: true,
-            onStart: () => setDeleting(true),
-            onFinish: () => {
-                setDeleting(false);
-                setPendingDelete(null);
-            },
-        });
-    };
+    const columns = buildRoleColumns(t, format, deleteDialog.request);
 
     return (
-        <AdminLayout breadcrumbs={breadcrumbs}>
+        <>
             <Head title={t('Roles')} />
             <DataTableToolbar
                 tableState={tableState}
                 searchPlaceholder={t('Search roles...')}
                 actions={
-                    <Button size="sm" asChild>
-                        <Link href={create()}>
-                            <Plus className="size-4" />
-                            {t('Create role')}
-                        </Link>
-                    </Button>
+                    can.create && (
+                        <Button size="sm" asChild>
+                            <Link href={create()}>
+                                <Plus className="size-4" />
+                                {t('Create role')}
+                            </Link>
+                        </Button>
+                    )
                 }
             />
             <DataTable
@@ -66,21 +58,14 @@ export default function RolesIndex({ roles }: RolesIndexProps) {
                 emptyMessage={t('No roles found.')}
             />
             <ConfirmDialog
-                open={pendingDelete !== null}
-                onOpenChange={(open) => {
-                    if (!open && !deleting) {
-                        setPendingDelete(null);
-                    }
-                }}
+                {...deleteDialog.dialogProps}
                 title={t('Delete role')}
                 description={t(
                     'This will permanently delete :name and cannot be undone.',
-                    { name: pendingDelete?.name ?? t('this role') },
+                    { name: deleteDialog.pending?.name ?? t('this role') },
                 )}
                 confirmLabel={t('Delete')}
-                processing={deleting}
-                onConfirm={confirmDelete}
             />
-        </AdminLayout>
+        </>
     );
 }

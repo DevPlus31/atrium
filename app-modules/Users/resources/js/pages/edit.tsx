@@ -1,5 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
-import { useForm } from 'laravel-precognition-react-inertia';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { useLaravelReactI18n } from 'laravel-react-i18n';
 import type { FormEvent } from 'react';
 import InputError from '@/components/input-error';
@@ -14,7 +13,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import AdminLayout from '@/layouts/admin-layout';
+import { useBreadcrumbs } from '@/hooks/use-breadcrumbs';
 import { edit, index, update } from '@/routes/admin/users';
 import type { BreadcrumbItem } from '@/types';
 import type { UserRow } from '../components/user-columns';
@@ -32,8 +31,9 @@ export default function UsersEdit({ user, roles }: UsersEditProps) {
         { title: t('Users'), href: index() },
         { title: user.name, href: edit(user.id) },
     ];
+    useBreadcrumbs(breadcrumbs);
 
-    const form = useForm('put', update.url(user.id), {
+    const form = useForm(update(user.id), {
         name: user.name,
         email: user.email,
         roles: user.roles,
@@ -45,7 +45,7 @@ export default function UsersEdit({ user, roles }: UsersEditProps) {
     };
 
     return (
-        <AdminLayout breadcrumbs={breadcrumbs}>
+        <>
             <Head title={t('Edit :name', { name: user.name })} />
             <Card className="max-w-2xl">
                 <CardHeader>
@@ -63,7 +63,6 @@ export default function UsersEdit({ user, roles }: UsersEditProps) {
                             <Input
                                 id="name"
                                 type="text"
-                                required
                                 autoComplete="off"
                                 value={form.data.name}
                                 onChange={(event) =>
@@ -80,7 +79,6 @@ export default function UsersEdit({ user, roles }: UsersEditProps) {
                             <Input
                                 id="email"
                                 type="email"
-                                required
                                 autoComplete="off"
                                 value={form.data.email}
                                 onChange={(event) =>
@@ -114,6 +112,6 @@ export default function UsersEdit({ user, roles }: UsersEditProps) {
                     </form>
                 </CardContent>
             </Card>
-        </AdminLayout>
+        </>
     );
 }

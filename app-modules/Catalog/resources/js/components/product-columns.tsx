@@ -1,36 +1,23 @@
 import { Link } from '@inertiajs/react';
-import type { ColumnDef } from '@tanstack/react-table';
 import {
     DataTableColumnHeader,
     DataTableRowActions,
+    type DataTableColumn,
 } from '@/components/data-table';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import type { Formatters } from '@/lib/format';
 import { edit } from '@/routes/admin/products';
 import type { Translator } from '@/types/ui';
 
 export type ProductRow = Modules.Catalog.Data.ProductData;
 
-function formatPrice(cents: number, currency: string): string {
-    return new Intl.NumberFormat(undefined, {
-        style: 'currency',
-        currency,
-    }).format(cents / 100);
-}
-
-function formatDate(value: string): string {
-    return new Date(value).toLocaleDateString(undefined, {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-    });
-}
-
 export function buildProductColumns(
     t: Translator,
+    format: Formatters,
     onPublish: (product: ProductRow) => void,
     onDelete: (product: ProductRow) => void,
-): ColumnDef<ProductRow, unknown>[] {
+): DataTableColumn<ProductRow>[] {
     return [
         {
             id: 'name',
@@ -65,7 +52,7 @@ export function buildProductColumns(
             ),
             cell: ({ row }) => (
                 <span className="tabular-nums">
-                    {formatPrice(
+                    {format.money(
                         row.original.price_cents,
                         row.original.currency,
                     )}
@@ -92,7 +79,7 @@ export function buildProductColumns(
             ),
             cell: ({ row }) => (
                 <span className="text-muted-foreground">
-                    {formatDate(row.original.created_at)}
+                    {format.date(row.original.created_at)}
                 </span>
             ),
         },

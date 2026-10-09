@@ -7,6 +7,7 @@ namespace Modules\Users\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\Attributes\Controllers\Authorize;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Users\Actions\CreateUser;
@@ -27,6 +28,7 @@ final readonly class UserController
         return Inertia::render('users::index', [
             'users' => UserData::collect($query->paginate(), PaginatedDataCollection::class),
             'roles' => $this->roleNames(),
+            'can' => ['create' => Gate::allows('create', User::class), 'export' => Gate::allows('export', User::class)],
         ]);
     }
 
@@ -48,7 +50,9 @@ final readonly class UserController
             roles: $request->roles(),
         );
 
-        return to_route('admin.users.index')->with('success', __('User created.'));
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('User created.')]);
+
+        return to_route('admin.users.index');
     }
 
     #[Authorize('update', 'user')]
@@ -70,7 +74,9 @@ final readonly class UserController
             roles: $request->roles(),
         );
 
-        return to_route('admin.users.index')->with('success', __('User updated.'));
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('User updated.')]);
+
+        return to_route('admin.users.index');
     }
 
     #[Authorize('delete', 'user')]
@@ -78,7 +84,9 @@ final readonly class UserController
     {
         $action->handle($user);
 
-        return to_route('admin.users.index')->with('success', __('User deleted.'));
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('User deleted.')]);
+
+        return to_route('admin.users.index');
     }
 
     /**

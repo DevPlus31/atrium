@@ -118,9 +118,13 @@ return [
     /*
      * When set to true, the method for checking permissions will be registered on the gate.
      * Set this to false if you want to implement custom logic for checking permissions.
+     *
+     * Off: AppServiceProvider checks declared permissions in a single
+     * Gate::before, so an API token can narrow them (Spatie's hook would
+     * grant a permission before the token is consulted).
      */
 
-    'register_permission_check_method' => true,
+    'register_permission_check_method' => false,
 
     /*
      * When set to true, Laravel\Octane\Events\OperationTerminated event listener will be registered

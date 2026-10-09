@@ -10,4 +10,6 @@ use App\Models\User;
 interface UserRepository extends Repository
 {
     public function save(User $user): void;
+
+    public function delete(User $user): void;
 }

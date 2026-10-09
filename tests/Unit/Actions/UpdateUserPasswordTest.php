@@ -18,3 +18,16 @@ it('may update a user password', function (): void {
     expect(Hash::check('new-password', $user->refresh()->password))->toBeTrue()
         ->and(Hash::check('old-password', $user->password))->toBeFalse();
 });
+
+it("revokes the user's API tokens", function (): void {
+    $user = User::factory()->create();
+    $user->createToken('Script', []);
+
+    $other = User::factory()->create();
+    $other->createToken('Theirs', []);
+
+    resolve(UpdateUserPassword::class)->handle($user, 'new-password-123');
+
+    expect($user->tokens()->count())->toBe(0)
+        ->and($other->tokens()->count())->toBe(1);
+});

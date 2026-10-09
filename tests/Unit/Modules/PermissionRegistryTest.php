@@ -33,3 +33,14 @@ it('declares permissions without default roles', function (): void {
         'users.delete' => [],
     ]);
 });
+
+it('rejects permission names that could shadow a policy ability', function (string $name): void {
+    new PermissionRegistry()->declare($name);
+})->with(['update', 'orders', 'Orders.View', 'orders view', 'orders.'])->throws(InvalidArgumentException::class, 'must be namespaced');
+
+it('accepts namespaced permission names', function (string $name): void {
+    $registry = new PermissionRegistry();
+    $registry->declare($name);
+
+    expect($registry->has($name))->toBeTrue();
+})->with(['orders.view', 'system.pulse.view', 'test-module.view']);

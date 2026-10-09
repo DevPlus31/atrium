@@ -1,0 +1,21 @@
+{
+    "Add a new role and choose its permissions.": "Add a new role and choose its permissions.",
+    "Create role": "Create role",
+    "Delete role": "Delete role",
+    "Edit role": "Edit role",
+    "No permissions available.": "No permissions available.",
+    "No roles found.": "No roles found.",
+    "Permissions": "Permissions",
+    "Role created.": "Role created.",
+    "Role deleted.": "Role deleted.",
+    "Role name": "Role name",
+    "Role updated.": "Role updated.",
+    "Search roles...": "Search roles...",
+    "Select all :prefix permissions": "Select all :prefix permissions",
+    "System role names cannot be changed.": "System role names cannot be changed.",
+    "System roles cannot be renamed.": "System roles cannot be renamed.",
+    "this role": "this role",
+    "Update the role's name and permissions.": "Update the role's name and permissions.",
+    "Roles": "Roles",
+    "+:count more|+:count more": "+:count more|+:count more"
+}

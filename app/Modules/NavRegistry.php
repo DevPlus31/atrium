@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Modules;
 
+use App\Enums\Area;
 use App\Models\User;
 use App\Modules\Data\NavItemData;
-use Laravel\Pennant\Feature;
 
 final class NavRegistry
 {
     /**
-     * @var list<array{module: string, label: string, routeName: string, icon: string|null, permission: string|null, group: string|null, sort: int, external: bool}>
+     * @var list<array{module: string, label: string, routeName: string, icon: string|null, permission: string|null, group: string|null, sort: int, external: bool, area: Area}>
      */
     private array $items = [];
 
@@ -24,6 +24,7 @@ final class NavRegistry
         ?string $group = null,
         int $sort = 0,
         bool $external = false,
+        Area $area = Area::Admin,
     ): void {
         $this->items[] = [
             'module' => $module,
@@ -34,19 +35,22 @@ final class NavRegistry
             'group' => $group,
             'sort' => $sort,
             'external' => $external,
+            'area' => $area,
         ];
     }
 
     /**
-     * The navigation items visible to the given user, sorted by group and sort order.
+     * The navigation items of the given area visible to the user, sorted by
+     * group and sort order.
      *
      * @return list<NavItemData>
      */
-    public function itemsFor(User $user): array
+    public function itemsFor(User $user, Area $area = Area::Admin): array
     {
         $visible = array_values(array_filter(
             $this->items,
-            static fn (array $item): bool => Feature::for($user)->active('module:'.$item['module'])
+            static fn (array $item): bool => $item['area'] === $area
+                && ModuleSwitch::isOn($item['module'], $user)
                 && ($item['permission'] === null || $user->can($item['permission'])),
         ));
 

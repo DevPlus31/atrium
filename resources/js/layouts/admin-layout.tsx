@@ -7,9 +7,9 @@ import { AdminHeader } from '@/components/admin/admin-header';
 import { AdminSidebar } from '@/components/admin/admin-sidebar';
 import { AdminTopbar } from '@/components/admin/admin-topbar';
 import { ImpersonationBanner } from '@/components/admin/impersonation-banner';
+import { AnnouncementBanner } from '@/components/announcement-banner';
 import { AppContent } from '@/components/app-content';
 import { AppShell } from '@/components/app-shell';
-import { useSharedFlashToast } from '@/hooks/use-flash-toast';
 import { cn } from '@/lib/utils';
 import type { BreadcrumbItem } from '@/types';
 
@@ -30,8 +30,6 @@ export default function AdminLayout({
 
     const [paletteOpen, setPaletteOpen] = useState(false);
 
-    useSharedFlashToast();
-
     useEffect(() => {
         document.documentElement.dir = layout.direction;
     }, [layout.direction]);
@@ -40,7 +38,8 @@ export default function AdminLayout({
         layout.header === 'sticky' ? 'sticky top-0 z-40' : undefined;
     const contentClassName = cn(
         'flex w-full flex-1 flex-col gap-4 p-4',
-        layout.content_width === 'boxed' && 'mx-auto max-w-7xl',
+        layout.content_width === 'boxed' &&
+            'mx-auto max-w-(--content-max-width)',
     );
 
     const openCommandPalette = () => setPaletteOpen(true);
@@ -58,6 +57,7 @@ export default function AdminLayout({
             <DirectionProvider dir={layout.direction}>
                 <div className="flex min-h-svh w-full flex-col bg-background">
                     <ImpersonationBanner />
+                    <AnnouncementBanner />
                     <AdminTopbar
                         nav={nav}
                         breadcrumbs={breadcrumbs}
@@ -87,6 +87,7 @@ export default function AdminLayout({
                 />
                 <AppContent variant="sidebar" className="overflow-x-hidden">
                     <ImpersonationBanner />
+                    <AnnouncementBanner />
                     <AdminHeader
                         breadcrumbs={breadcrumbs}
                         className={headerClassName}

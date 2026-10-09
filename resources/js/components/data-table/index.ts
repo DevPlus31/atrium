@@ -1,5 +1,16 @@
 export { DataTable, type DataTableProps } from './data-table';
 export {
+    DataTableBulkActions,
+    type DataTableBulkActionsProps,
+} from './data-table-bulk-actions';
+export {
+    dataTableFeatures,
+    type DataTableColumn,
+    type DataTableColumnApi,
+    type DataTableFeatures,
+    type DataTableRow,
+} from './features';
+export {
     DataTableColumnHeader,
     type DataTableColumnHeaderProps,
 } from './data-table-column-header';

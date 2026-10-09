@@ -18,7 +18,9 @@ import {
     CommandSeparator,
 } from '@/components/ui/command';
 import { useSidebar } from '@/components/ui/sidebar';
+import { Spinner } from '@/components/ui/spinner';
 import { useThemePreference } from '@/hooks/use-appearance';
+import { useGlobalSearch } from '@/hooks/use-global-search';
 import { useLocalePreference } from '@/hooks/use-locale';
 import type { NavItem } from '@/types/admin';
 
@@ -58,6 +60,7 @@ export function AdminCommandPalette({
         useThemePreference();
     const { locales, updateLocale } = useLocalePreference();
     const { t } = useLaravelReactI18n();
+    const search = useGlobalSearch();
 
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
@@ -75,7 +78,15 @@ export function AdminCommandPalette({
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [open, onOpenChange]);
 
-    const close = () => onOpenChange(false);
+    const changeOpen = (next: boolean) => {
+        if (!next) {
+            search.setTerm('');
+        }
+
+        onOpenChange(next);
+    };
+
+    const close = () => changeOpen(false);
 
     const navigateTo = (item: NavItem) => {
         close();
@@ -92,13 +103,61 @@ export function AdminCommandPalette({
     return (
         <CommandDialog
             open={open}
-            onOpenChange={onOpenChange}
+            onOpenChange={changeOpen}
             title={t('Command palette')}
-            description={t('Search pages and preferences')}
+            description={t('Search records, pages and preferences')}
         >
-            <CommandInput placeholder={t('Search pages and preferences...')} />
+            <CommandInput
+                value={search.term}
+                onValueChange={search.setTerm}
+                placeholder={t('Search records, pages and preferences...')}
+            />
             <CommandList>
-                <CommandEmpty>{t('No results found.')}</CommandEmpty>
+                <CommandEmpty>
+                    {search.searching ? (
+                        <Spinner className="mx-auto" />
+                    ) : (
+                        t('No results found.')
+                    )}
+                </CommandEmpty>
+                {search.failed && (
+                    <p className="px-3 py-2 text-sm text-destructive">
+                        {t('Search is unavailable right now.')}
+                    </p>
+                )}
+                {search.groups.map((group) => {
+                    const GroupIcon = resolveNavIcon(group.icon);
+
+                    return (
+                        <CommandGroup
+                            key={`search-${group.label}`}
+                            heading={group.label}
+                        >
+                            {group.results.map((result) => (
+                                <CommandItem
+                                    key={result.url}
+                                    value={`${group.label} ${result.title} ${result.url}`}
+                                    keywords={[search.term]}
+                                    onSelect={() => {
+                                        close();
+                                        router.visit(result.url);
+                                    }}
+                                    data-test="search-result"
+                                >
+                                    <GroupIcon />
+                                    <span className="truncate">
+                                        {result.title}
+                                    </span>
+                                    {result.description && (
+                                        <span className="ms-auto truncate text-xs text-muted-foreground">
+                                            {result.description}
+                                        </span>
+                                    )}
+                                </CommandItem>
+                            ))}
+                        </CommandGroup>
+                    );
+                })}
                 {groups.map((group) => (
                     <CommandGroup
                         key={group.label ?? '__top-level'}

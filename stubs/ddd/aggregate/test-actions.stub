@@ -1,0 +1,37 @@
+<?php
+
+declare(strict_types=1);
+
+use Modules\{{ module }}\Actions\Create{{ aggregate }};
+use Modules\{{ module }}\Actions\Delete{{ aggregate }};
+use Modules\{{ module }}\Actions\Update{{ aggregate }};
+use Modules\{{ module }}\Infrastructure\Models\{{ aggregate }};
+use Spatie\Activitylog\Models\Activity;
+
+it('creates a {{ variable }} and records it', function (): void {
+    ${{ variable }} = resolve(Create{{ aggregate }}::class)->handle('First', 'About it');
+
+    expect(${{ variable }}->exists)->toBeTrue()
+        ->and(${{ variable }}->name)->toBe('First')
+        ->and(${{ variable }}->description)->toBe('About it')
+        ->and(Activity::query()->where('log_name', '{{ slug }}')->where('event', 'created')->sole()->subject_id)->toBe(${{ variable }}->id);
+});
+
+it('updates a {{ variable }} and records it', function (): void {
+    ${{ variable }} = {{ aggregate }}::factory()->create();
+
+    resolve(Update{{ aggregate }}::class)->handle(${{ variable }}, 'Renamed', null);
+
+    expect(${{ variable }}->refresh()->name)->toBe('Renamed')
+        ->and(${{ variable }}->description)->toBeNull()
+        ->and(Activity::query()->where('log_name', '{{ slug }}')->where('event', 'updated')->exists())->toBeTrue();
+});
+
+it('deletes a {{ variable }} and records it', function (): void {
+    ${{ variable }} = {{ aggregate }}::factory()->create();
+
+    resolve(Delete{{ aggregate }}::class)->handle(${{ variable }});
+
+    expect({{ aggregate }}::query()->exists())->toBeFalse()
+        ->and(Activity::query()->where('log_name', '{{ slug }}')->where('event', 'deleted')->exists())->toBeTrue();
+});

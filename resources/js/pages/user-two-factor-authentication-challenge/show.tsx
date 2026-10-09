@@ -114,7 +114,7 @@ export default function Show() {
                                 {t('Continue')}
                             </Button>
 
-                            <div className="text-center text-sm text-muted-foreground">
+                            <div className="text-sm text-muted-foreground">
                                 <span>{t('or you can')} </span>
                                 <button
                                     type="button"

@@ -13,4 +13,9 @@ final readonly class EloquentUserRepository implements UserRepository
     {
         $user->save();
     }
+
+    public function delete(User $user): void
+    {
+        $user->delete();
+    }
 }

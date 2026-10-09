@@ -6,8 +6,8 @@ import Heading from '@/components/heading';
 import TwoFactorRecoveryCodes from '@/components/two-factor-recovery-codes';
 import TwoFactorSetupModal from '@/components/two-factor-setup-modal';
 import { Button } from '@/components/ui/button';
+import { useBreadcrumbs } from '@/hooks/use-breadcrumbs';
 import { useTwoFactorAuth } from '@/hooks/use-two-factor-auth';
-import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 import { disable, enable, show } from '@/routes/two-factor';
 import type { BreadcrumbItem } from '@/types';
@@ -42,9 +42,10 @@ export default function TwoFactor({
             href: show(),
         },
     ];
+    useBreadcrumbs(breadcrumbs);
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <>
             <Head title={t('Two-Factor Authentication')} />
             <SettingsLayout>
                 {canManageTwoFactor && (
@@ -137,6 +138,6 @@ export default function TwoFactor({
                     </div>
                 )}
             </SettingsLayout>
-        </AppLayout>
+        </>
     );
 }

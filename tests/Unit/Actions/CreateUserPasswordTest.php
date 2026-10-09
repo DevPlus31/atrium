@@ -83,3 +83,18 @@ it('updates remember token when resetting password', function (): void {
     expect($user->refresh()->remember_token)->not->toBe('old-token')
         ->and($user->remember_token)->not->toBeNull();
 });
+
+it('revokes the API tokens when the password is reset', function (): void {
+    $user = User::factory()->create(['email' => 'reset@example.com']);
+    $user->createToken('Script', []);
+
+    $token = Password::createToken($user);
+
+    $status = resolve(CreateUserPassword::class)->handle(
+        ['email' => 'reset@example.com', 'token' => $token, 'password' => 'new-password-123', 'password_confirmation' => 'new-password-123'],
+        'new-password-123',
+    );
+
+    expect($status)->toBe(Password::PASSWORD_RESET)
+        ->and($user->tokens()->count())->toBe(0);
+});

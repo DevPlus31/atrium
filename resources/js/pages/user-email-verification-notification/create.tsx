@@ -1,5 +1,6 @@
 import { Form, Head } from '@inertiajs/react';
 import { useLaravelReactI18n } from 'laravel-react-i18n';
+import { AuthStatus } from '@/components/auth/auth-status';
 // Components
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
@@ -21,14 +22,17 @@ export default function VerifyEmail({ status }: { status?: string }) {
             <Head title={t('Email verification')} />
 
             {status === 'verification-link-sent' && (
-                <div className="mb-4 text-center text-sm font-medium text-success">
+                <AuthStatus>
                     {t(
                         'A new verification link has been sent to the email address you provided during registration.',
                     )}
-                </div>
+                </AuthStatus>
             )}
 
-            <Form {...send.form()} className="space-y-6 text-center">
+            <Form
+                {...send.form()}
+                className="flex flex-wrap items-center gap-4"
+            >
                 {({ processing }) => (
                     <>
                         <Button disabled={processing} variant="secondary">
@@ -36,10 +40,7 @@ export default function VerifyEmail({ status }: { status?: string }) {
                             {t('Resend verification email')}
                         </Button>
 
-                        <TextLink
-                            href={logout()}
-                            className="mx-auto block text-sm"
-                        >
+                        <TextLink href={logout()} className="text-sm">
                             {t('Log out')}
                         </TextLink>
                     </>

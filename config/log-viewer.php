@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Models\User;
+use App\Modules\Middleware\EnsureModuleIsEnabled;
 use Opcodes\LogViewer\Enums\SortingMethod;
 use Opcodes\LogViewer\Enums\SortingOrder;
 use Opcodes\LogViewer\Enums\Theme;
@@ -108,7 +110,8 @@ return [
         'web',
         'auth',
         'verified',
-        'role:admin',
+        'can:'.User::PANEL_ABILITY,
+        EnsureModuleIsEnabled::class.':system',
         AuthorizeLogViewer::class,
     ],
 
@@ -125,7 +128,8 @@ return [
         EnsureFrontendRequestsAreStateful::class,
         'auth',
         'verified',
-        'role:admin',
+        'can:'.User::PANEL_ABILITY,
+        EnsureModuleIsEnabled::class.':system',
         AuthorizeLogViewer::class,
     ],
 

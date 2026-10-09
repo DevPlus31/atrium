@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Models\User;
 use Inertia\Support\SessionKey;
+use Spatie\Activitylog\Models\Activity;
 
 it('renders profile edit page', function (): void {
     $user = User::factory()->create();
@@ -29,6 +30,7 @@ it('may update profile information', function (): void {
         ->patch(route('user-profile.update'), [
             'name' => 'New Name',
             'email' => 'new@example.com',
+            'current_password' => 'password',
         ]);
 
     $response->assertRedirectToRoute('user-profile.edit')
@@ -54,6 +56,7 @@ it('resets email verification when email changes', function (): void {
         ->patch(route('user-profile.update'), [
             'name' => $user->name,
             'email' => 'new@example.com',
+            'current_password' => 'password',
         ]);
 
     $response->assertRedirectToRoute('user-profile.edit');
@@ -88,6 +91,7 @@ it('requires name', function (): void {
         ->fromRoute('user-profile.edit')
         ->patch(route('user-profile.update'), [
             'email' => 'test@example.com',
+            'current_password' => 'password',
         ]);
 
     $response->assertRedirectToRoute('user-profile.edit')
@@ -115,6 +119,7 @@ it('requires valid email', function (): void {
         ->patch(route('user-profile.update'), [
             'name' => 'Test User',
             'email' => 'not-an-email',
+            'current_password' => 'password',
         ]);
 
     $response->assertRedirectToRoute('user-profile.edit')
@@ -147,8 +152,63 @@ it('allows keeping same email', function (): void {
         ->patch(route('user-profile.update'), [
             'name' => 'Updated Name',
             'email' => 'test@example.com',
+            'current_password' => 'password',
         ]);
 
     $response->assertRedirectToRoute('user-profile.edit')
         ->assertSessionDoesntHaveErrors();
+});
+
+it('records profile changes in the audit log', function (): void {
+    $user = User::factory()->create(['name' => 'Old Name', 'email' => 'old@example.com']);
+
+    $this->actingAs($user)->patch(route('user-profile.update'), [
+        'name' => 'New Name',
+        'email' => 'new@example.com',
+        'current_password' => 'password',
+    ])->assertSessionDoesntHaveErrors();
+
+    $activity = Activity::query()->where('log_name', 'users')->where('event', 'updated')->sole();
+
+    expect($activity->causer_id)->toBe($user->id)
+        ->and($activity->subject_id)->toBe($user->id)
+        ->and($activity->properties->get('old'))->toBe(['name' => 'Old Name', 'email' => 'old@example.com'])
+        ->and($activity->properties->get('attributes'))->toBe(['name' => 'New Name', 'email' => 'new@example.com']);
+});
+
+it('redirects the settings root to the profile page for GET only', function (): void {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)->get('/settings')->assertRedirect('/settings/profile');
+    $this->actingAs($user)->post('/settings')->assertMethodNotAllowed();
+});
+
+it('requires the current password to change the email address', function (?string $password): void {
+    $user = User::factory()->create(['email' => 'old@example.com']);
+
+    $this->actingAs($user)
+        ->fromRoute('user-profile.edit')
+        ->patch(route('user-profile.update'), array_filter([
+            'name' => $user->name,
+            'email' => 'attacker@example.com',
+            'current_password' => $password,
+        ]))
+        ->assertSessionHasErrors('current_password');
+
+    expect($user->refresh()->email)->toBe('old@example.com');
+})->with(['missing' => null, 'wrong' => 'not-the-password']);
+
+it('changes the name alone without asking for the password', function (): void {
+    $user = User::factory()->create(['email' => 'same@example.com']);
+
+    $this->actingAs($user)
+        ->patch(route('user-profile.update'), ['name' => 'Renamed', 'email' => 'same@example.com'])
+        ->assertSessionHasNoErrors();
+
+    expect($user->refresh()->name)->toBe('Renamed');
+});
+
+it('requires a signed-in user', function (): void {
+    $this->get(route('user-profile.edit'))->assertRedirectToRoute('login');
+    $this->patch(route('user-profile.update'))->assertRedirectToRoute('login');
 });

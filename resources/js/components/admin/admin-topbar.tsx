@@ -1,11 +1,13 @@
 import { Link, usePage } from '@inertiajs/react';
+import { useDirection } from '@radix-ui/react-direction';
 import { useLaravelReactI18n } from 'laravel-react-i18n';
 import { ChevronDown, Menu, Search } from 'lucide-react';
 import { groupNavItems, resolveNavIcon } from '@/components/admin/nav';
+import { NotificationBell } from '@/components/admin/notification-bell';
 import { ThemeSettingsMenu } from '@/components/admin/theme-settings-menu';
 import AppLogo from '@/components/app-logo';
 import { Breadcrumbs } from '@/components/breadcrumbs';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
@@ -25,6 +27,7 @@ import {
 import { UserMenuContent } from '@/components/user-menu-content';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { useInitials } from '@/hooks/use-initials';
+import { useShortcutLabel } from '@/hooks/use-shortcut-label';
 import { cn } from '@/lib/utils';
 import type { BreadcrumbItem } from '@/types';
 import type { NavItem } from '@/types/admin';
@@ -43,6 +46,8 @@ export function AdminTopbar({
     className,
 }: AdminTopbarProps) {
     const { t } = useLaravelReactI18n();
+    const shortcutLabel = useShortcutLabel('K');
+    const direction = useDirection();
     const { auth } = usePage().props;
     const getInitials = useInitials();
     const { isCurrentUrl } = useCurrentUrl();
@@ -56,7 +61,7 @@ export function AdminTopbar({
                 className,
             )}
         >
-            <div className="flex h-16 items-center gap-2 px-6 md:px-4">
+            <div className="flex h-(--header-height) items-center gap-2 px-6 md:px-4">
                 {/* Mobile navigation */}
                 <div className="lg:hidden">
                     <Sheet>
@@ -73,7 +78,7 @@ export function AdminTopbar({
                             </Button>
                         </SheetTrigger>
                         <SheetContent
-                            side="left"
+                            side={direction === 'rtl' ? 'right' : 'left'}
                             className="w-64 overflow-y-auto bg-sidebar"
                         >
                             <SheetTitle className="sr-only">
@@ -146,7 +151,10 @@ export function AdminTopbar({
                 )}
 
                 {/* Desktop navigation */}
-                <nav className="ms-6 hidden items-center gap-1 lg:flex">
+                <nav
+                    className="ms-6 hidden items-center gap-1 lg:flex"
+                    aria-label={t('Main navigation')}
+                >
                     {groups.map((group) =>
                         group.label === null ? (
                             group.items.map((item) => (
@@ -240,9 +248,10 @@ export function AdminTopbar({
                         <Search />
                         <span className="hidden sm:inline">{t('Search')}</span>
                         <kbd className="pointer-events-none hidden text-xs select-none sm:inline">
-                            Ctrl K
+                            {shortcutLabel}
                         </kbd>
                     </Button>
+                    <NotificationBell />
                     <ThemeSettingsMenu />
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -251,10 +260,6 @@ export function AdminTopbar({
                                 className="size-10 rounded-full p-1"
                             >
                                 <Avatar className="size-8 overflow-hidden rounded-full">
-                                    <AvatarImage
-                                        src={auth.user.avatar}
-                                        alt={auth.user.name}
-                                    />
                                     <AvatarFallback className="rounded-lg bg-muted text-muted-foreground">
                                         {getInitials(auth.user.name)}
                                     </AvatarFallback>

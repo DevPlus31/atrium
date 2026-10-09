@@ -11,6 +11,7 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 import { regenerateRecoveryCodes } from '@/routes/two-factor';
 
 type Props = {
@@ -105,8 +106,15 @@ export default function TwoFactorRecoveryCodes({
                 </div>
                 <div
                     id="recovery-codes-section"
-                    className={`relative overflow-hidden transition-all duration-300 ${codesAreVisible ? 'h-auto opacity-100' : 'h-0 opacity-0'}`}
+                    className={cn(
+                        'relative overflow-hidden transition-all duration-300',
+                        codesAreVisible
+                            ? 'h-auto opacity-100'
+                            : 'h-0 opacity-0',
+                    )}
                     aria-hidden={!codesAreVisible}
+                    // Collapsed content must not take keyboard focus either.
+                    inert={!codesAreVisible}
                 >
                     <div className="mt-3 space-y-3">
                         {errors?.length ? (
@@ -120,9 +128,9 @@ export default function TwoFactorRecoveryCodes({
                                     aria-label={t('Recovery codes')}
                                 >
                                     {recoveryCodesList.length ? (
-                                        recoveryCodesList.map((code, index) => (
+                                        recoveryCodesList.map((code) => (
                                             <div
-                                                key={index}
+                                                key={code}
                                                 role="listitem"
                                                 className="select-text"
                                             >

@@ -8,17 +8,16 @@
 
 export type NavItem = App.Modules.Data.NavItemData;
 
-export type Flash = {
-    success: string | null;
-    error: string | null;
-};
-
 export type LayoutConfig = App.Modules.Data.LayoutConfigData;
 
-export type Impersonation = {
-    impersonator: string;
-};
+export type Impersonation = App.Modules.Data.ImpersonationData;
 
+export type AppNotification = App.Modules.Data.NotificationData;
+
+/**
+ * The `meta` block of a spatie/laravel-data PaginatedDataCollection. Generic
+ * containers cannot be generated, so this mirrors the serializer's shape.
+ */
 export type PaginationMeta = {
     current_page: number;
     from: number | null;

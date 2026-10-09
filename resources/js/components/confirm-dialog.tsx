@@ -27,8 +27,8 @@ export type ConfirmDialogProps = {
 
 /**
  * Controlled confirmation dialog for destructive (and other guarded)
- * actions. The caller owns the `open` state, so it can keep the dialog open
- * while a request is processing by ignoring `onOpenChange(false)`.
+ * actions. Confirming does not close it: the caller owns the `open` state
+ * and closes the dialog when the action finishes (see useDeleteDialog).
  */
 export function ConfirmDialog({
     open,
@@ -59,7 +59,12 @@ export function ConfirmDialog({
                     <AlertDialogAction
                         variant={destructive ? 'destructive' : 'default'}
                         disabled={processing}
-                        onClick={onConfirm}
+                        onClick={(event) => {
+                            // Keep the dialog open; the caller closes it
+                            // once the confirmed action has finished.
+                            event.preventDefault();
+                            onConfirm();
+                        }}
                     >
                         {processing && <Spinner />}
                         {confirmLabel ?? t('Confirm')}

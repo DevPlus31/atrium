@@ -19,6 +19,7 @@ final class UserData extends Data
         public string $name,
         public string $email,
         public ?string $email_verified_at,
+        public ?string $avatar,
         public array $roles,
         public string $created_at,
         public array $can,
@@ -38,6 +39,7 @@ final class UserData extends Data
             name: $user->name,
             email: $user->email,
             email_verified_at: $user->email_verified_at?->toIso8601String(),
+            avatar: $user->avatarUrl(),
             roles: $roles,
             created_at: $user->created_at->toIso8601String(),
             can: [

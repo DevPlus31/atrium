@@ -79,3 +79,16 @@ it('serves server-sent nav labels in the active locale', function (): void {
                 )),
         );
 });
+
+it('ships French out of the box', function (): void {
+    expect(config('app.available_locales'))->toBe(['en' => 'English', 'fr' => 'Français']);
+});
+
+it("answers validation errors in the user's language", function (): void {
+    $user = User::factory()->create(['locale' => 'fr']);
+
+    $this->actingAs($user)
+        ->from(route('user-profile.edit'))
+        ->patch(route('user-profile.update'), ['name' => '', 'email' => $user->email])
+        ->assertSessionHasErrors(['name' => 'Le champ nom est obligatoire.']);
+});

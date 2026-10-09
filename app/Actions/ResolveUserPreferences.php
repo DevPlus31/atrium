@@ -55,7 +55,7 @@ final readonly class ResolveUserPreferences
      * truth for authenticated users; cookies cover guests; invalid or missing
      * values fall back to the defaults.
      *
-     * @return array{appearance: Appearance, theme: ThemePreset, layout: LayoutConfigData, locale: string}
+     * @return array{appearance: Appearance, theme: ThemePreset, layout: LayoutConfigData, locale: string, timezone: string|null}
      */
     public function handle(Request $request): array
     {
@@ -77,6 +77,8 @@ final readonly class ResolveUserPreferences
             'locale' => $this->validLocale($user?->locale)
                 ?? $this->validLocale($this->cookieValue($request, 'locale'))
                 ?? Config::string('app.locale'),
+            // Only signed-in users choose one; null means "the browser's".
+            'timezone' => $user?->timezone,
         ];
     }
 

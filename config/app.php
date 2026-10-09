@@ -15,6 +15,8 @@ return [
     |
     */
 
+    // @branding Set APP_NAME in .env: it names the app in the sidebar, the
+    // tab title, the auth and error pages and outgoing mail.
     'name' => env('APP_NAME', 'Atrium'),
 
     /*
@@ -95,6 +97,7 @@ return [
 
     'available_locales' => [
         'en' => 'English',
+        'fr' => 'Français',
     ],
 
     'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),

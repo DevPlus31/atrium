@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Contracts\ValueObject;
 use Illuminate\Support\Facades\File;
 
 /**
@@ -97,7 +98,7 @@ it('domain layers depend only on domain-safe namespaces', function (): void {
     expect($violations)->toBe([]);
 });
 
-it('value objects are final and readonly', function (): void {
+it('value objects are final, readonly and value objects', function (): void {
     $violations = [];
 
     foreach (array_keys(moduleSourceFiles()) as $path) {
@@ -115,6 +116,10 @@ it('value objects are final and readonly', function (): void {
 
         if (! $reflection->isFinal() || ! $reflection->isReadonly()) {
             $violations[] = $class.' must be final and readonly';
+        }
+
+        if (! $reflection->implementsInterface(ValueObject::class)) {
+            $violations[] = $class.' must implement '.ValueObject::class;
         }
     }
 

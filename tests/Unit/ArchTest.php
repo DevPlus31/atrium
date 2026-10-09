@@ -3,10 +3,12 @@
 declare(strict_types=1);
 
 use App\Domain\Exceptions\DomainException;
+use App\Modules\IndexQuery;
 use App\Modules\ModuleServiceProvider;
 use App\Modules\NavRegistry;
 use App\Modules\PermissionRegistry;
 use App\Modules\WidgetRegistry;
+use App\Notifications\AppNotification;
 use App\Providers\HorizonServiceProvider;
 use App\Providers\TypeScriptTransformerServiceProvider;
 use Illuminate\Support\Str;
@@ -26,8 +28,10 @@ $moduleProviders = $matches[1];
 
 arch()->preset()->php();
 arch()->preset()->strict()->ignoring([
-    // Abstract base: cannot be final because modules extend it.
+    // Abstract bases: cannot be final because modules extend them.
+    AppNotification::class,
     DomainException::class,
+    IndexQuery::class,
     HorizonServiceProvider::class,
     ModuleServiceProvider::class,
     TypeScriptTransformerServiceProvider::class,
@@ -70,18 +74,33 @@ arch('module service providers extend the module contract')
     ])
     ->toExtend(ModuleServiceProvider::class);
 
+// Every module with an Actions directory, discovered on disk so new modules
+// are covered without editing this file.
+$moduleActionNamespaces = array_map(
+    static fn (string $path): string => 'Modules\\'.basename(dirname($path)).'\\Actions',
+    glob(dirname(__DIR__, 2).'/app-modules/*/Actions', GLOB_ONLYDIR) ?: [],
+);
+
 arch('module actions are final and readonly')
-    ->expect('Modules\Users\Actions')
+    ->expect($moduleActionNamespaces)
     ->toBeFinal()
     ->toBeReadonly();
 
-arch('roles module actions are final and readonly')
-    ->expect('Modules\Roles\Actions')
-    ->toBeFinal()
-    ->toBeReadonly();
+arch('the shell never depends on a module')
+    ->expect('App')
+    ->not->toUse('Modules');
+
+it('keeps module routes out of the shell route files', function (): void {
+    expect(file_get_contents(base_path('routes/web.php')))->not->toContain('Modules\\');
+});
+
+$moduleWidgetNamespaces = array_map(
+    static fn (string $path): string => 'Modules\\'.basename(dirname($path)).'\\Widgets',
+    glob(dirname(__DIR__, 2).'/app-modules/*/Widgets', GLOB_ONLYDIR) ?: [],
+);
 
 arch('module widget resolvers are final and readonly')
-    ->expect('Modules\Users\Widgets')
+    ->expect($moduleWidgetNamespaces)
     ->toBeFinal()
     ->toBeReadonly();
 

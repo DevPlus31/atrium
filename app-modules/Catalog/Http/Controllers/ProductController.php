@@ -6,6 +6,7 @@ namespace Modules\Catalog\Http\Controllers;
 
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\Attributes\Controllers\Authorize;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Catalog\Actions\CreateProduct;
@@ -25,6 +26,7 @@ final readonly class ProductController
     {
         return Inertia::render('catalog::index', [
             'products' => ProductData::collect($query->paginate(), PaginatedDataCollection::class),
+            'can' => ['create' => Gate::allows('create', Product::class)],
         ]);
     }
 
@@ -45,7 +47,9 @@ final readonly class ProductController
             description: $request->description(),
         );
 
-        return to_route('admin.products.index')->with('success', __('Product created.'));
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Product created.')]);
+
+        return to_route('admin.products.index');
     }
 
     #[Authorize('update', 'product')]
@@ -68,7 +72,9 @@ final readonly class ProductController
             description: $request->description(),
         );
 
-        return to_route('admin.products.index')->with('success', __('Product updated.'));
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Product updated.')]);
+
+        return to_route('admin.products.index');
     }
 
     #[Authorize('delete', 'product')]
@@ -76,6 +82,8 @@ final readonly class ProductController
     {
         $action->handle($product);
 
-        return to_route('admin.products.index')->with('success', __('Product deleted.'));
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Product deleted.')]);
+
+        return to_route('admin.products.index');
     }
 }

@@ -7,18 +7,15 @@ namespace Modules\Catalog\Providers;
 use App\Modules\ModuleServiceProvider;
 use App\Modules\NavRegistry;
 use App\Modules\PermissionRegistry;
-use Illuminate\Support\Facades\Gate;
+use App\Modules\SearchRegistry;
 use Modules\Catalog\Domain\Repositories\ProductRepository;
-use Modules\Catalog\Infrastructure\Models\Product;
 use Modules\Catalog\Infrastructure\Repositories\EloquentProductRepository;
-use Modules\Catalog\Policies\ProductPolicy;
+use Modules\Catalog\Search\ProductsSearch;
 
 final class CatalogServiceProvider extends ModuleServiceProvider
 {
     public function register(): void
     {
-        Gate::policy(Product::class, ProductPolicy::class);
-
         $this->app->bind(ProductRepository::class, EloquentProductRepository::class);
     }
 
@@ -47,5 +44,17 @@ final class CatalogServiceProvider extends ModuleServiceProvider
         $permissions->declare('products.update', roles: ['admin']);
         $permissions->declare('products.delete', roles: ['admin']);
         $permissions->declare('products.publish', roles: ['admin']);
+    }
+
+    protected function search(SearchRegistry $search): void
+    {
+        $search->add(
+            module: $this->name(),
+            label: 'Products',
+            searcher: ProductsSearch::class,
+            icon: 'package',
+            permission: 'products.view',
+            sort: 30,
+        );
     }
 }

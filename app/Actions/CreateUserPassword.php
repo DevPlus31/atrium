@@ -26,6 +26,9 @@ final readonly class CreateUserPassword
                     'remember_token' => Str::random(60),
                 ]);
 
+                // A reset means the old password may be known: its tokens go too.
+                $user->tokens()->delete();
+
                 event(new PasswordReset($user));
             }
         ));

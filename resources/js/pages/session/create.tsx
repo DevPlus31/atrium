@@ -1,7 +1,9 @@
-import { Form, Head, router } from '@inertiajs/react';
+import { Form, Head, router, usePage } from '@inertiajs/react';
 import { usePasskeyVerify } from '@laravel/passkeys/react';
 import { useLaravelReactI18n } from 'laravel-react-i18n';
 import { KeyRound } from 'lucide-react';
+import { useState } from 'react';
+import { AuthStatus } from '@/components/auth/auth-status';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
 import TextLink from '@/components/text-link';
@@ -27,12 +29,16 @@ export default function Login({
     canRegister,
 }: Props) {
     const { t } = useLaravelReactI18n();
+    const { name } = usePage().props;
+    // Controlled so passkey sign-in honours "Remember me" too.
+    const [remember, setRemember] = useState(false);
     const {
         verify,
         isLoading: verifyingPasskey,
         error: passkeyError,
         isSupported: passkeysSupported,
     } = usePasskeyVerify({
+        remember: () => remember,
         onSuccess: (response) => {
             router.visit(response.redirect ?? dashboard().url);
         },
@@ -40,10 +46,12 @@ export default function Login({
 
     return (
         <AuthLayout
-            title={t('Log in to your account')}
-            description={t('Enter your email and password below to log in')}
+            title={t('Welcome back')}
+            description={t('Log in to continue to your workspace.')}
         >
             <Head title={t('Log in')} />
+
+            {status && <AuthStatus>{status}</AuthStatus>}
 
             <Form
                 {...store.form()}
@@ -63,7 +71,6 @@ export default function Login({
                                     name="email"
                                     required
                                     autoFocus
-                                    tabIndex={1}
                                     autoComplete="email"
                                     placeholder={t('email@example.com')}
                                 />
@@ -79,7 +86,6 @@ export default function Login({
                                         <TextLink
                                             href={request()}
                                             className="ms-auto text-sm"
-                                            tabIndex={5}
                                         >
                                             {t('Forgot password?')}
                                         </TextLink>
@@ -89,18 +95,20 @@ export default function Login({
                                     id="password"
                                     name="password"
                                     required
-                                    tabIndex={2}
                                     autoComplete="current-password"
                                     placeholder={t('Password')}
                                 />
                                 <InputError message={errors.password} />
                             </div>
 
-                            <div className="flex items-center space-x-3">
+                            <div className="flex items-center gap-3">
                                 <Checkbox
                                     id="remember"
                                     name="remember"
-                                    tabIndex={3}
+                                    checked={remember}
+                                    onCheckedChange={(checked) =>
+                                        setRemember(checked === true)
+                                    }
                                 />
                                 <Label htmlFor="remember">
                                     {t('Remember me')}
@@ -109,8 +117,7 @@ export default function Login({
 
                             <Button
                                 type="submit"
-                                className="mt-4 w-full"
-                                tabIndex={4}
+                                className="mt-2 w-full"
                                 disabled={processing}
                                 data-test="login-button"
                             >
@@ -120,11 +127,18 @@ export default function Login({
 
                             {passkeysSupported && (
                                 <div className="grid gap-2">
+                                    <div
+                                        aria-hidden
+                                        className="flex items-center gap-3 text-xs text-muted-foreground uppercase"
+                                    >
+                                        <span className="h-px flex-1 bg-border" />
+                                        {t('or')}
+                                        <span className="h-px flex-1 bg-border" />
+                                    </div>
                                     <Button
                                         type="button"
                                         variant="outline"
                                         className="w-full"
-                                        tabIndex={6}
                                         disabled={verifyingPasskey}
                                         data-test="passkey-login-button"
                                         onClick={() => {
@@ -146,22 +160,16 @@ export default function Login({
                         </div>
 
                         {canRegister && (
-                            <div className="text-center text-sm text-muted-foreground">
-                                {t("Don't have an account?")}{' '}
-                                <TextLink href={register()} tabIndex={5}>
-                                    {t('Sign up')}
+                            <p className="text-sm text-muted-foreground">
+                                {t('New to :name?', { name })}{' '}
+                                <TextLink href={register()}>
+                                    {t('Create an account')}
                                 </TextLink>
-                            </div>
+                            </p>
                         )}
                     </>
                 )}
             </Form>
-
-            {status && (
-                <div className="mb-4 text-center text-sm font-medium text-success">
-                    {status}
-                </div>
-            )}
         </AuthLayout>
     );
 }

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Enums\Area;
 use App\Models\User;
 use App\Modules\WidgetRegistry;
 use Illuminate\Support\Facades\Gate;
@@ -15,22 +16,14 @@ beforeEach(function (): void {
     Feature::define('module:bravo', fn (): bool => true);
 });
 
-it('resolves permitted widgets sorted by sort order', function (): void {
+it('resolves closure resolvers', function (): void {
     $registry = new WidgetRegistry();
 
-    $registry->declare(module: 'alpha', key: 'stats', resolver: fn (): TestModuleWidgetData => new TestModuleWidgetData(count: 7), sort: 2);
-    $registry->declare(module: 'alpha', key: 'activity', resolver: TestModuleWidget::class, sort: 1);
+    $registry->declare(module: 'alpha', key: 'stats', resolver: fn (): TestModuleWidgetData => new TestModuleWidgetData(count: 7));
 
     $user = User::factory()->create();
 
-    $widgets = $registry->widgetsFor($user);
-
-    expect($widgets)->toHaveCount(2)
-        ->and($widgets[0]['key'])->toBe('activity')
-        ->and($widgets[0]['sort'])->toBe(1)
-        ->and($widgets[0]['data'])->toBeInstanceOf(TestModuleWidgetData::class)
-        ->and($widgets[1]['key'])->toBe('stats')
-        ->and($widgets[1]['data']->toArray())->toBe(['count' => 7]);
+    expect($registry->resolveFor($user, 'stats')?->toArray())->toBe(['count' => 7]);
 });
 
 it('filters widgets the user has no permission for', function (): void {
@@ -43,10 +36,7 @@ it('filters widgets the user has no permission for', function (): void {
 
     $user = User::factory()->create();
 
-    $widgets = $registry->widgetsFor($user);
-
-    expect($widgets)->toHaveCount(1)
-        ->and($widgets[0]['key'])->toBe('activity');
+    expect($registry->descriptorsFor($user))->toBe([['key' => 'activity', 'sort' => 0]]);
 });
 
 it('filters widgets of modules disabled for the user', function (): void {
@@ -59,10 +49,7 @@ it('filters widgets of modules disabled for the user', function (): void {
 
     Feature::for($user)->deactivate('module:alpha');
 
-    $widgets = $registry->widgetsFor($user);
-
-    expect($widgets)->toHaveCount(1)
-        ->and($widgets[0]['key'])->toBe('activity');
+    expect($registry->descriptorsFor($user))->toBe([['key' => 'activity', 'sort' => 0]]);
 });
 
 it('lists permitted widget descriptors sorted by sort order without resolving them', function (): void {
@@ -129,7 +116,7 @@ it('rejects class resolvers that are not invokable', function (): void {
 
     $user = User::factory()->create();
 
-    $registry->widgetsFor($user);
+    $registry->resolveFor($user, 'broken');
 })->throws(InvalidArgumentException::class, 'Widget resolver [stdClass] must be invokable.');
 
 it('rejects resolvers that do not return a data object', function (): void {
@@ -139,5 +126,39 @@ it('rejects resolvers that do not return a data object', function (): void {
 
     $user = User::factory()->create();
 
-    $registry->widgetsFor($user);
+    $registry->resolveFor($user, 'broken');
 })->throws(InvalidArgumentException::class, 'must return a data object');
+
+it('keeps the admin and member areas apart', function (): void {
+    $registry = new WidgetRegistry();
+
+    $registry->declare(module: 'alpha', key: 'admin-only', resolver: TestModuleWidget::class);
+    $registry->declare(module: 'alpha', key: 'member-only', resolver: TestModuleWidget::class, area: Area::Member);
+
+    $user = User::factory()->create();
+
+    expect($registry->descriptorsFor($user))->toBe([['key' => 'admin-only', 'sort' => 0]])
+        ->and($registry->descriptorsFor($user, Area::Member))->toBe([['key' => 'member-only', 'sort' => 0]])
+        ->and($registry->resolveFor($user, 'member-only'))->toBeNull()
+        ->and($registry->resolveFor($user, 'member-only', Area::Member))->toBeInstanceOf(TestModuleWidgetData::class);
+});
+
+it('passes the viewing user to the resolver', function (): void {
+    $registry = new WidgetRegistry();
+
+    $registry->declare(module: 'alpha', key: 'mine', resolver: fn (User $viewer): TestModuleWidgetData => new TestModuleWidgetData(count: mb_strlen($viewer->name)));
+
+    $user = User::factory()->create(['name' => 'Jane']);
+
+    expect($registry->resolveFor($user, 'mine')?->toArray())->toBe(['count' => 4]);
+});
+
+it('hides a widget whose resolver has nothing for the user', function (): void {
+    $registry = new WidgetRegistry();
+
+    $registry->declare(module: 'alpha', key: 'empty', resolver: fn (): ?TestModuleWidgetData => null);
+
+    $user = User::factory()->create();
+
+    expect($registry->resolveFor($user, 'empty'))->toBeNull();
+});

@@ -45,7 +45,11 @@ final readonly class CreateUser
                 ])
                 ->log('created');
 
-            event(new Registered($user));
+            // Mail goes out only once the account really exists (after the
+            // outermost transaction commits, e.g. AcceptInvitation's).
+            DB::afterCommit(static function () use ($user): void {
+                event(new Registered($user));
+            });
 
             return $user;
         });

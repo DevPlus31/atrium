@@ -11,9 +11,10 @@
  *   - color-literal: #hex, rgb()/rgba(), hsl()/hsla(), oklch()/oklab() in
  *     className strings or style objects.
  *   - physical-direction: ml-, mr-, pl-, pr-, left-, right-, text-left,
- *     text-right, rounded-l..., rounded-r... class tokens (use the logical
- *     ms-, me-, ps-, pe-, start-, end-, text-start, text-end, rounded-s...,
- *     rounded-e... utilities instead).
+ *     text-right, rounded-l..., rounded-r..., border-l..., border-r... class
+ *     tokens (use the logical ms-, me-, ps-, pe-, start-, end-, text-start,
+ *     text-end, rounded-s..., rounded-e..., border-s..., border-e...
+ *     utilities instead).
  *
  * Scope:
  *   - resources/js/{layouts,components,pages,hooks} (excluding components/ui):
@@ -23,6 +24,7 @@
  *     (popovers, submenus, sheets) is genuinely directional; Radix flips it
  *     through the DirectionProvider, not through logical CSS properties.
  *   - app-modules/[star]/resources/js: all three rules.
+ *   - resources/js/lib and the entry points (app.tsx, ssr.tsx): color rules.
  *
  * Allowlist: a `// theme-lint-allow-next-line <rule>` comment on the line
  * above a genuinely-directional (or otherwise justified) usage silences that
@@ -93,7 +95,7 @@ const rules: Rule[] = [
     {
         name: 'physical-direction',
         pattern:
-            /(?<=^|[\s'"`:!])-?(?:(?:m|p)(?:l|r)-[\w.[\]()/-]+|(?:left|right)-[\w.[\]()/-]+|text-left|text-right|rounded-(?:l|r|tl|tr|bl|br)(?:-[\w.[\]()/-]+)?)(?![\w-])/g,
+            /(?<=^|[\s'"`:!])-?(?:(?:m|p)(?:l|r)-[\w.[\]()/-]+|(?:left|right)-[\w.[\]()/-]+|text-left|text-right|rounded-(?:l|r|tl|tr|bl|br)(?:-[\w.[\]()/-]+)?|border-(?:l|r)(?:-[\w.[\]()/-]+)?)(?![\w-])/g,
         message:
             'physical direction utility — use logical (ms-/me-/ps-/pe-/start-/end-/text-start/text-end/rounded-s*/rounded-e*)',
     },
@@ -187,6 +189,15 @@ for (const scope of ['layouts', 'components', 'pages', 'hooks']) {
 
 // components/ui: color rules only (vendored primitives keep physical CSS).
 for (const file of listFiles(join(root, 'resources', 'js', 'components', 'ui'))) {
+    scanFile(file, colorRulesOnly);
+}
+
+// lib/ and the entry points: color rules (no markup, but colors still leak).
+for (const file of [
+    ...listFiles(join(root, 'resources', 'js', 'lib')),
+    join(root, 'resources', 'js', 'app.tsx'),
+    join(root, 'resources', 'js', 'ssr.tsx'),
+]) {
     scanFile(file, colorRulesOnly);
 }
 

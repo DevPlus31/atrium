@@ -5,14 +5,19 @@ import { createRoot } from 'react-dom/client';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { initializeTheme } from '@/hooks/use-appearance';
-import { resolvePage } from '@/lib/resolve-page';
+import { listenForFlashToasts } from '@/lib/flash-toasts';
+import { resolveLayout, resolvePage } from '@/lib/resolve-page';
+import { translationFiles } from '@/lib/translations';
 import '../css/app.css';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
+listenForFlashToasts();
+
 void createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
     resolve: resolvePage,
+    layout: resolveLayout,
     setup({ el, App, props }) {
         const root = createRoot(el);
         const { locale } = props.initialPage.props;
@@ -22,7 +27,7 @@ void createInertiaApp({
                 <LaravelReactI18nProvider
                     locale={typeof locale === 'string' ? locale : 'en'}
                     fallbackLocale="en"
-                    files={import.meta.glob('/lang/*.json', { eager: true })}
+                    files={translationFiles}
                 >
                     <TooltipProvider delayDuration={0}>
                         <App {...props} />
@@ -33,7 +38,7 @@ void createInertiaApp({
         );
     },
     progress: {
-        color: '#4B5563',
+        color: 'var(--muted-foreground)',
     },
 });
 

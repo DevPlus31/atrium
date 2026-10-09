@@ -49,3 +49,7 @@ it('shows two factor enabled when enabled', function (): void {
             ->component('user-two-factor-authentication/show')
             ->where('twoFactorEnabled', true));
 });
+
+it('requires a signed-in user', function (): void {
+    $this->get(route('two-factor.show'))->assertRedirectToRoute('login');
+});

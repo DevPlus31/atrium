@@ -1,6 +1,12 @@
-import { router, usePage } from '@inertiajs/react';
+import { usePage } from '@inertiajs/react';
 import { useEffect, useSyncExternalStore } from 'react';
-import { update } from '@/routes/preferences';
+import {
+    getCookie,
+    isAppearance,
+    isThemePreset,
+    persistPreferences,
+    setCookie,
+} from '@/lib/preferences';
 import type { LayoutConfig } from '@/types/admin';
 
 export type Appearance = App.Enums.Appearance;
@@ -35,35 +41,6 @@ const prefersDark = (): boolean => {
 
     return window.matchMedia('(prefers-color-scheme: dark)').matches;
 };
-
-export const setCookie = (name: string, value: string, days = 365): void => {
-    if (typeof document === 'undefined') {
-        return;
-    }
-
-    const maxAge = days * 24 * 60 * 60;
-    document.cookie = `${name}=${encodeURIComponent(value)};path=/;max-age=${maxAge};SameSite=Lax`;
-};
-
-const getCookie = (name: string): string | null => {
-    if (typeof document === 'undefined') {
-        return null;
-    }
-
-    const match = document.cookie
-        .split('; ')
-        .find((row) => row.startsWith(`${name}=`));
-
-    return match
-        ? decodeURIComponent(match.split('=').slice(1).join('='))
-        : null;
-};
-
-const isAppearance = (value: unknown): value is Appearance =>
-    value === 'light' || value === 'dark' || value === 'system';
-
-const isThemePreset = (value: unknown): value is ThemePreset =>
-    value === 'default' || value === 'ember' || value === 'contrast';
 
 const isDarkMode = (appearance: Appearance): boolean => {
     return appearance === 'dark' || (appearance === 'system' && prefersDark());
@@ -213,16 +190,11 @@ export function useThemePreference(): UseThemePreferenceReturn {
         }
     }, [serverTheme]);
 
-    const patchOptions = {
-        preserveScroll: true,
-        preserveState: true,
-    } as const;
-
     const updateAppearance = (mode: Appearance): void => {
         setAppearance(mode);
 
         if (auth.user) {
-            router.patch(update.url(), { appearance: mode }, patchOptions);
+            persistPreferences({ appearance: mode });
         }
     };
 
@@ -230,7 +202,7 @@ export function useThemePreference(): UseThemePreferenceReturn {
         setThemePreset(preset);
 
         if (auth.user) {
-            router.patch(update.url(), { theme: preset }, patchOptions);
+            persistPreferences({ theme: preset });
         }
     };
 
@@ -242,7 +214,7 @@ export function useThemePreference(): UseThemePreferenceReturn {
         }
 
         if (auth.user) {
-            router.patch(update.url(), { layout: options }, patchOptions);
+            persistPreferences({ layout: options });
         }
     };
 

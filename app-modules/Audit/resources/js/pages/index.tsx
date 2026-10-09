@@ -5,8 +5,9 @@ import {
     DataTableFacetedFilter,
     DataTableToolbar,
 } from '@/components/data-table';
+import { useBreadcrumbs } from '@/hooks/use-breadcrumbs';
+import { useFormatters } from '@/hooks/use-formatters';
 import { useTableState } from '@/hooks/use-table-state';
-import AdminLayout from '@/layouts/admin-layout';
 import { index } from '@/routes/admin/audit';
 import type { BreadcrumbItem } from '@/types';
 import type { Paginated } from '@/types/admin';
@@ -25,16 +26,18 @@ export default function AuditIndex({
     events,
 }: AuditIndexProps) {
     const { t } = useLaravelReactI18n();
+    const format = useFormatters();
     const tableState = useTableState('activities');
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: t('Audit log'), href: index() },
     ];
+    useBreadcrumbs(breadcrumbs);
 
-    const columns = buildActivityColumns(t);
+    const columns = buildActivityColumns(t, format);
 
     return (
-        <AdminLayout breadcrumbs={breadcrumbs}>
+        <>
             <Head title={t('Audit log')} />
             <DataTableToolbar
                 tableState={tableState}
@@ -65,6 +68,6 @@ export default function AuditIndex({
                 tableState={tableState}
                 emptyMessage={t('No activity found.')}
             />
-        </AdminLayout>
+        </>
     );
 }

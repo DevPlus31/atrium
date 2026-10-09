@@ -6,13 +6,19 @@ namespace Modules\Users\Actions;
 
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Modules\Users\Domain\Repositories\UserRepository;
 
 final readonly class DeleteUser
 {
+    public function __construct(private UserRepository $users)
+    {
+        //
+    }
+
     public function handle(User $user): void
     {
         DB::transaction(function () use ($user): void {
-            $user->delete();
+            $this->users->delete($user);
 
             activity('users')
                 ->performedOn($user)

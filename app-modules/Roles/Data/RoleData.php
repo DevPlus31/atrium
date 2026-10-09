@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Modules\Roles\Data;
 
 use Illuminate\Support\Facades\Auth;
-use Modules\Roles\Policies\RolePolicy;
+use Modules\Roles\Domain\ValueObjects\RoleName;
 use Spatie\LaravelData\Data;
 use Spatie\Permission\Models\Role;
 
@@ -39,7 +39,7 @@ final class RoleData extends Data
             name: $role->name,
             permissions: $permissions,
             users_count: $role->users_count ?? $role->users()->count(),
-            is_system: RolePolicy::isSystemRole($role),
+            is_system: new RoleName($role->name)->isSystem(),
             created_at: (string) $role->created_at?->toIso8601String(),
             can: [
                 'update' => $viewer?->can('update', $role) ?? false,

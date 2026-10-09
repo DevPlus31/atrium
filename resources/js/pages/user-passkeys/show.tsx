@@ -10,7 +10,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import AppLayout from '@/layouts/app-layout';
+import { useBreadcrumbs } from '@/hooks/use-breadcrumbs';
+import { useDeleteDialog } from '@/hooks/use-delete-dialog';
+import { useFormatters } from '@/hooks/use-formatters';
 import SettingsLayout from '@/layouts/settings/layout';
 import { destroy } from '@/routes/passkey';
 import { show } from '@/routes/passkeys';
@@ -29,24 +31,16 @@ type Props = {
     passkeys?: PasskeyItem[];
 };
 
-function formatDate(value: string): string {
-    return new Date(value).toLocaleDateString(undefined, {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-    });
-}
-
 export default function Passkeys({
     canManagePasskeys = false,
     passkeys = [],
 }: Props) {
     const { t } = useLaravelReactI18n();
+    const format = useFormatters();
     const [name, setName] = useState<string>('');
-    const [pendingDelete, setPendingDelete] = useState<PasskeyItem | null>(
-        null,
+    const deleteDialog = useDeleteDialog<PasskeyItem>((row) =>
+        destroy.url(row.id),
     );
-    const [deleting, setDeleting] = useState<boolean>(false);
 
     const { register, isLoading, error, isSupported } = usePasskeyRegister({
         onSuccess: () => {
@@ -61,24 +55,10 @@ export default function Passkeys({
             href: show(),
         },
     ];
-
-    const confirmDelete = () => {
-        if (pendingDelete === null) {
-            return;
-        }
-
-        router.delete(destroy.url(pendingDelete.id), {
-            preserveScroll: true,
-            onStart: () => setDeleting(true),
-            onFinish: () => {
-                setDeleting(false);
-                setPendingDelete(null);
-            },
-        });
-    };
+    useBreadcrumbs(breadcrumbs);
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <>
             <Head title={t('Passkeys')} />
             <SettingsLayout>
                 {canManagePasskeys && (
@@ -159,14 +139,14 @@ export default function Passkeys({
                                                     : ''}
                                                 {passkey.last_used_at !== null
                                                     ? t('Last used :date', {
-                                                          date: formatDate(
+                                                          date: format.date(
                                                               passkey.last_used_at,
                                                           ),
                                                       })
                                                     : passkey.created_at !==
                                                         null
                                                       ? t('Added :date', {
-                                                            date: formatDate(
+                                                            date: format.date(
                                                                 passkey.created_at,
                                                             ),
                                                         })
@@ -182,7 +162,7 @@ export default function Passkeys({
                                                 { name: passkey.name },
                                             )}
                                             onClick={() =>
-                                                setPendingDelete(passkey)
+                                                deleteDialog.request(passkey)
                                             }
                                         >
                                             <Trash2 />
@@ -193,28 +173,21 @@ export default function Passkeys({
                         )}
 
                         <ConfirmDialog
-                            open={pendingDelete !== null}
-                            onOpenChange={(open) => {
-                                if (!open && !deleting) {
-                                    setPendingDelete(null);
-                                }
-                            }}
+                            {...deleteDialog.dialogProps}
                             title={t('Delete passkey')}
                             description={t(
                                 'This will permanently delete :name and it can no longer be used to sign in.',
                                 {
                                     name:
-                                        pendingDelete?.name ??
+                                        deleteDialog.pending?.name ??
                                         t('this passkey'),
                                 },
                             )}
                             confirmLabel={t('Delete')}
-                            processing={deleting}
-                            onConfirm={confirmDelete}
                         />
                     </div>
                 )}
             </SettingsLayout>
-        </AppLayout>
+        </>
     );
 }

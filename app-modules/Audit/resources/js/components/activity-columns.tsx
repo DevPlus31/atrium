@@ -1,25 +1,18 @@
-import type { ColumnDef } from '@tanstack/react-table';
 import { useLaravelReactI18n } from 'laravel-react-i18n';
-import { DataTableColumnHeader } from '@/components/data-table';
+import {
+    DataTableColumnHeader,
+    type DataTableColumn,
+} from '@/components/data-table';
 import { Badge } from '@/components/ui/badge';
 import {
     Tooltip,
     TooltipContent,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
+import type { Formatters } from '@/lib/format';
 import type { Translator } from '@/types/ui';
 
 export type ActivityRow = Modules.Audit.Data.ActivityData;
-
-function formatDateTime(value: string): string {
-    return new Date(value).toLocaleString(undefined, {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-    });
-}
 
 function EmptyValue() {
     return <span className="text-muted-foreground">—</span>;
@@ -51,7 +44,8 @@ function ChangesCell({ changes }: { changes: Record<string, unknown> }) {
 
 export function buildActivityColumns(
     t: Translator,
-): ColumnDef<ActivityRow, unknown>[] {
+    format: Formatters,
+): DataTableColumn<ActivityRow>[] {
     return [
         {
             id: 'created_at',
@@ -62,7 +56,7 @@ export function buildActivityColumns(
             ),
             cell: ({ row }) => (
                 <span className="whitespace-nowrap text-muted-foreground">
-                    {formatDateTime(row.original.created_at)}
+                    {format.dateTime(row.original.created_at)}
                 </span>
             ),
         },

@@ -18,9 +18,13 @@ parameters:
     level: max
 
     excludePaths:
+        # Module tests run under Pest, like tests/, and are not analysed.
+        - app-modules/*/tests/*
         # Vendor-published files (kept as published; not held to level max).
         - config/horizon.php
         - config/log-viewer.php
+        - config/media-library.php
+        - config/settings.php
         - config/pulse.php
         - database/migrations/2026_07_04_183657_create_pulse_tables.php
 

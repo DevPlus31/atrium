@@ -29,30 +29,16 @@ final readonly class UserPreferencesController
 
         $preferences = $resolve->handle($request);
 
-        Cookie::queue(Cookie::forever(
-            name: 'appearance',
-            value: $preferences['appearance']->value,
-            httpOnly: false,
-            sameSite: 'lax',
-        ));
-        Cookie::queue(Cookie::forever(
-            name: 'theme',
-            value: $preferences['theme']->value,
-            httpOnly: false,
-            sameSite: 'lax',
-        ));
-        Cookie::queue(Cookie::forever(
-            name: 'layout',
-            value: json_encode($preferences['layout'], JSON_THROW_ON_ERROR),
-            httpOnly: false,
-            sameSite: 'lax',
-        ));
-        Cookie::queue(Cookie::forever(
-            name: 'locale',
-            value: $preferences['locale'],
-            httpOnly: false,
-            sameSite: 'lax',
-        ));
+        $cookies = [
+            'appearance' => $preferences['appearance']->value,
+            'theme' => $preferences['theme']->value,
+            'layout' => json_encode($preferences['layout'], JSON_THROW_ON_ERROR),
+            'locale' => $preferences['locale'],
+        ];
+
+        foreach ($cookies as $name => $value) {
+            Cookie::queue(Cookie::forever(name: $name, value: $value, httpOnly: false, sameSite: 'lax'));
+        }
 
         return back();
     }

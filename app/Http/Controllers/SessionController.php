@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Http\Requests\CreateSessionRequest;
+use App\Settings\GeneralSettings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,10 +15,11 @@ use Inertia\Response;
 
 final readonly class SessionController
 {
-    public function create(Request $request): Response
+    public function create(Request $request, GeneralSettings $settings): Response
     {
         return Inertia::render('session/create', [
             'canResetPassword' => Route::has('password.request'),
+            'canRegister' => Route::has('register') && $settings->registration_open,
             'status' => $request->session()->get('status'),
         ]);
     }
@@ -48,6 +50,10 @@ final readonly class SessionController
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
+        // After the fresh session exists: the flag rides it to the next page,
+        // whose render rotates the key so Back cannot reveal the old pages.
+        Inertia::clearHistory();
 
         return redirect('/');
     }

@@ -18,14 +18,14 @@ final readonly class UserPolicy
         return $user->can('users.create');
     }
 
-    public function update(User $user): bool
+    public function update(User $user, User $model): bool
     {
-        return $user->can('users.update');
+        return $user->can('users.update') && $user->canManage($model);
     }
 
     public function delete(User $user, User $model): bool
     {
-        return $user->can('users.delete') && $user->isNot($model);
+        return $user->can('users.delete') && $user->isNot($model) && $user->canManage($model);
     }
 
     public function export(User $user): bool
@@ -37,6 +37,7 @@ final readonly class UserPolicy
     {
         return $user->canImpersonate()
             && $user->isNot($model)
-            && $model->canBeImpersonated();
+            && $model->canBeImpersonated()
+            && $user->holdsAllPermissionsOf($model);
     }
 }

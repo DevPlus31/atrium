@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Actions\UpdateUser;
-use App\Http\Requests\UpdateUserRequest;
+use App\Actions\UpdateProfile;
+use App\Http\Requests\UpdateProfileRequest;
 use App\Models\User;
 use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Http\RedirectResponse;
@@ -22,9 +22,9 @@ final readonly class UserProfileController
         ]);
     }
 
-    public function update(UpdateUserRequest $request, #[CurrentUser] User $user, UpdateUser $action): RedirectResponse
+    public function update(UpdateProfileRequest $request, #[CurrentUser] User $user, UpdateProfile $action): RedirectResponse
     {
-        $action->handle($user, $request->validated());
+        $action->handle($user, $request->profile());
 
         Inertia::flash('toast', [
             'type' => 'success',

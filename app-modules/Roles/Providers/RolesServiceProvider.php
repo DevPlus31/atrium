@@ -7,8 +7,12 @@ namespace Modules\Roles\Providers;
 use App\Modules\ModuleServiceProvider;
 use App\Modules\NavRegistry;
 use App\Modules\PermissionRegistry;
+use App\Modules\SearchRegistry;
 use Illuminate\Support\Facades\Gate;
+use Modules\Roles\Domain\Repositories\RoleRepository;
+use Modules\Roles\Infrastructure\Repositories\EloquentRoleRepository;
 use Modules\Roles\Policies\RolePolicy;
+use Modules\Roles\Search\RolesSearch;
 use Spatie\Permission\Models\Role;
 
 final class RolesServiceProvider extends ModuleServiceProvider
@@ -16,6 +20,8 @@ final class RolesServiceProvider extends ModuleServiceProvider
     public function register(): void
     {
         Gate::policy(Role::class, RolePolicy::class);
+
+        $this->app->bind(RoleRepository::class, EloquentRoleRepository::class);
     }
 
     protected function name(): string
@@ -42,5 +48,17 @@ final class RolesServiceProvider extends ModuleServiceProvider
         $permissions->declare('roles.create', roles: ['admin']);
         $permissions->declare('roles.update', roles: ['admin']);
         $permissions->declare('roles.delete', roles: ['admin']);
+    }
+
+    protected function search(SearchRegistry $search): void
+    {
+        $search->add(
+            module: $this->name(),
+            label: 'Roles',
+            searcher: RolesSearch::class,
+            icon: 'shield',
+            permission: 'roles.view',
+            sort: 20,
+        );
     }
 }

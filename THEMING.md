@@ -8,12 +8,15 @@ How the admin panel re-skins and re-shapes itself. Governed by
 **Semantic design tokens only.** No raw Tailwind palette classes
 (`bg-white`, `text-blue-600`), no color literals (hex/rgb/oklch) in
 `className` or styles, and no physical direction utilities (`ml-`, `pl-`,
-`left-`, `text-left`, `rounded-l*`) — use logical ones (`ms-`, `ps-`,
-`start-`, `text-start`, `rounded-s*`). Enforced by `bun run lint:theme`
+`left-`, `text-left`, `rounded-l*`, `border-l*`) — use logical ones (`ms-`,
+`ps-`, `start-`, `text-start`, `rounded-s*`, `border-s*`). Enforced by `bun run lint:theme`
 (part of `bun run lint` / `bun run test:lint`, so it runs in every
 `composer test` gate)
 over `resources/js/{layouts,components,pages,hooks}` and every
-`app-modules/*/resources/js`. A genuinely-directional exception is silenced
+`app-modules/*/resources/js` (color rules also cover `resources/js/lib` and
+the `app.tsx`/`ssr.tsx` entry points; the vendored shadcn components in
+`resources/js/components/ui` get the color rules only). Structural sizes come from tokens too:
+`--header-height` and `--content-max-width` (boxed layout). A genuinely-directional exception is silenced
 with `// theme-lint-allow-next-line <rule>` on the line above.
 
 ## Token contract
@@ -98,3 +101,21 @@ Database-driven white-label theming will inject token values as an inline
 CSS-variable block overriding the active preset (spatie/laravel-settings).
 Keep presets as pure token-value blocks and never couple a component to a
 preset name so this stays a drop-in.
+
+## Branding a project
+
+Everything brand-specific is tagged `@branding`; `rg -n "@branding"` lists it.
+To make Atrium yours:
+
+| What | Where |
+|---|---|
+| Product name (sidebar, tab title, auth and error pages, mail) | `APP_NAME` in `.env` — no code change |
+| Logo mark | `resources/js/components/app-logo-icon.tsx` (keep `currentColor`) |
+| Favicons | `public/favicon.svg`, `public/favicon.ico`, `public/apple-touch-icon.png` |
+| Colours and fonts | Tokens in `resources/css/app.css` (or a preset in `resources/css/themes/`); web fonts in `resources/views/app.blade.php`, whose first-paint background must match `--background` |
+| Auth pages pitch and artwork | `resources/js/layouts/auth-layout.tsx` (tagline, highlights) and `resources/js/components/auth/atrium-hall-art.tsx` |
+| Error pages (403, 404, 429, 500, 503) | `resources/js/pages/error.tsx` (copy); rendered by `AppServiceProvider::renderErrorPage()` |
+| Emails | Already branded: the logo from Settings → General (or `APP_NAME`), the support address in the footer, light and dark. `resources/views/vendor/mail/html/{layout,header,message}.blade.php` and `text/message.blade.php` override Laravel's; everything else falls back to its defaults. Colours: the dark-mode block in `layout.blade.php`, mirroring your dark tokens (mail apps need hex) |
+
+Brand copy lives in `lang/<locale>.json` like every other string, so it is
+translated the same way.

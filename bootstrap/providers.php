@@ -13,4 +13,7 @@ return [
     Modules\Roles\Providers\RolesServiceProvider::class,
     Modules\System\Providers\SystemServiceProvider::class,
     Modules\Users\Providers\UsersServiceProvider::class,
+    Modules\Shop\Providers\ShopServiceProvider::class,
+    Modules\Settings\Providers\SettingsServiceProvider::class,
+    Modules\Api\Providers\ApiServiceProvider::class,
 ];

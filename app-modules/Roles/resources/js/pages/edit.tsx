@@ -1,5 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
-import { useForm } from 'laravel-precognition-react-inertia';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { useLaravelReactI18n } from 'laravel-react-i18n';
 import type { FormEvent } from 'react';
 import InputError from '@/components/input-error';
@@ -14,7 +13,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import AdminLayout from '@/layouts/admin-layout';
+import { useBreadcrumbs } from '@/hooks/use-breadcrumbs';
 import { edit, index, update } from '@/routes/admin/roles';
 import type { BreadcrumbItem } from '@/types';
 import type { RoleRow } from '../components/role-columns';
@@ -32,8 +31,9 @@ export default function RolesEdit({ role, permissions }: RolesEditProps) {
         { title: t('Roles'), href: index() },
         { title: role.name, href: edit(Number(role.id)) },
     ];
+    useBreadcrumbs(breadcrumbs);
 
-    const form = useForm('put', update.url(Number(role.id)), {
+    const form = useForm(update(Number(role.id)), {
         name: role.name,
         permissions: role.permissions,
     });
@@ -44,7 +44,7 @@ export default function RolesEdit({ role, permissions }: RolesEditProps) {
     };
 
     return (
-        <AdminLayout breadcrumbs={breadcrumbs}>
+        <>
             <Head title={t('Edit :name', { name: role.name })} />
             <Card className="max-w-2xl">
                 <CardHeader>
@@ -60,7 +60,6 @@ export default function RolesEdit({ role, permissions }: RolesEditProps) {
                             <Input
                                 id="name"
                                 type="text"
-                                required
                                 autoComplete="off"
                                 disabled={role.is_system}
                                 value={form.data.name}
@@ -100,6 +99,6 @@ export default function RolesEdit({ role, permissions }: RolesEditProps) {
                     </form>
                 </CardContent>
             </Card>
-        </AdminLayout>
+        </>
     );
 }

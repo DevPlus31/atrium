@@ -13,6 +13,7 @@ final readonly class RecentUsersWidget
     {
         $users = User::query()
             ->select(['id', 'name', 'email', 'created_at'])
+            ->with('media')
             ->latest()
             ->orderByDesc('id')
             ->limit(5)
@@ -23,6 +24,7 @@ final readonly class RecentUsersWidget
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
+                'avatar' => $user->avatarUrl(),
                 'created_at' => $user->created_at->toIso8601String(),
             ])->all()),
         );

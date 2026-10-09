@@ -1,11 +1,13 @@
 import { Link } from '@inertiajs/react';
-import type { ColumnDef } from '@tanstack/react-table';
+import { useLaravelReactI18n } from 'laravel-react-i18n';
 import {
     DataTableColumnHeader,
     DataTableRowActions,
+    type DataTableColumn,
 } from '@/components/data-table';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import type { Formatters } from '@/lib/format';
 import { edit } from '@/routes/admin/roles';
 import type { Translator } from '@/types/ui';
 
@@ -13,18 +15,18 @@ export type RoleRow = Modules.Roles.Data.RoleData;
 
 const VISIBLE_PERMISSIONS = 3;
 
-function formatDate(value: string): string {
-    return new Date(value).toLocaleDateString(undefined, {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-    });
+/** "+3 more": a plural, so it needs the hook's tChoice. */
+function MorePermissions({ count }: { count: number }) {
+    const { tChoice } = useLaravelReactI18n();
+
+    return <>{tChoice('+:count more|+:count more', count)}</>;
 }
 
 export function buildRoleColumns(
     t: Translator,
+    format: Formatters,
     onDelete: (role: RoleRow) => void,
-): ColumnDef<RoleRow, unknown>[] {
+): DataTableColumn<RoleRow>[] {
     return [
         {
             id: 'name',
@@ -65,7 +67,7 @@ export function buildRoleColumns(
                         ))}
                         {remaining > 0 && (
                             <span className="text-xs text-muted-foreground">
-                                {t('+:count more', { count: remaining })}
+                                <MorePermissions count={remaining} />
                             </span>
                         )}
                     </div>
@@ -87,7 +89,7 @@ export function buildRoleColumns(
             ),
             cell: ({ row }) => (
                 <span className="text-muted-foreground">
-                    {formatDate(row.original.created_at)}
+                    {format.date(row.original.created_at)}
                 </span>
             ),
         },

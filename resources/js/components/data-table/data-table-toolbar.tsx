@@ -40,6 +40,7 @@ export function DataTableToolbar({
                         tableState.setSearch(event.target.value);
                     }}
                     placeholder={searchPlaceholder ?? t('Search...')}
+                    aria-label={searchPlaceholder ?? t('Search...')}
                     className="h-8 w-40 ps-8 lg:w-64"
                 />
             </div>

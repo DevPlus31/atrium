@@ -1,0 +1,574 @@
+<?php
+
+declare(strict_types=1);
+
+use App\Models\User;
+use App\Modules\NavRegistry;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
+use Inertia\Testing\AssertableInertia;
+use Spatie\Activitylog\Models\Activity;
+use Spatie\Permission\Models\Role;
+
+beforeEach(function (): void {
+    $this->withoutVite();
+
+    $this->artisan('admin:sync-permissions')->assertSuccessful();
+});
+
+it('redirects guests to the login page', function (string $method, string $uri): void {
+    $response = $this->{$method}($uri);
+
+    $response->assertRedirectToRoute('login');
+})->with([
+    'index' => ['get', '/admin/users'],
+    'create' => ['get', '/admin/users/create'],
+    'store' => ['post', '/admin/users'],
+]);
+
+it('forbids authenticated users without the admin role', function (): void {
+    $user = User::factory()->create();
+
+    $response = $this->actingAs($user)->get('/admin/users');
+
+    $response->assertForbidden();
+});
+
+it('forbids admins without the users.view permission', function (): void {
+    Role::findByName('admin')->revokePermissionTo('users.view');
+
+    $response = $this->actingAs(adminUser())->get(route('admin.users.index'));
+
+    $response->assertForbidden();
+});
+
+it('registers the users nav item for permitted admins', function (): void {
+    $admin = adminUser();
+
+    $navItems = $this->app->make(NavRegistry::class)->itemsFor($admin);
+    $navItem = collect($navItems)->firstWhere('label', 'Users');
+
+    expect($navItem)->not->toBeNull()
+        ->and($navItem?->href)->toBe(route('admin.users.index'))
+        ->and($navItem?->group)->toBe('Management')
+        ->and($navItem?->icon)->toBe('users');
+});
+
+it('hides the users nav item without the users.view permission', function (): void {
+    $user = User::factory()->create();
+
+    $navItems = $this->app->make(NavRegistry::class)->itemsFor($user);
+
+    expect(collect($navItems)->firstWhere('label', 'Users'))->toBeNull();
+});
+
+it('renders the users index', function (): void {
+    $admin = adminUser();
+    $other = User::factory()->create(['name' => 'Jane Doe']);
+
+    $response = $this->actingAs($admin)->get(route('admin.users.index'));
+
+    $response->assertOk()->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
+        ->component('users::index')
+        ->has('users.data', 2)
+        ->has('users.meta')
+        ->where('users.meta.per_page', 15)
+        ->where('roles', ['admin']));
+});
+
+it('ships per-row abilities that forbid self-deletion', function (): void {
+    $admin = adminUser();
+    $other = User::factory()->create(['created_at' => now()->subDay()]);
+
+    $response = $this->actingAs($admin)->get(route('admin.users.index'));
+
+    $response->assertOk()->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
+        ->where('users.data.0.id', $admin->id)
+        ->where('users.data.0.can.update', true)
+        ->where('users.data.0.can.delete', false)
+        ->where('users.data.0.can.impersonate', false)
+        ->where('users.data.1.id', $other->id)
+        ->where('users.data.1.can.delete', true)
+        ->where('users.data.1.can.impersonate', true));
+});
+
+it('applies the search filter to the index', function (): void {
+    $admin = adminUser();
+    User::factory()->create(['name' => 'Alice Wonder', 'email' => 'alice@example.com']);
+    User::factory()->create(['name' => 'Bob Builder', 'email' => 'bob@example.com']);
+
+    $response = $this->actingAs($admin)->get(route('admin.users.index', ['filter' => ['search' => 'alice']]));
+
+    $response->assertOk()->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
+        ->has('users.data', 1)
+        ->where('users.data.0.email', 'alice@example.com'));
+});
+
+it('applies the role filter as csv values', function (): void {
+    $admin = adminUser();
+    Role::findOrCreate('editor');
+    Role::findOrCreate('viewer');
+
+    $editor = User::factory()->create();
+    $editor->assignRole('editor');
+
+    $viewer = User::factory()->create();
+    $viewer->assignRole('viewer');
+
+    User::factory()->create();
+
+    $response = $this->actingAs($admin)->get(route('admin.users.index', ['filter' => ['role' => 'editor,viewer']]));
+
+    $response->assertOk()->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->has('users.data', 2));
+});
+
+it('applies the verified filter to the index', function (): void {
+    $admin = adminUser();
+    User::factory()->unverified()->create(['email' => 'unverified@example.com']);
+
+    $verified = $this->actingAs($admin)->get(route('admin.users.index', ['filter' => ['verified' => 'yes']]));
+    $unverified = $this->actingAs($admin)->get(route('admin.users.index', ['filter' => ['verified' => 'no']]));
+
+    $verified->assertOk()->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
+        ->has('users.data', 1)
+        ->where('users.data.0.id', $admin->id));
+
+    $unverified->assertOk()->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
+        ->has('users.data', 1)
+        ->where('users.data.0.email', 'unverified@example.com'));
+});
+
+it('applies allowed sorts to the index', function (): void {
+    $admin = adminUser();
+    $admin->update(['name' => 'Middle']);
+    User::factory()->create(['name' => 'Aaa']);
+    User::factory()->create(['name' => 'Zzz']);
+
+    $ascending = $this->actingAs($admin)->get(route('admin.users.index', ['sort' => 'name']));
+    $descending = $this->actingAs($admin)->get(route('admin.users.index', ['sort' => '-name']));
+
+    $ascending->assertOk()->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->where('users.data.0.name', 'Aaa'));
+    $descending->assertOk()->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->where('users.data.0.name', 'Zzz'));
+});
+
+it('sorts the index by newest first by default', function (): void {
+    $admin = adminUser();
+    User::factory()->create(['name' => 'Older', 'created_at' => now()->subWeek()]);
+    $newest = User::factory()->create(['name' => 'Newest', 'created_at' => now()->addHour()]);
+
+    $response = $this->actingAs($admin)->get(route('admin.users.index'));
+
+    $response->assertOk()->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->where('users.data.0.id', $newest->id));
+});
+
+it('paginates the index and caps per_page at 100', function (): void {
+    $admin = adminUser();
+    User::factory()->count(12)->create();
+
+    $paged = $this->actingAs($admin)->get(route('admin.users.index', ['per_page' => 10, 'page' => 2]));
+    $capped = $this->actingAs($admin)->get(route('admin.users.index', ['per_page' => 500]));
+
+    $paged->assertOk()->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
+        ->has('users.data', 3)
+        ->where('users.meta.current_page', 2)
+        ->where('users.meta.per_page', 10)
+        ->where('users.meta.total', 13));
+
+    $capped->assertOk()->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->where('users.meta.per_page', 100));
+});
+
+it('renders the create page', function (): void {
+    $response = $this->actingAs(adminUser())->get(route('admin.users.create'));
+
+    $response->assertOk()->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
+        ->component('users::create')
+        ->where('roles', ['admin']));
+});
+
+it('forbids admins without the users.create permission', function (): void {
+    Role::findByName('admin')->revokePermissionTo('users.create');
+    $admin = adminUser();
+
+    $this->actingAs($admin)->get(route('admin.users.create'))->assertForbidden();
+    $this->actingAs($admin)->post(route('admin.users.store'), [
+        'name' => 'New User',
+        'email' => 'new@example.com',
+        'password' => 'super-secret-password',
+        'password_confirmation' => 'super-secret-password',
+    ])->assertForbidden();
+});
+
+it('stores a user and redirects with a success flash', function (): void {
+    Notification::fake();
+    Role::findOrCreate('editor');
+    $admin = adminUser();
+
+    $response = $this->actingAs($admin)
+        ->fromRoute('admin.users.create')
+        ->post(route('admin.users.store'), [
+            'name' => 'New User',
+            'email' => 'new@example.com',
+            'password' => 'super-secret-password',
+            'password_confirmation' => 'super-secret-password',
+            'roles' => ['editor'],
+        ]);
+
+    $response->assertRedirectToRoute('admin.users.index')
+        ->assertInertiaFlash('toast', ['type' => 'success', 'message' => 'User created.']);
+
+    $user = User::query()->where('email', 'new@example.com')->sole();
+
+    expect($user->hasRole('editor'))->toBeTrue()
+        ->and(Activity::query()->where('event', 'created')->where('causer_id', $admin->id)->exists())->toBeTrue();
+});
+
+it('validates the store request', function (): void {
+    $admin = adminUser();
+    User::factory()->create(['email' => 'taken@example.com']);
+
+    $missing = $this->actingAs($admin)
+        ->fromRoute('admin.users.create')
+        ->post(route('admin.users.store'), []);
+
+    $missing->assertRedirectToRoute('admin.users.create')
+        ->assertSessionHasErrors(['name', 'email', 'password']);
+
+    $invalid = $this->actingAs($admin)
+        ->fromRoute('admin.users.create')
+        ->post(route('admin.users.store'), [
+            'name' => 'New User',
+            'email' => 'taken@example.com',
+            'password' => 'super-secret-password',
+            'password_confirmation' => 'different-password',
+            'roles' => ['missing-role'],
+        ]);
+
+    $invalid->assertRedirectToRoute('admin.users.create')
+        ->assertSessionHasErrors(['email', 'password', 'roles.0']);
+
+    expect(User::query()->count())->toBe(2);
+});
+
+it('validates a single field precognitively without side effects', function (): void {
+    $admin = adminUser();
+
+    $invalid = $this->actingAs($admin)
+        ->withHeaders(['Precognition' => 'true', 'Precognition-Validate-Only' => 'email'])
+        ->postJson(route('admin.users.store'), ['email' => 'not-an-email']);
+
+    $valid = $this->actingAs($admin)
+        ->withHeaders(['Precognition' => 'true', 'Precognition-Validate-Only' => 'email'])
+        ->postJson(route('admin.users.store'), ['email' => 'valid@example.com']);
+
+    $invalid->assertStatus(422)
+        ->assertHeader('Precognition', 'true')
+        ->assertJsonValidationErrors(['email'])
+        ->assertJsonMissingValidationErrors(['name', 'password']);
+
+    $valid->assertNoContent()->assertHeader('Precognition-Success', 'true');
+
+    expect(User::query()->count())->toBe(1)
+        ->and(Activity::query()->count())->toBe(0);
+});
+
+it('renders the edit page', function (): void {
+    $admin = adminUser();
+    $user = User::factory()->create();
+
+    $response = $this->actingAs($admin)->get(route('admin.users.edit', $user));
+
+    $response->assertOk()->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
+        ->component('users::edit')
+        ->where('user.id', $user->id)
+        ->where('user.email', $user->email)
+        ->where('roles', ['admin']));
+});
+
+it('forbids admins without the users.update permission', function (): void {
+    Role::findByName('admin')->revokePermissionTo('users.update');
+    $admin = adminUser();
+    $user = User::factory()->create();
+
+    $this->actingAs($admin)->get(route('admin.users.edit', $user))->assertForbidden();
+    $this->actingAs($admin)->put(route('admin.users.update', $user), [
+        'name' => 'Updated',
+        'email' => 'updated@example.com',
+    ])->assertForbidden();
+});
+
+it('updates a user and redirects with a success flash', function (): void {
+    Role::findOrCreate('editor');
+    $admin = adminUser();
+    $user = User::factory()->create();
+
+    $response = $this->actingAs($admin)
+        ->fromRoute('admin.users.edit', $user)
+        ->put(route('admin.users.update', $user), [
+            'name' => 'Updated Name',
+            'email' => $user->email,
+            'roles' => ['editor'],
+        ]);
+
+    $response->assertRedirectToRoute('admin.users.index')
+        ->assertInertiaFlash('toast', ['type' => 'success', 'message' => 'User updated.']);
+
+    expect($user->refresh()->name)->toBe('Updated Name')
+        ->and($user->hasRole('editor'))->toBeTrue()
+        ->and(Activity::query()->where('event', 'updated')->where('causer_id', $admin->id)->exists())->toBeTrue();
+});
+
+it('validates the update request', function (): void {
+    $admin = adminUser();
+    $user = User::factory()->create();
+    User::factory()->create(['email' => 'taken@example.com']);
+
+    $duplicate = $this->actingAs($admin)
+        ->fromRoute('admin.users.edit', $user)
+        ->put(route('admin.users.update', $user), [
+            'name' => 'Updated Name',
+            'email' => 'taken@example.com',
+        ]);
+
+    $duplicate->assertRedirectToRoute('admin.users.edit', $user)
+        ->assertSessionHasErrors(['email']);
+
+    $own = $this->actingAs($admin)
+        ->fromRoute('admin.users.edit', $user)
+        ->put(route('admin.users.update', $user), [
+            'name' => 'Updated Name',
+            'email' => $user->email,
+        ]);
+
+    $own->assertRedirectToRoute('admin.users.index')
+        ->assertSessionDoesntHaveErrors();
+});
+
+it('rejects an admin removing their own admin role', function (): void {
+    $admin = adminUser();
+
+    $response = $this->actingAs($admin)
+        ->fromRoute('admin.users.edit', $admin)
+        ->put(route('admin.users.update', $admin), [
+            'name' => $admin->name,
+            'email' => $admin->email,
+            'roles' => [],
+        ]);
+
+    $response->assertRedirectToRoute('admin.users.edit', $admin)
+        ->assertSessionHasErrors(['roles' => 'You cannot remove your own admin role.']);
+
+    expect($admin->refresh()->hasRole('admin'))->toBeTrue();
+});
+
+it('allows an admin updating themselves while keeping the admin role', function (): void {
+    Role::findOrCreate('editor');
+    $admin = adminUser();
+
+    $response = $this->actingAs($admin)
+        ->fromRoute('admin.users.edit', $admin)
+        ->put(route('admin.users.update', $admin), [
+            'name' => 'Renamed Admin',
+            'email' => $admin->email,
+            'roles' => ['admin', 'editor'],
+        ]);
+
+    $response->assertRedirectToRoute('admin.users.index')
+        ->assertSessionDoesntHaveErrors();
+
+    expect($admin->refresh()->name)->toBe('Renamed Admin')
+        ->and($admin->hasRole('admin'))->toBeTrue()
+        ->and($admin->hasRole('editor'))->toBeTrue();
+});
+
+it('deletes a user and redirects with a success flash', function (): void {
+    $admin = adminUser();
+    $user = User::factory()->create();
+
+    $response = $this->actingAs($admin)->delete(route('admin.users.destroy', $user));
+
+    $response->assertRedirectToRoute('admin.users.index')
+        ->assertInertiaFlash('toast', ['type' => 'success', 'message' => 'User deleted.']);
+
+    expect(User::query()->whereKey($user->id)->exists())->toBeFalse()
+        ->and(Activity::query()->where('event', 'deleted')->where('causer_id', $admin->id)->exists())->toBeTrue();
+});
+
+it('forbids deleting yourself', function (): void {
+    $admin = adminUser();
+
+    $response = $this->actingAs($admin)->delete(route('admin.users.destroy', $admin));
+
+    $response->assertForbidden();
+
+    expect(User::query()->whereKey($admin->id)->exists())->toBeTrue();
+});
+
+it('forbids admins without the users.delete permission', function (): void {
+    Role::findByName('admin')->revokePermissionTo('users.delete');
+    $admin = adminUser();
+    $user = User::factory()->create();
+
+    $this->actingAs($admin)->delete(route('admin.users.destroy', $user))->assertForbidden();
+});
+
+it('keeps the existing roles when the update omits them', function (): void {
+    Role::findOrCreate('editor');
+    $admin = adminUser();
+    $user = User::factory()->create();
+    $user->assignRole('editor');
+
+    $self = $this->actingAs($admin)->put(route('admin.users.update', $admin), [
+        'name' => $admin->name,
+        'email' => $admin->email,
+    ]);
+
+    $other = $this->actingAs($admin)->put(route('admin.users.update', $user), [
+        'name' => $user->name,
+        'email' => $user->email,
+    ]);
+
+    $self->assertSessionDoesntHaveErrors();
+    $other->assertSessionDoesntHaveErrors();
+
+    expect($admin->refresh()->hasRole('admin'))->toBeTrue()
+        ->and($user->refresh()->hasRole('editor'))->toBeTrue();
+});
+
+it('rejects an admin granting the super-admin role', function (string $route): void {
+    Role::findOrCreate('super-admin');
+    $admin = adminUser();
+
+    $payload = ['name' => 'Escalated', 'email' => 'escalated@example.com', 'roles' => ['admin', 'super-admin']];
+
+    $response = $route === 'store'
+        ? $this->actingAs($admin)->post(route('admin.users.store'), [...$payload, 'password' => 'password', 'password_confirmation' => 'password'])
+        : $this->actingAs($admin)->put(route('admin.users.update', $admin), [...$payload, 'email' => $admin->email]);
+
+    $response->assertSessionHasErrors(['roles.1' => 'You cannot grant the super-admin role.']);
+
+    expect(User::query()->role('super-admin')->exists())->toBeFalse();
+})->with(['store', 'update']);
+
+it('rejects granting a role whose permissions the admin lacks', function (): void {
+    Role::findOrCreate('auditor')->givePermissionTo('audit.view');
+    Role::findByName('admin')->revokePermissionTo('audit.view');
+    $admin = adminUser();
+    $user = User::factory()->create();
+
+    $response = $this->actingAs($admin)->put(route('admin.users.update', $user), [
+        'name' => $user->name,
+        'email' => $user->email,
+        'roles' => ['auditor'],
+    ]);
+
+    $response->assertSessionHasErrors(['roles.0' => 'You cannot grant the auditor role.']);
+
+    expect($user->refresh()->hasRole('auditor'))->toBeFalse();
+});
+
+it('forbids editing an account holding a role the admin could not grant', function (): void {
+    Role::findOrCreate('auditor')->givePermissionTo('audit.view');
+    Role::findByName('admin')->revokePermissionTo('audit.view');
+    $admin = adminUser();
+    $user = User::factory()->create(['name' => 'Original']);
+    $user->assignRole('auditor');
+
+    $this->actingAs($admin)->put(route('admin.users.update', $user), [
+        'name' => 'Renamed',
+        'email' => $user->email,
+        'roles' => ['auditor'],
+    ])->assertForbidden();
+
+    expect($user->refresh()->name)->toBe('Original');
+});
+
+it('forbids admins managing a super-admin account', function (): void {
+    $admin = adminUser();
+    $superAdmin = superAdminUser();
+
+    $this->actingAs($admin)->get(route('admin.users.edit', $superAdmin))->assertForbidden();
+
+    $this->actingAs($admin)->put(route('admin.users.update', $superAdmin), [
+        'name' => $superAdmin->name,
+        'email' => 'hijacked@example.com',
+    ])->assertForbidden();
+
+    $this->actingAs($admin)->delete(route('admin.users.destroy', $superAdmin))->assertForbidden();
+
+    expect($superAdmin->refresh()->email)->not->toBe('hijacked@example.com')
+        ->and($admin->can('update', $superAdmin))->toBeFalse()
+        ->and($admin->can('delete', $superAdmin))->toBeFalse();
+});
+
+it('forbids admins taking over an account that holds permissions they lack', function (): void {
+    Role::findByName('admin')->revokePermissionTo('roles.update');
+    $admin = adminUser();
+    $target = User::factory()->create(['email' => 'owner@example.com']);
+    $target->assignRole(Role::findOrCreate('role-manager')->givePermissionTo('roles.update'));
+
+    $this->actingAs($admin)->put(route('admin.users.update', $target), [
+        'name' => $target->name,
+        'email' => 'attacker@example.com',
+    ])->assertForbidden();
+
+    $this->actingAs($admin)->delete(route('admin.users.destroy', $target))->assertForbidden();
+
+    expect($target->refresh()->email)->toBe('owner@example.com');
+});
+
+it('lets a super-admin grant the super-admin role and manage super-admins', function (): void {
+    $superAdmin = superAdminUser();
+    $other = superAdminUser();
+    $user = User::factory()->create();
+
+    $response = $this->actingAs($superAdmin)->put(route('admin.users.update', $user), [
+        'name' => $user->name,
+        'email' => $user->email,
+        'roles' => ['admin', 'super-admin'],
+    ]);
+
+    $response->assertSessionDoesntHaveErrors();
+
+    expect($user->refresh()->hasRole('super-admin'))->toBeTrue()
+        ->and($superAdmin->can('update', $other))->toBeTrue()
+        ->and($superAdmin->can('delete', $other))->toBeTrue();
+});
+
+it('strips every role when an empty role list is submitted for another user', function (): void {
+    $user = User::factory()->create();
+    $user->assignRole(Role::findOrCreate('auditor'));
+
+    $this->actingAs(adminUser())->put(route('admin.users.update', $user), [
+        'name' => $user->name,
+        'email' => $user->email,
+        'roles' => [],
+    ])->assertSessionDoesntHaveErrors();
+
+    expect($user->refresh()->roles)->toBeEmpty();
+});
+
+it('lets a super-admin step down from super-admin while keeping panel access', function (): void {
+    $superAdmin = superAdminUser();
+
+    $this->actingAs($superAdmin)->put(route('admin.users.update', $superAdmin), [
+        'name' => $superAdmin->name,
+        'email' => $superAdmin->email,
+        'roles' => ['admin'],
+    ])->assertSessionDoesntHaveErrors();
+
+    expect($superAdmin->refresh()->isSuperAdmin())->toBeFalse()
+        ->and($superAdmin->canAccessPanel())->toBeTrue();
+});
+
+it('lists each user with their photo', function (): void {
+    Storage::fake('public');
+    $user = User::factory()->create(['name' => 'Aaa Photo']);
+    $user->addMedia(UploadedFile::fake()->image('me.jpg', 200, 200))->toMediaCollection(User::AVATAR);
+
+    $this->actingAs(adminUser())
+        ->get(route('admin.users.index', ['sort' => 'name']))
+        ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
+            ->where('users.data.0.name', 'Aaa Photo')
+            ->where('users.data.0.avatar', $user->refresh()->avatarUrl()));
+});

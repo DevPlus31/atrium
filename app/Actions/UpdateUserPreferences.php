@@ -9,7 +9,7 @@ use App\Models\User;
 final readonly class UpdateUserPreferences
 {
     /**
-     * Persist a validated subset of {appearance, theme, layout, locale}
+     * Persist a validated subset of {appearance, theme, layout, locale, timezone}
      * preferences. Layout updates merge over the user's stored layout so
      * partial updates never drop previously chosen options.
      *
@@ -29,6 +29,10 @@ final readonly class UpdateUserPreferences
 
         if (array_key_exists('locale', $attributes)) {
             $payload['locale'] = $attributes['locale'];
+        }
+
+        if (array_key_exists('timezone', $attributes)) {
+            $payload['timezone'] = $attributes['timezone'];
         }
 
         if (is_array($attributes['layout'] ?? null)) {

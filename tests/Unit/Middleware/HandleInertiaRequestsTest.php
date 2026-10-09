@@ -2,12 +2,15 @@
 
 declare(strict_types=1);
 
+use App\Enums\Area;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Models\User;
+use App\Modules\Data\NavItemData;
 use App\Modules\NavRegistry;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Laravel\Pennant\Feature;
+use Spatie\Permission\Models\Role;
 
 it('shares app name from config', function (): void {
     $middleware = $this->app->make(HandleInertiaRequests::class);
@@ -105,7 +108,7 @@ it('shares an empty nav for guests', function (): void {
     expect($shared['nav'])->toBe([]);
 });
 
-it('shares nav items for authenticated users', function (): void {
+it('shares the admin nav items with panel users', function (): void {
     Route::get('admin/example', fn (): string => 'example')->name('admin.example.index');
     Route::getRoutes()->refreshNameLookups();
     Feature::define('module:example', fn (): bool => true);
@@ -120,6 +123,7 @@ it('shares nav items for authenticated users', function (): void {
     );
 
     $user = User::factory()->create();
+    $user->assignRole(Role::findOrCreate(User::PANEL_ROLE));
 
     $middleware = $this->app->make(HandleInertiaRequests::class);
 
@@ -163,34 +167,29 @@ it('shares the impersonator name while impersonating', function (): void {
 
     $shared = $middleware->share($request);
 
-    expect($shared['impersonation'])->toBe(['impersonator' => 'Admin User']);
+    expect($shared['impersonation']?->toArray())->toBe(['impersonator' => 'Admin User']);
 });
 
-it('shares null flash messages when the request has no session', function (): void {
-    $middleware = $this->app->make(HandleInertiaRequests::class);
+it('shares only the member nav items with users without panel access', function (): void {
+    Route::get('admin/example', fn (): string => 'example')->name('admin.example.index');
+    Route::get('example', fn (): string => 'example')->name('example.home');
+    Route::getRoutes()->refreshNameLookups();
+    Feature::define('module:example', fn (): bool => true);
+
+    $nav = $this->app->make(NavRegistry::class);
+    $nav->add(module: 'example', label: 'Example', routeName: 'admin.example.index');
+    $nav->add(module: 'example', label: 'Example home', routeName: 'example.home', area: Area::Member);
+
+    $user = User::factory()->create();
 
     $request = Request::create('/', 'GET');
+    $request->setUserResolver(fn (): User => $user);
 
-    $shared = $middleware->share($request);
+    $labels = array_map(
+        static fn (NavItemData $item): string => $item->label,
+        $this->app->make(HandleInertiaRequests::class)->share($request)['nav'],
+    );
 
-    expect($shared['flash'])->toBe([
-        'success' => null,
-        'error' => null,
-    ]);
-});
-
-it('shares flash messages from the session', function (): void {
-    $middleware = $this->app->make(HandleInertiaRequests::class);
-
-    $request = Request::create('/', 'GET');
-    $request->setLaravelSession($this->app->make('session.store'));
-    $request->session()->put('success', 'Saved.');
-    $request->session()->put('error', 'Failed.');
-
-    $shared = $middleware->share($request);
-
-    expect($shared['flash'])->toBe([
-        'success' => 'Saved.',
-        'error' => 'Failed.',
-    ]);
+    expect($labels)->toContain('Example home')
+        ->not->toContain('Example');
 });

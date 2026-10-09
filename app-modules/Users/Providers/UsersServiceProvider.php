@@ -8,11 +8,16 @@ use App\Models\User;
 use App\Modules\ModuleServiceProvider;
 use App\Modules\NavRegistry;
 use App\Modules\PermissionRegistry;
+use App\Modules\SearchRegistry;
 use App\Modules\WidgetRegistry;
 use Illuminate\Support\Facades\Gate;
+use Modules\Users\Console\Commands\CreateAdminUserCommand;
+use Modules\Users\Domain\Repositories\InvitationRepository;
 use Modules\Users\Domain\Repositories\UserRepository;
+use Modules\Users\Infrastructure\Repositories\EloquentInvitationRepository;
 use Modules\Users\Infrastructure\Repositories\EloquentUserRepository;
 use Modules\Users\Policies\UserPolicy;
+use Modules\Users\Search\UsersSearch;
 use Modules\Users\Widgets\RecentUsersWidget;
 use Modules\Users\Widgets\UsersTotalWidget;
 
@@ -23,6 +28,9 @@ final class UsersServiceProvider extends ModuleServiceProvider
         Gate::policy(User::class, UserPolicy::class);
 
         $this->app->bind(UserRepository::class, EloquentUserRepository::class);
+        $this->app->bind(InvitationRepository::class, EloquentInvitationRepository::class);
+
+        $this->commands([CreateAdminUserCommand::class]);
     }
 
     protected function name(): string
@@ -67,6 +75,18 @@ final class UsersServiceProvider extends ModuleServiceProvider
             module: $this->name(),
             key: 'users.recent',
             resolver: RecentUsersWidget::class,
+            permission: 'users.view',
+            sort: 10,
+        );
+    }
+
+    protected function search(SearchRegistry $search): void
+    {
+        $search->add(
+            module: $this->name(),
+            label: 'Users',
+            searcher: UsersSearch::class,
+            icon: 'users',
             permission: 'users.view',
             sort: 10,
         );

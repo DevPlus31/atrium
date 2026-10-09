@@ -64,7 +64,7 @@ final class MakeModuleCommand extends Command
             $this->render($files, 'module.routes', $replacements),
         );
 
-        $testPath = base_path('tests/Feature/Modules/'.$studly);
+        $testPath = $modulePath.'/tests/Feature';
         $files->ensureDirectoryExists($testPath);
         $files->put(
             $testPath.'/'.$studly.'ModuleTest.php',

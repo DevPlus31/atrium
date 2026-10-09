@@ -1,23 +1,29 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useLaravelReactI18n } from 'laravel-react-i18n';
-import { Download, Plus } from 'lucide-react';
-import { useState } from 'react';
+import { Download, MailPlus, Plus } from 'lucide-react';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import {
     DataTable,
+    DataTableBulkActions,
     DataTableFacetedFilter,
     DataTableToolbar,
 } from '@/components/data-table';
 import { Button } from '@/components/ui/button';
+import { useBreadcrumbs } from '@/hooks/use-breadcrumbs';
+import { useBulkDelete } from '@/hooks/use-bulk-delete';
+import { useDeleteDialog } from '@/hooks/use-delete-dialog';
+import { useFormatters } from '@/hooks/use-formatters';
+import { useRowSelection } from '@/hooks/use-row-selection';
 import { useTableState } from '@/hooks/use-table-state';
-import AdminLayout from '@/layouts/admin-layout';
 import {
+    bulkDestroy,
     create,
     destroy,
     exportMethod,
     impersonate,
     index,
 } from '@/routes/admin/users';
+import { index as invitationsIndex } from '@/routes/admin/users/invitations';
 import type { BreadcrumbItem } from '@/types';
 import type { Paginated } from '@/types/admin';
 import type { UserRow } from '../components/user-columns';
@@ -26,6 +32,7 @@ import { buildUserColumns } from '../components/user-columns';
 type UsersIndexProps = {
     users: Paginated<UserRow>;
     roles: string[];
+    can: { create: boolean; export: boolean };
 };
 
 const verifiedOptions = [
@@ -33,11 +40,17 @@ const verifiedOptions = [
     { label: 'Unverified', value: 'no' },
 ];
 
-export default function UsersIndex({ users, roles }: UsersIndexProps) {
-    const { t } = useLaravelReactI18n();
+export default function UsersIndex({ users, roles, can }: UsersIndexProps) {
+    const { t, tChoice } = useLaravelReactI18n();
+    const format = useFormatters();
     const tableState = useTableState('users');
-    const [pendingDelete, setPendingDelete] = useState<UserRow | null>(null);
-    const [deleting, setDeleting] = useState(false);
+    const deleteDialog = useDeleteDialog<UserRow>((row) => destroy.url(row.id));
+    const selection = useRowSelection(
+        users.data,
+        (row) => row.id,
+        (row) => row.can.delete,
+    );
+    const bulkDelete = useBulkDelete(bulkDestroy.url(), selection);
 
     const pageUrl = usePage().url;
     const queryIndex = pageUrl.indexOf('?');
@@ -48,46 +61,49 @@ export default function UsersIndex({ users, roles }: UsersIndexProps) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: t('Users'), href: index() },
     ];
+    useBreadcrumbs(breadcrumbs);
 
-    const columns = buildUserColumns(t, setPendingDelete, (user) => {
-        router.post(impersonate.url(user.id));
-    });
-
-    const confirmDelete = () => {
-        if (pendingDelete === null) {
-            return;
-        }
-
-        router.delete(destroy.url(pendingDelete.id), {
-            preserveScroll: true,
-            onStart: () => setDeleting(true),
-            onFinish: () => {
-                setDeleting(false);
-                setPendingDelete(null);
-            },
-        });
-    };
+    const columns = buildUserColumns(
+        t,
+        format,
+        deleteDialog.request,
+        (user) => {
+            router.post(impersonate.url(user.id));
+        },
+    );
 
     return (
-        <AdminLayout breadcrumbs={breadcrumbs}>
+        <>
             <Head title={t('Users')} />
             <DataTableToolbar
                 tableState={tableState}
                 searchPlaceholder={t('Search users...')}
                 actions={
                     <>
-                        <Button variant="outline" size="sm" asChild>
-                            <a href={exportHref}>
-                                <Download className="size-4" />
-                                {t('Export')}
-                            </a>
-                        </Button>
-                        <Button size="sm" asChild>
-                            <Link href={create()}>
-                                <Plus className="size-4" />
-                                {t('Create user')}
-                            </Link>
-                        </Button>
+                        {can.export && (
+                            <Button variant="outline" size="sm" asChild>
+                                <a href={exportHref}>
+                                    <Download className="size-4" />
+                                    {t('Export')}
+                                </a>
+                            </Button>
+                        )}
+                        {can.create && (
+                            <Button variant="outline" size="sm" asChild>
+                                <Link href={invitationsIndex()}>
+                                    <MailPlus className="size-4" />
+                                    {t('Invitations')}
+                                </Link>
+                            </Button>
+                        )}
+                        {can.create && (
+                            <Button size="sm" asChild>
+                                <Link href={create()}>
+                                    <Plus className="size-4" />
+                                    {t('Create user')}
+                                </Link>
+                            </Button>
+                        )}
                     </>
                 }
             >
@@ -110,28 +126,41 @@ export default function UsersIndex({ users, roles }: UsersIndexProps) {
                     }))}
                 />
             </DataTableToolbar>
+            <DataTableBulkActions selection={selection}>
+                <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={bulkDelete.request}
+                    data-test="bulk-delete"
+                >
+                    {t('Delete selected')}
+                </Button>
+            </DataTableBulkActions>
             <DataTable
+                selection={selection}
                 columns={columns}
                 paginated={users}
                 tableState={tableState}
                 emptyMessage={t('No users found.')}
             />
             <ConfirmDialog
-                open={pendingDelete !== null}
-                onOpenChange={(open) => {
-                    if (!open && !deleting) {
-                        setPendingDelete(null);
-                    }
-                }}
+                {...bulkDelete.dialogProps}
+                title={t('Delete selected users')}
+                description={tChoice(
+                    'This will permanently delete :count user and cannot be undone.|This will permanently delete :count users and cannot be undone.',
+                    selection.selectedIds.length,
+                )}
+                confirmLabel={t('Delete')}
+            />
+            <ConfirmDialog
+                {...deleteDialog.dialogProps}
                 title={t('Delete user')}
                 description={t(
                     'This will permanently delete :name and cannot be undone.',
-                    { name: pendingDelete?.name ?? t('this user') },
+                    { name: deleteDialog.pending?.name ?? t('this user') },
                 )}
                 confirmLabel={t('Delete')}
-                processing={deleting}
-                onConfirm={confirmDelete}
             />
-        </AdminLayout>
+        </>
     );
 }

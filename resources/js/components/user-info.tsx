@@ -1,5 +1,4 @@
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useInitials } from '@/hooks/use-initials';
+import { UserAvatar } from '@/components/user-avatar';
 import type { User } from '@/types';
 
 export function UserInfo({
@@ -9,16 +8,9 @@ export function UserInfo({
     user: User;
     showEmail?: boolean;
 }) {
-    const getInitials = useInitials();
-
     return (
         <>
-            <Avatar className="h-8 w-8 overflow-hidden rounded-full">
-                <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback className="rounded-lg bg-muted text-muted-foreground">
-                    {getInitials(user.name)}
-                </AvatarFallback>
-            </Avatar>
+            <UserAvatar name={user.name} avatar={user.avatar} />
             <div className="grid flex-1 text-start text-sm leading-tight">
                 <span className="truncate font-medium">{user.name}</span>
                 {showEmail && (

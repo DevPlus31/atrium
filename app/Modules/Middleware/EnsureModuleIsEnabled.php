@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Middleware;
 
+use App\Modules\ModuleSwitch;
 use Closure;
 use Illuminate\Http\Request;
-use Laravel\Pennant\Feature;
 use Symfony\Component\HttpFoundation\Response;
 
 final readonly class EnsureModuleIsEnabled
@@ -16,7 +16,7 @@ final readonly class EnsureModuleIsEnabled
      */
     public function handle(Request $request, Closure $next, string $module): Response
     {
-        abort_unless(Feature::for($request->user())->active('module:'.$module), 404);
+        abort_unless(ModuleSwitch::isOn($module, $request->user()), 404);
 
         return $next($request);
     }

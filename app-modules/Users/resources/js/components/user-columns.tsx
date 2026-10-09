@@ -1,30 +1,25 @@
 import { Link } from '@inertiajs/react';
-import type { ColumnDef } from '@tanstack/react-table';
 import { BadgeCheck, CircleDashed } from 'lucide-react';
 import {
     DataTableColumnHeader,
     DataTableRowActions,
+    type DataTableColumn,
 } from '@/components/data-table';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import { UserAvatar } from '@/components/user-avatar';
+import type { Formatters } from '@/lib/format';
 import { edit } from '@/routes/admin/users';
 import type { Translator } from '@/types/ui';
 
 export type UserRow = Modules.Users.Data.UserData;
 
-function formatDate(value: string): string {
-    return new Date(value).toLocaleDateString(undefined, {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-    });
-}
-
 export function buildUserColumns(
     t: Translator,
+    format: Formatters,
     onDelete: (user: UserRow) => void,
     onImpersonate: (user: UserRow) => void,
-): ColumnDef<UserRow, unknown>[] {
+): DataTableColumn<UserRow>[] {
     return [
         {
             id: 'name',
@@ -34,7 +29,13 @@ export function buildUserColumns(
                 <DataTableColumnHeader column={column} title={t('Name')} />
             ),
             cell: ({ row }) => (
-                <span className="font-medium">{row.original.name}</span>
+                <span className="flex items-center gap-3">
+                    <UserAvatar
+                        name={row.original.name}
+                        avatar={row.original.avatar}
+                    />
+                    <span className="font-medium">{row.original.name}</span>
+                </span>
             ),
         },
         {
@@ -88,7 +89,7 @@ export function buildUserColumns(
             ),
             cell: ({ row }) => (
                 <span className="text-muted-foreground">
-                    {formatDate(row.original.created_at)}
+                    {format.date(row.original.created_at)}
                 </span>
             ),
         },

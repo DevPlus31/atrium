@@ -1,0 +1,20 @@
+{
+    ":count field|:count fields": ":count field|:count fields",
+    "Audit log": "Audit log",
+    "Causer": "Causer",
+    "Changes": "Changes",
+    "Date": "Date",
+    "Event": "Event",
+    "Log": "Log",
+    "No activity found.": "No activity found.",
+    "Search audit log...": "Search audit log...",
+    "Subject": "Subject",
+    "Recent activity": "Recent activity",
+    "Changes to your account": "Changes to your account",
+    "No one has changed your account.": "No one has changed your account.",
+    ":name created your account": ":name created your account",
+    ":name updated your account": ":name updated your account",
+    ":name signed in as you": ":name signed in as you",
+    ":name changed your account": ":name changed your account",
+    "An administrator": "An administrator"
+}

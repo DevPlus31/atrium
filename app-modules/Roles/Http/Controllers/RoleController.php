@@ -6,6 +6,7 @@ namespace Modules\Roles\Http\Controllers;
 
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\Attributes\Controllers\Authorize;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Roles\Actions\CreateRole;
@@ -27,6 +28,7 @@ final readonly class RoleController
         return Inertia::render('roles::index', [
             'roles' => RoleData::collect($query->paginate(), PaginatedDataCollection::class),
             'permissions' => $this->permissionNames(),
+            'can' => ['create' => Gate::allows('create', Role::class)],
         ]);
     }
 
@@ -46,7 +48,9 @@ final readonly class RoleController
             permissions: $request->permissions(),
         );
 
-        return to_route('admin.roles.index')->with('success', __('Role created.'));
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Role created.')]);
+
+        return to_route('admin.roles.index');
     }
 
     #[Authorize('update', 'role')]
@@ -67,7 +71,9 @@ final readonly class RoleController
             permissions: $request->permissions(),
         );
 
-        return to_route('admin.roles.index')->with('success', __('Role updated.'));
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Role updated.')]);
+
+        return to_route('admin.roles.index');
     }
 
     #[Authorize('delete', 'role')]
@@ -75,7 +81,9 @@ final readonly class RoleController
     {
         $action->handle($role);
 
-        return to_route('admin.roles.index')->with('success', __('Role deleted.'));
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Role deleted.')]);
+
+        return to_route('admin.roles.index');
     }
 
     /**

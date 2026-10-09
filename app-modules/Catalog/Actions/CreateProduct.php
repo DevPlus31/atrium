@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Modules\Catalog\Actions;
 
+use App\Domain\ValueObjects\Money;
 use Illuminate\Support\Facades\DB;
 use Modules\Catalog\Domain\Repositories\ProductRepository;
-use Modules\Catalog\Domain\ValueObjects\Money;
 use Modules\Catalog\Domain\ValueObjects\Sku;
 use Modules\Catalog\Infrastructure\Models\Product;
 

@@ -65,3 +65,8 @@ it('redirects verified users when sending notification', function (): void {
 
     Notification::assertNothingSent();
 });
+
+it('requires a signed-in user', function (): void {
+    $this->get(route('verification.notice'))->assertRedirectToRoute('login');
+    $this->post(route('verification.send'))->assertRedirectToRoute('login');
+});

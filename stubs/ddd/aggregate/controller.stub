@@ -6,6 +6,7 @@ namespace Modules\{{ module }}\Http\Controllers;
 
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\Attributes\Controllers\Authorize;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\{{ module }}\Actions\Create{{ aggregate }};
@@ -25,6 +26,7 @@ final readonly class {{ aggregate }}Controller
     {
         return Inertia::render('{{ moduleLower }}::index', [
             '{{ variablePlural }}' => {{ aggregate }}Data::collect($query->paginate(), PaginatedDataCollection::class),
+            'can' => ['create' => Gate::allows('create', {{ aggregate }}::class)],
         ]);
     }
 
@@ -42,7 +44,9 @@ final readonly class {{ aggregate }}Controller
             description: $request->description(),
         );
 
-        return to_route('admin.{{ slug }}.index')->with('success', __('{{ aggregate }} created.'));
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('{{ aggregate }} created.')]);
+
+        return to_route('admin.{{ slug }}.index');
     }
 
     #[Authorize('update', '{{ variable }}')]
@@ -62,7 +66,9 @@ final readonly class {{ aggregate }}Controller
             description: $request->description(),
         );
 
-        return to_route('admin.{{ slug }}.index')->with('success', __('{{ aggregate }} updated.'));
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('{{ aggregate }} updated.')]);
+
+        return to_route('admin.{{ slug }}.index');
     }
 
     #[Authorize('delete', '{{ variable }}')]
@@ -70,6 +76,8 @@ final readonly class {{ aggregate }}Controller
     {
         $action->handle(${{ variable }});
 
-        return to_route('admin.{{ slug }}.index')->with('success', __('{{ aggregate }} deleted.'));
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('{{ aggregate }} deleted.')]);
+
+        return to_route('admin.{{ slug }}.index');
     }
 }

@@ -1,5 +1,7 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
+import type { InertiaLinkProps } from '@inertiajs/react';
 import { useLaravelReactI18n } from 'laravel-react-i18n';
+import type { LucideIcon } from 'lucide-react';
 import type { PropsWithChildren } from 'react';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
@@ -7,13 +9,20 @@ import { Separator } from '@/components/ui/separator';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { cn, toUrl } from '@/lib/utils';
 import { edit as editAppearance } from '@/routes/appearance';
+import { edit as editNotificationPreferences } from '@/routes/notification-preferences';
 import { show as showPasskeys } from '@/routes/passkeys';
 import { edit as editPassword } from '@/routes/password';
+import { index as sessions } from '@/routes/sessions';
 import { show as showTwoFactor } from '@/routes/two-factor';
 import { edit } from '@/routes/user-profile';
-import type { NavItem } from '@/types';
 
-const sidebarNavItems: NavItem[] = [
+type SettingsNavItem = {
+    title: string;
+    href: NonNullable<InertiaLinkProps['href']>;
+    icon: LucideIcon | null;
+};
+
+const sidebarNavItems: SettingsNavItem[] = [
     {
         title: 'Profile',
         href: edit(),
@@ -35,8 +44,18 @@ const sidebarNavItems: NavItem[] = [
         icon: null,
     },
     {
+        title: 'Sessions',
+        href: sessions(),
+        icon: null,
+    },
+    {
         title: 'Appearance',
         href: editAppearance(),
+        icon: null,
+    },
+    {
+        title: 'Notifications',
+        href: editNotificationPreferences(),
         icon: null,
     },
 ];
@@ -44,11 +63,18 @@ const sidebarNavItems: NavItem[] = [
 export default function SettingsLayout({ children }: PropsWithChildren) {
     const { t } = useLaravelReactI18n();
     const { isCurrentOrParentUrl } = useCurrentUrl();
+    const { settingsNav } = usePage().props;
 
-    // When server-side rendering, we only render the layout on the client...
-    if (typeof window === 'undefined') {
-        return null;
-    }
+    // The account pages the shell ships, then any a module adds (labels
+    // arrive translated, via the navigation registry's settings area).
+    const items: SettingsNavItem[] = [
+        ...sidebarNavItems.map((item) => ({ ...item, title: t(item.title) })),
+        ...settingsNav.map((item) => ({
+            title: item.label,
+            href: item.href,
+            icon: null,
+        })),
+    ];
 
     return (
         <div className="px-4 py-6">
@@ -57,15 +83,15 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                 description={t('Manage your profile and account settings')}
             />
 
-            <div className="flex flex-col lg:flex-row lg:space-x-12">
+            <div className="flex flex-col gap-6 lg:flex-row lg:gap-12">
                 <aside className="w-full max-w-xl lg:w-48">
                     <nav
-                        className="flex flex-col space-y-1 space-x-0"
+                        className="flex flex-col gap-1"
                         aria-label={t('Settings')}
                     >
-                        {sidebarNavItems.map((item, index) => (
+                        {items.map((item) => (
                             <Button
-                                key={`${toUrl(item.href)}-${index}`}
+                                key={toUrl(item.href)}
                                 size="sm"
                                 variant="ghost"
                                 asChild
@@ -77,7 +103,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                                     {item.icon && (
                                         <item.icon className="h-4 w-4" />
                                     )}
-                                    {t(item.title)}
+                                    {item.title}
                                 </Link>
                             </Button>
                         ))}

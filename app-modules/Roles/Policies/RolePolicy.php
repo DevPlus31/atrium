@@ -5,22 +5,11 @@ declare(strict_types=1);
 namespace Modules\Roles\Policies;
 
 use App\Models\User;
+use Modules\Roles\Domain\ValueObjects\RoleName;
 use Spatie\Permission\Models\Role;
 
 final readonly class RolePolicy
 {
-    /**
-     * The role names that ship with the application and must never be deleted or renamed.
-     *
-     * @var list<string>
-     */
-    public const array SYSTEM_ROLES = ['admin', 'super-admin'];
-
-    public static function isSystemRole(Role $role): bool
-    {
-        return in_array($role->name, self::SYSTEM_ROLES, true);
-    }
-
     public function viewAny(User $user): bool
     {
         return $user->can('roles.view');
@@ -31,13 +20,18 @@ final readonly class RolePolicy
         return $user->can('roles.create');
     }
 
-    public function update(User $user): bool
+    /**
+     * System roles define panel access and the Gate bypass, so only a
+     * super-admin may change them.
+     */
+    public function update(User $user, Role $role): bool
     {
-        return $user->can('roles.update');
+        return $user->can('roles.update')
+            && (! new RoleName($role->name)->isSystem() || $user->isSuperAdmin());
     }
 
     public function delete(User $user, Role $role): bool
     {
-        return $user->can('roles.delete') && ! self::isSystemRole($role);
+        return $user->can('roles.delete') && ! new RoleName($role->name)->isSystem();
     }
 }

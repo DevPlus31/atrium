@@ -1,12 +1,13 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { useLaravelReactI18n } from 'laravel-react-i18n';
 import { Plus } from 'lucide-react';
-import { useState } from 'react';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { DataTable, DataTableToolbar } from '@/components/data-table';
 import { Button } from '@/components/ui/button';
+import { useBreadcrumbs } from '@/hooks/use-breadcrumbs';
+import { useDeleteDialog } from '@/hooks/use-delete-dialog';
+import { useFormatters } from '@/hooks/use-formatters';
 import { useTableState } from '@/hooks/use-table-state';
-import AdminLayout from '@/layouts/admin-layout';
 import { create, destroy, index } from '@/routes/admin/{{ slug }}';
 import type { BreadcrumbItem } from '@/types';
 import type { Paginated } from '@/types/admin';
@@ -15,50 +16,40 @@ import { build{{ aggregate }}Columns } from '../components/{{ slug }}-columns';
 
 type {{ plural }}IndexProps = {
     {{ variablePlural }}: Paginated<{{ aggregate }}Row>;
+    can: { create: boolean };
 };
 
-export default function {{ plural }}Index({ {{ variablePlural }} }: {{ plural }}IndexProps) {
+export default function {{ plural }}Index({ {{ variablePlural }}, can }: {{ plural }}IndexProps) {
     const { t } = useLaravelReactI18n();
+    const format = useFormatters();
     const tableState = useTableState('{{ slug }}');
-    const [pendingDelete, setPendingDelete] = useState<{{ aggregate }}Row | null>(
-        null,
+    const deleteDialog = useDeleteDialog<{{ aggregate }}Row>((row) =>
+        destroy.url(row.id),
     );
-    const [deleting, setDeleting] = useState(false);
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: t('{{ label }}'), href: index() },
     ];
+    useBreadcrumbs(breadcrumbs);
 
-    const columns = build{{ aggregate }}Columns(t, setPendingDelete);
+    const columns = build{{ aggregate }}Columns(t, format, deleteDialog.request);
 
-    const confirmDelete = () => {
-        if (pendingDelete === null) {
-            return;
-        }
-
-        router.delete(destroy.url(pendingDelete.id), {
-            preserveScroll: true,
-            onStart: () => setDeleting(true),
-            onFinish: () => {
-                setDeleting(false);
-                setPendingDelete(null);
-            },
-        });
-    };
 
     return (
-        <AdminLayout breadcrumbs={breadcrumbs}>
+        <>
             <Head title={t('{{ label }}')} />
             <DataTableToolbar
                 tableState={tableState}
                 searchPlaceholder={t('Search {{ slug }}...')}
                 actions={
-                    <Button size="sm" asChild>
-                        <Link href={create()}>
-                            <Plus className="size-4" />
-                            {t('Create {{ variable }}')}
-                        </Link>
-                    </Button>
+                    can.create && (
+                        <Button size="sm" asChild>
+                            <Link href={create()}>
+                                <Plus className="size-4" />
+                                {t('Create {{ variable }}')}
+                            </Link>
+                        </Button>
+                    )
                 }
             />
             <DataTable
@@ -68,21 +59,14 @@ export default function {{ plural }}Index({ {{ variablePlural }} }: {{ plural }}
                 emptyMessage={t('No {{ slug }} found.')}
             />
             <ConfirmDialog
-                open={pendingDelete !== null}
-                onOpenChange={(open) => {
-                    if (!open && !deleting) {
-                        setPendingDelete(null);
-                    }
-                }}
+                {...deleteDialog.dialogProps}
                 title={t('Delete {{ variable }}')}
                 description={t(
                     'This will permanently delete :name and cannot be undone.',
-                    { name: pendingDelete?.name ?? t('this {{ variable }}') },
+                    { name: deleteDialog.pending?.name ?? t('this {{ variable }}') },
                 )}
                 confirmLabel={t('Delete')}
-                processing={deleting}
-                onConfirm={confirmDelete}
             />
-        </AdminLayout>
+        </>
     );
 }

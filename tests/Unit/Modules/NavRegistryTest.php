@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Enums\Area;
 use App\Models\User;
 use App\Modules\Data\NavItemData;
 use App\Modules\NavRegistry;
@@ -102,4 +103,16 @@ it('filters items of modules disabled for the user', function (): void {
 
     expect($items)->toHaveCount(1)
         ->and($items[0]->label)->toBe('Charlie');
+});
+
+it('returns only the items of the requested area', function (): void {
+    $registry = new NavRegistry();
+
+    $registry->add(module: 'alpha', label: 'Admin item', routeName: 'admin.alpha.index');
+    $registry->add(module: 'alpha', label: 'Member item', routeName: 'admin.bravo.index', area: Area::Member);
+
+    $user = User::factory()->create();
+
+    expect(array_column(array_map(fn (NavItemData $item): array => $item->toArray(), $registry->itemsFor($user)), 'label'))->toBe(['Admin item'])
+        ->and(array_column(array_map(fn (NavItemData $item): array => $item->toArray(), $registry->itemsFor($user, Area::Member)), 'label'))->toBe(['Member item']);
 });

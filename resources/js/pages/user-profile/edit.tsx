@@ -1,13 +1,18 @@
-import { Form, Head, Link, usePage } from '@inertiajs/react';
+import { Form, Head, Link, router, usePage } from '@inertiajs/react';
 import { useLaravelReactI18n } from 'laravel-react-i18n';
+import { useState } from 'react';
+import UserAvatarController from '@/actions/App/Http/Controllers/UserAvatarController';
 import UserProfileController from '@/actions/App/Http/Controllers/UserProfileController';
 import DeleteUser from '@/components/delete-user';
 import Heading from '@/components/heading';
+import { ImageInput } from '@/components/image-input';
 import InputError from '@/components/input-error';
+import PasswordInput from '@/components/password-input';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import AppLayout from '@/layouts/app-layout';
+import { useBreadcrumbs } from '@/hooks/use-breadcrumbs';
+import { useInitials } from '@/hooks/use-initials';
 import SettingsLayout from '@/layouts/settings/layout';
 import { edit } from '@/routes/user-profile';
 import { send } from '@/routes/verification';
@@ -21,7 +26,10 @@ export default function Edit({
     status?: string;
 }) {
     const { t } = useLaravelReactI18n();
-    const { auth } = usePage().props;
+    const { auth, errors } = usePage().props;
+    const [emailChanged, setEmailChanged] = useState(false);
+    const [uploading, setUploading] = useState(false);
+    const getInitials = useInitials();
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
@@ -29,9 +37,10 @@ export default function Edit({
             href: edit(),
         },
     ];
+    useBreadcrumbs(breadcrumbs);
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <>
             <Head title={t('Profile settings')} />
 
             <h1 className="sr-only">{t('Profile settings')}</h1>
@@ -43,6 +52,39 @@ export default function Edit({
                         title={t('Profile information')}
                         description={t('Update your name and email address')}
                     />
+
+                    <div className="grid gap-2">
+                        <Label>{t('Photo')}</Label>
+                        <ImageInput
+                            label={t('Profile photo')}
+                            imageUrl={auth.user.avatar}
+                            fallback={
+                                <span className="text-lg font-medium">
+                                    {getInitials(auth.user.name)}
+                                </span>
+                            }
+                            error={errors.avatar}
+                            processing={uploading}
+                            onSelect={(file) =>
+                                router.post(
+                                    UserAvatarController.update.url(),
+                                    { avatar: file },
+                                    {
+                                        forceFormData: true,
+                                        preserveScroll: true,
+                                        onStart: () => setUploading(true),
+                                        onFinish: () => setUploading(false),
+                                    },
+                                )
+                            }
+                            onRemove={() =>
+                                router.delete(
+                                    UserAvatarController.destroy.url(),
+                                    { preserveScroll: true },
+                                )
+                            }
+                        />
+                    </div>
 
                     <Form
                         {...UserProfileController.update.form()}
@@ -86,6 +128,12 @@ export default function Edit({
                                         required
                                         autoComplete="username"
                                         placeholder={t('Email address')}
+                                        onChange={(event) =>
+                                            setEmailChanged(
+                                                event.target.value !==
+                                                    auth.user.email,
+                                            )
+                                        }
                                     />
 
                                     <InputError
@@ -93,6 +141,34 @@ export default function Edit({
                                         message={errors.email}
                                     />
                                 </div>
+
+                                {emailChanged && (
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="current_password">
+                                            {t('Current password')}
+                                        </Label>
+
+                                        <PasswordInput
+                                            id="current_password"
+                                            name="current_password"
+                                            className="mt-1 block w-full"
+                                            required
+                                            autoComplete="current-password"
+                                            placeholder={t('Current password')}
+                                        />
+
+                                        <p className="text-sm text-muted-foreground">
+                                            {t(
+                                                'Confirm your password to change your email address.',
+                                            )}
+                                        </p>
+
+                                        <InputError
+                                            className="mt-2"
+                                            message={errors.current_password}
+                                        />
+                                    </div>
+                                )}
 
                                 {mustVerifyEmail &&
                                     auth.user.email_verified_at === null && (
@@ -138,6 +214,6 @@ export default function Edit({
 
                 <DeleteUser />
             </SettingsLayout>
-        </AppLayout>
+        </>
     );
 }

@@ -41,7 +41,7 @@ export function DataTableFacetedFilter({
     title,
     options,
 }: DataTableFacetedFilterProps) {
-    const { t } = useLaravelReactI18n();
+    const { t, tChoice } = useLaravelReactI18n();
     const selected = new Set(tableState.filters[field] ?? []);
 
     const toggleValue = (value: string) => {
@@ -84,9 +84,10 @@ export function DataTableFacetedFilter({
                                         variant="secondary"
                                         className="rounded-sm px-1 font-normal"
                                     >
-                                        {t(':count selected', {
-                                            count: selected.size,
-                                        })}
+                                        {tChoice(
+                                            ':count selected|:count selected',
+                                            selected.size,
+                                        )}
                                     </Badge>
                                 ) : (
                                     options

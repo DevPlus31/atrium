@@ -10,20 +10,23 @@
     "license": "MIT",
     "require": {
         "php": "^8.5.0",
-        "inertiajs/inertia-laravel": "v3.1.1",
+        "inertiajs/inertia-laravel": "^3.5.1",
         "lab404/laravel-impersonate": ">=1.7.8",
         "laravel/fortify": "^1.37.2",
         "laravel/framework": "^13.18.0",
         "laravel/horizon": "^5.47.2",
         "laravel/pennant": "^1.24.0",
         "laravel/pulse": "^1.7.4",
+        "laravel/sanctum": "^4.3",
         "laravel/wayfinder": "^0.1.20",
         "nunomaduro/essentials": "^1.2.0",
         "opcodesio/log-viewer": "^3.24.2",
         "spatie/laravel-activitylog": "^5.0.0",
         "spatie/laravel-data": "^4.23.0",
+        "spatie/laravel-medialibrary": "^11.23",
         "spatie/laravel-permission": "^8.3.0",
         "spatie/laravel-query-builder": "^7.3.0",
+        "spatie/laravel-settings": "^3.9",
         "spatie/laravel-typescript-transformer": "^3.3.0",
         "spatie/simple-excel": "^3.10.0"
     },
@@ -64,12 +67,13 @@
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",
             "@php artisan key:generate",
             "@php artisan migrate --force",
+            "@php artisan storage:link --force",
             "bun install",
             "bun run build"
         ],
         "dev": [
             "Composer\\Config::disableProcessTimeout",
-            "bunx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"php artisan pail --timeout=0\" \"bun run dev\" --names=server,queue,logs,vite --kill-others"
+            "bunx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1 --timeout=0\" \"php artisan pail --timeout=0\" \"bun run dev\" --names=server,queue,logs,vite --kill-others"
         ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",

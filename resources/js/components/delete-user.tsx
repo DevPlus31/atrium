@@ -1,7 +1,7 @@
 import { Form } from '@inertiajs/react';
 import { useLaravelReactI18n } from 'laravel-react-i18n';
 import { useRef } from 'react';
-import UserController from '@/actions/App/Http/Controllers/UserController';
+import AccountController from '@/actions/App/Http/Controllers/AccountController';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
@@ -58,7 +58,7 @@ export default function DeleteUser() {
                         </DialogDescription>
 
                         <Form
-                            {...UserController.destroy.form()}
+                            {...AccountController.destroy.form()}
                             options={{
                                 preserveScroll: true,
                             }}

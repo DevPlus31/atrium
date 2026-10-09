@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Models\User;
+use App\Modules\Middleware\EnsureModuleIsEnabled;
 use Illuminate\Support\Str;
 
 return [
@@ -85,7 +87,7 @@ return [
     |
     */
 
-    'middleware' => ['web', 'auth', 'verified', 'role:admin'],
+    'middleware' => ['web', 'auth', 'verified', 'can:'.User::PANEL_ABILITY, EnsureModuleIsEnabled::class.':system'],
 
     /*
     |--------------------------------------------------------------------------

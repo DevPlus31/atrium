@@ -1,3 +1,10 @@
+/*
+ * @branding Colours and fonts. Tweak the default preset's tokens below (or
+ * add a preset in ./themes, registered in App\Enums\ThemePreset) and the
+ * fonts in --font-body / --font-display (loaded in
+ * resources/views/app.blade.php). Never hard-code colours in components:
+ * `bun run lint:theme` enforces tokens. See THEMING.md.
+ */
 @import 'tailwindcss';
 
 @import 'tw-animate-css';
@@ -20,7 +27,7 @@
         'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
-    --font-display: var(--font-body);
+    --font-display: 'Instrument Serif', ui-serif, Georgia, serif;
     --font-mono:
         ui-monospace, 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas',
         'Liberation Mono', 'Courier New', monospace;

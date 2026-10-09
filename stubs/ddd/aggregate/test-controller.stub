@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Models\User;
 use App\Modules\NavRegistry;
+use Inertia\Testing\AssertableInertia;
 use Modules\{{ module }}\Infrastructure\Models\{{ aggregate }};
 use Spatie\Permission\Models\Role;
 
@@ -12,14 +13,6 @@ beforeEach(function (): void {
 
     $this->artisan('admin:sync-permissions')->assertSuccessful();
 });
-
-function {{ variable }}ModuleAdmin(): User
-{
-    $user = User::factory()->create();
-    $user->assignRole('admin');
-
-    return $user;
-}
 
 it('redirects guests to the login page', function (string $method, string $uri): void {
     $this->{$method}($uri)->assertRedirectToRoute('login');
@@ -39,13 +32,13 @@ it('forbids authenticated users without the admin role', function (): void {
 it('forbids admins without the {{ slug }}.view permission', function (): void {
     Role::findByName('admin')->revokePermissionTo('{{ slug }}.view');
 
-    $this->actingAs({{ variable }}ModuleAdmin())->get(route('admin.{{ slug }}.index'))->assertForbidden();
+    $this->actingAs(adminUser())->get(route('admin.{{ slug }}.index'))->assertForbidden();
 });
 
 it('registers the nav item for permitted admins and hides it otherwise', function (): void {
     $registry = $this->app->make(NavRegistry::class);
 
-    $adminItems = $registry->itemsFor({{ variable }}ModuleAdmin());
+    $adminItems = $registry->itemsFor(adminUser());
     $guestItems = $registry->itemsFor(User::factory()->create());
 
     expect(collect($adminItems)->firstWhere('label', '{{ label }}'))->not->toBeNull()
@@ -55,40 +48,41 @@ it('registers the nav item for permitted admins and hides it otherwise', functio
 it('renders the index with per-row abilities', function (): void {
     {{ aggregate }}::factory()->create(['name' => 'Example']);
 
-    $response = $this->actingAs({{ variable }}ModuleAdmin())->get(route('admin.{{ slug }}.index'));
+    $response = $this->actingAs(adminUser())->get(route('admin.{{ slug }}.index'));
 
-    $response->assertOk()->assertInertia(fn ($page) => $page
-        ->component('{{ moduleLower }}::index', false)
+    $response->assertOk()->assertInertia(fn (AssertableInertia $page) => $page
+        ->component('{{ moduleLower }}::index')
         ->has('{{ variablePlural }}.data', 1)
         ->where('{{ variablePlural }}.meta.per_page', 15)
         ->where('{{ variablePlural }}.data.0.name', 'Example')
         ->where('{{ variablePlural }}.data.0.can.update', true)
-        ->where('{{ variablePlural }}.data.0.can.delete', true));
+        ->where('{{ variablePlural }}.data.0.can.delete', true)
+        ->where('can.create', true));
 });
 
 it('applies the search filter and caps per_page', function (): void {
-    $admin = {{ variable }}ModuleAdmin();
+    $admin = adminUser();
     {{ aggregate }}::factory()->create(['name' => 'Alpha']);
     {{ aggregate }}::factory()->create(['name' => 'Beta']);
 
     $filtered = $this->actingAs($admin)->get(route('admin.{{ slug }}.index', ['filter' => ['search' => 'Alpha']]));
     $capped = $this->actingAs($admin)->get(route('admin.{{ slug }}.index', ['per_page' => 500]));
 
-    $filtered->assertOk()->assertInertia(fn ($page) => $page
+    $filtered->assertOk()->assertInertia(fn (AssertableInertia $page) => $page
         ->has('{{ variablePlural }}.data', 1)
         ->where('{{ variablePlural }}.data.0.name', 'Alpha'));
 
-    $capped->assertOk()->assertInertia(fn ($page) => $page->where('{{ variablePlural }}.meta.per_page', 100));
+    $capped->assertOk()->assertInertia(fn (AssertableInertia $page) => $page->where('{{ variablePlural }}.meta.per_page', 100));
 });
 
 it('renders the create page', function (): void {
-    $this->actingAs({{ variable }}ModuleAdmin())->get(route('admin.{{ slug }}.create'))
+    $this->actingAs(adminUser())->get(route('admin.{{ slug }}.create'))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page->component('{{ moduleLower }}::create', false));
+        ->assertInertia(fn (AssertableInertia $page) => $page->component('{{ moduleLower }}::create'));
 });
 
 it('stores a {{ variable }} and redirects with a success flash', function (): void {
-    $response = $this->actingAs({{ variable }}ModuleAdmin())
+    $response = $this->actingAs(adminUser())
         ->fromRoute('admin.{{ slug }}.create')
         ->post(route('admin.{{ slug }}.store'), [
             'name' => 'Example',
@@ -96,13 +90,13 @@ it('stores a {{ variable }} and redirects with a success flash', function (): vo
         ]);
 
     $response->assertRedirectToRoute('admin.{{ slug }}.index')
-        ->assertSessionHas('success', '{{ aggregate }} created.');
+        ->assertInertiaFlash('toast', ['type' => 'success', 'message' => '{{ aggregate }} created.']);
 
     expect({{ aggregate }}::query()->where('name', 'Example')->exists())->toBeTrue();
 });
 
 it('validates the store request', function (): void {
-    $this->actingAs({{ variable }}ModuleAdmin())
+    $this->actingAs(adminUser())
         ->fromRoute('admin.{{ slug }}.create')
         ->post(route('admin.{{ slug }}.store'), [])
         ->assertRedirectToRoute('admin.{{ slug }}.create')
@@ -110,7 +104,7 @@ it('validates the store request', function (): void {
 });
 
 it('validates a single field precognitively without side effects', function (): void {
-    $response = $this->actingAs({{ variable }}ModuleAdmin())
+    $response = $this->actingAs(adminUser())
         ->withHeaders(['Precognition' => 'true', 'Precognition-Validate-Only' => 'name'])
         ->postJson(route('admin.{{ slug }}.store'), ['name' => '']);
 
@@ -122,10 +116,10 @@ it('validates a single field precognitively without side effects', function (): 
 it('renders the edit page', function (): void {
     ${{ variable }} = {{ aggregate }}::factory()->create(['name' => 'Example']);
 
-    $this->actingAs({{ variable }}ModuleAdmin())->get(route('admin.{{ slug }}.edit', ${{ variable }}))
+    $this->actingAs(adminUser())->get(route('admin.{{ slug }}.edit', ${{ variable }}))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page
-            ->component('{{ moduleLower }}::edit', false)
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('{{ moduleLower }}::edit')
             ->where('{{ variable }}.id', ${{ variable }}->id)
             ->where('{{ variable }}.name', 'Example'));
 });
@@ -133,7 +127,7 @@ it('renders the edit page', function (): void {
 it('updates a {{ variable }} and redirects with a success flash', function (): void {
     ${{ variable }} = {{ aggregate }}::factory()->create(['name' => 'Old']);
 
-    $response = $this->actingAs({{ variable }}ModuleAdmin())
+    $response = $this->actingAs(adminUser())
         ->fromRoute('admin.{{ slug }}.edit', ${{ variable }})
         ->put(route('admin.{{ slug }}.update', ${{ variable }}), [
             'name' => 'New',
@@ -141,7 +135,7 @@ it('updates a {{ variable }} and redirects with a success flash', function (): v
         ]);
 
     $response->assertRedirectToRoute('admin.{{ slug }}.index')
-        ->assertSessionHas('success', '{{ aggregate }} updated.');
+        ->assertInertiaFlash('toast', ['type' => 'success', 'message' => '{{ aggregate }} updated.']);
 
     expect(${{ variable }}->refresh()->name)->toBe('New');
 });
@@ -149,10 +143,10 @@ it('updates a {{ variable }} and redirects with a success flash', function (): v
 it('deletes a {{ variable }} and redirects with a success flash', function (): void {
     ${{ variable }} = {{ aggregate }}::factory()->create();
 
-    $response = $this->actingAs({{ variable }}ModuleAdmin())->delete(route('admin.{{ slug }}.destroy', ${{ variable }}));
+    $response = $this->actingAs(adminUser())->delete(route('admin.{{ slug }}.destroy', ${{ variable }}));
 
     $response->assertRedirectToRoute('admin.{{ slug }}.index')
-        ->assertSessionHas('success', '{{ aggregate }} deleted.');
+        ->assertInertiaFlash('toast', ['type' => 'success', 'message' => '{{ aggregate }} deleted.']);
 
     expect({{ aggregate }}::query()->whereKey(${{ variable }}->id)->exists())->toBeFalse();
 });
@@ -161,7 +155,7 @@ it('forbids admins without the matching permission', function (string $permissio
     Role::findByName('admin')->revokePermissionTo($permission);
     ${{ variable }} = {{ aggregate }}::factory()->create();
 
-    $this->actingAs({{ variable }}ModuleAdmin())->{$method}(route($routeName, ${{ variable }}))->assertForbidden();
+    $this->actingAs(adminUser())->{$method}(route($routeName, ${{ variable }}))->assertForbidden();
 })->with([
     'create' => ['{{ slug }}.create', 'get', 'admin.{{ slug }}.create'],
     'update' => ['{{ slug }}.update', 'get', 'admin.{{ slug }}.edit'],

@@ -1,19 +1,10 @@
-export type User = {
-    id: number;
-    name: string;
-    email: string;
-    avatar?: string;
-    email_verified_at: string | null;
-    two_factor_enabled?: boolean;
-    created_at: string;
-    updated_at: string;
-    [key: string]: unknown;
-};
+export type User = App.Modules.Data.AuthUserData;
 
 export type Auth = {
     user: User;
 };
 
+// Fortify's own JSON responses (not our DTOs), so they cannot be generated.
 export type TwoFactorSetupData = {
     svg: string;
     url: string;

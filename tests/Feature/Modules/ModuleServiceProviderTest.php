@@ -34,7 +34,7 @@ it('registers module routes inside the admin group', function (): void {
             'web',
             'auth',
             'verified',
-            'role:admin',
+            'can:access-panel',
             EnsureModuleIsEnabled::class.':bare-module',
         );
 });
@@ -71,9 +71,41 @@ it('invokes the module registry hooks on boot', function (): void {
     expect($navItem)->not->toBeNull()
         ->and($navItem?->href)->toBe(route('admin.test-module.index'));
 
-    $widgets = $this->app->make(WidgetRegistry::class)->widgetsFor($user);
-    $widget = collect($widgets)->firstWhere('key', 'test-module.stats');
+    $widget = $this->app->make(WidgetRegistry::class)->resolveFor($user, 'test-module.stats');
 
     expect($widget)->not->toBeNull()
-        ->and($widget['data']->toArray())->toBe(['count' => 3]);
+        ->and($widget?->toArray())->toBe(['count' => 3]);
+});
+
+it('teaches Inertia where each module keeps its pages', function (): void {
+    $finder = $this->app->make('inertia.view-finder');
+
+    expect($finder->find('dashboard::home'))->toBe(base_path('app-modules/Dashboard/resources/js/pages/home.tsx'))
+        ->and(fn () => $finder->find('dashboard::missing'))->toThrow(InvalidArgumentException::class);
+});
+
+it('addresses module pages by the lowercased module folder, like the frontend resolver', function (): void {
+    $this->app->register(TestModuleServiceProvider::class);
+
+    $hints = $this->app->make('inertia.view-finder')->getHints();
+
+    expect($hints['testmodule'] ?? [])->toBe([base_path('tests/Fixtures/Modules/TestModule/resources/js/pages')])
+        ->and($hints)->not->toHaveKey('test-module');
+});
+
+it("lets a module add a page to every user's account settings", function (): void {
+    $this->app->register(TestModuleServiceProvider::class);
+    $this->withoutVite();
+
+    $this->actingAs(User::factory()->create())
+        ->get(route('user-profile.edit'))
+        ->assertInertia(fn ($page) => $page
+            ->where('settingsNav.0.label', 'Test Module settings')
+            ->where('settingsNav.0.href', route('admin.test-module.index')));
+});
+
+it('loads the translations a module ships in its own lang folder', function (): void {
+    $this->app->register(TestModuleServiceProvider::class);
+
+    expect(__('Test Module', locale: 'xx'))->toBe('Module de test');
 });

@@ -4,7 +4,8 @@ import { LaravelReactI18nProvider } from 'laravel-react-i18n';
 import ReactDOMServer from 'react-dom/server';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { resolvePage } from '@/lib/resolve-page';
+import { resolveLayout, resolvePage } from '@/lib/resolve-page';
+import { translationFiles } from '@/lib/translations';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -14,6 +15,7 @@ createServer((page) =>
         render: ReactDOMServer.renderToString,
         title: (title) => (title ? `${title} - ${appName}` : appName),
         resolve: resolvePage,
+        layout: resolveLayout,
         setup: ({ App, props }) => {
             const { locale } = props.initialPage.props;
 
@@ -22,7 +24,7 @@ createServer((page) =>
                     ssr
                     locale={typeof locale === 'string' ? locale : 'en'}
                     fallbackLocale="en"
-                    files={import.meta.glob('/lang/*.json', { eager: true })}
+                    files={translationFiles}
                 >
                     <TooltipProvider delayDuration={0}>
                         <App {...props} />

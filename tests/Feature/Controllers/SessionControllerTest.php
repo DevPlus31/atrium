@@ -15,6 +15,7 @@ it('renders login page', function (): void {
         ->assertInertia(fn ($page) => $page
             ->component('session/create')
             ->has('canResetPassword')
+            ->where('canRegister', true)
             ->has('status'));
 });
 

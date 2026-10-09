@@ -7,7 +7,7 @@ import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import AppLayout from '@/layouts/app-layout';
+import { useBreadcrumbs } from '@/hooks/use-breadcrumbs';
 import SettingsLayout from '@/layouts/settings/layout';
 import { edit } from '@/routes/password';
 import type { BreadcrumbItem } from '@/types';
@@ -23,9 +23,10 @@ export default function Password() {
             href: edit().url,
         },
     ];
+    useBreadcrumbs(breadcrumbs);
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <>
             <Head title={t('Password settings')} />
 
             <SettingsLayout>
@@ -129,6 +130,6 @@ export default function Password() {
                     </Form>
                 </div>
             </SettingsLayout>
-        </AppLayout>
+        </>
     );
 }

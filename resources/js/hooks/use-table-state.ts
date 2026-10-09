@@ -124,6 +124,7 @@ export function useTableState(propKey: string): UseTableStateReturn {
     const page = usePage();
     const state = useMemo(() => parseTableState(page.url), [page.url]);
     const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const pendingSearch = useRef<string | null>(null);
 
     useEffect(() => {
         return () => {
@@ -132,6 +133,23 @@ export function useTableState(propKey: string): UseTableStateReturn {
             }
         };
     }, []);
+
+    /**
+     * Cancel the debounced search and return the current state with the
+     * typed-but-unsent search applied, so no later change drops it and no
+     * stale timer overwrites a newer change.
+     */
+    const takeState = (): TableStateSnapshot => {
+        if (searchTimer.current !== null) {
+            clearTimeout(searchTimer.current);
+            searchTimer.current = null;
+        }
+
+        const search = pendingSearch.current;
+        pendingSearch.current = null;
+
+        return search === null ? state : { ...state, search, page: 1 };
+    };
 
     const visit = (next: TableStateSnapshot) => {
         router.get(window.location.pathname, buildQuery(next), {
@@ -143,25 +161,28 @@ export function useTableState(propKey: string): UseTableStateReturn {
     };
 
     const setSearch = (value: string) => {
-        if (searchTimer.current !== null) {
-            clearTimeout(searchTimer.current);
-        }
+        const current = takeState();
 
+        pendingSearch.current = value;
         searchTimer.current = setTimeout(() => {
-            visit({ ...state, search: value, page: 1 });
+            searchTimer.current = null;
+            pendingSearch.current = null;
+            visit({ ...current, search: value, page: 1 });
         }, SEARCH_DEBOUNCE_MS);
     };
 
     const setFilter = (field: string, values: string[]) => {
+        const current = takeState();
+
         visit({
-            ...state,
-            filters: { ...state.filters, [field]: values },
+            ...current,
+            filters: { ...current.filters, [field]: values },
             page: 1,
         });
     };
 
     const setSort = (sort: TableSort | null) => {
-        visit({ ...state, sort, page: 1 });
+        visit({ ...takeState(), sort, page: 1 });
     };
 
     const toggleSort = (field: string) => {
@@ -178,14 +199,24 @@ export function useTableState(propKey: string): UseTableStateReturn {
     };
 
     const setPage = (nextPage: number) => {
-        visit({ ...state, page: Math.max(1, nextPage) });
+        const current = takeState();
+
+        visit({
+            ...current,
+            page: current === state ? Math.max(1, nextPage) : 1,
+        });
     };
 
     const setPerPage = (perPage: number) => {
-        visit({ ...state, perPage: Math.min(perPage, MAX_PER_PAGE), page: 1 });
+        visit({
+            ...takeState(),
+            perPage: Math.min(perPage, MAX_PER_PAGE),
+            page: 1,
+        });
     };
 
     const reset = () => {
+        takeState();
         visit({ ...state, search: '', filters: {}, page: 1 });
     };
 
