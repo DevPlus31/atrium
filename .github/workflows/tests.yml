@@ -83,7 +83,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:17
+        image: postgres:18
         env:
           POSTGRES_DB: atrium_test
           POSTGRES_USER: atrium
@@ -147,3 +147,43 @@ jobs:
 
       - name: Generated Tests
         run: php artisan test --compact app-modules/Scaffold
+
+  # The production stack as deployed: builds the image, starts every service
+  # in docker-compose.prod.yml (migrations, permission sync and the caches run
+  # in the entrypoint) and waits until /up sees PHP, PostgreSQL and Redis.
+  production-image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Production Environment
+        run: |
+          cp .env.production.example .env.production
+          sed -i \
+            -e "s|^APP_KEY=.*|APP_KEY=base64:$(openssl rand -base64 32)|" \
+            -e "s|^PASSKEYS_USER_HANDLE_SECRET=.*|PASSKEYS_USER_HANDLE_SECRET=$(openssl rand -base64 32)|" \
+            -e "s|^DB_PASSWORD=.*|DB_PASSWORD=ci-secret|" \
+            -e "s|^POSTGRES_PASSWORD=.*|POSTGRES_PASSWORD=ci-secret|" \
+            .env.production
+
+      - name: Build the Image
+        run: docker compose --env-file .env.production -f docker-compose.prod.yml build
+
+      # --wait only on the services with a healthcheck (pulse and scheduler
+      # have none, which --wait reports as an error); then all six must run.
+      - name: Start the Stack
+        run: |
+          docker compose --env-file .env.production -f docker-compose.prod.yml up -d
+          docker compose --env-file .env.production -f docker-compose.prod.yml up -d --wait --wait-timeout 300 app horizon
+          test "$(docker compose --env-file .env.production -f docker-compose.prod.yml ps --status running --services | sort | tr '\n' ' ')" = "app horizon postgres pulse redis scheduler "
+
+      - name: Health Check
+        run: |
+          curl -fsS -H 'Accept: application/json' http://127.0.0.1:8080/up
+
+      - name: Stack Logs
+        if: failure()
+        run: docker compose --env-file .env.production -f docker-compose.prod.yml logs --no-color

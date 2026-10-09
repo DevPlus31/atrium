@@ -32,3 +32,8 @@ updates:
     directory: "/"
     schedule:
       interval: weekly
+    # A PostgreSQL major version cannot open the previous one's data folder:
+    # upgrade it on purpose, with a dump and restore (README "Deploying").
+    ignore:
+      - dependency-name: postgres
+        update-types: ["version-update:semver-major"]

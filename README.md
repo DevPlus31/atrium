@@ -14,7 +14,7 @@ composer run dev                 # server, queue worker, logs (pail), Vite
 
 - **Runtimes:** PHP 8.5 runs natively or as `docker compose run --rm app <cmd>`. JS runs with **Bun**; never use `npm`.
 - **First super-admin:** no command creates one. Run `php artisan db:seed --class=RoleSeeder` (creates the `super-admin` role), then `php artisan tinker --execute '\App\Models\User::where("email", "you@example.com")->first()->assignRole("super-admin");'`.
-- **Production:** set `TRUSTED_PROXIES` behind a load balancer and set `PASSKEYS_USER_HANDLE_SECRET` once (never change it). `.env.example` and `.env.production.example` list and explain every setting.
+- **Production:** follow the checklist in "Deploying" below. `.env.example` and `.env.production.example` list and explain every setting.
 
 ## For AI agents: how to work on this project
 
@@ -440,7 +440,7 @@ php artisan test --compact app-modules/Catalog/tests/Feature/ProductControllerTe
 - **Permissions in tests:** feature tests start with `beforeEach(fn () => $this->artisan('admin:sync-permissions')->assertSuccessful());`. Without the sync, admins have no permissions.
 - **Coverage:** every controller gets an `assertAdminOnly()` test, a forbidden test (`adminWithout()`), validation and happy-path tests (`assertToast()`). Every action, policy and query gets a unit test.
 - **Browser tests:** they fail while `public/hot` exists, so stop `composer run dev` and run `bun run build` first. They need `bunx playwright install` once.
-- **CI** (`.github/workflows/tests.yml`, each job set up by `.github/actions/setup`): `bun run build` + `composer test`; the Feature and Unit suites on PostgreSQL 17; and a `generators` job that scaffolds a module and an aggregate, then runs lint, types and the generated tests.
+- **CI** (`.github/workflows/tests.yml`, each job set up by `.github/actions/setup`): `bun run build` + `composer test`; the Feature and Unit suites on PostgreSQL 18; a `generators` job that scaffolds a module and an aggregate, then runs lint, types and the generated tests; and a `production-image` job that builds and boots the production stack and checks `/up`.
 - **Portable queries:** CI runs on SQLite and PostgreSQL, so use `whereLike`, no raw SQL dialects.
 - **Never** run `migrate:fresh`, `db:wipe` or `--env=testing` commands: there is no `.env.testing`, and they would wipe the dev database. Only additive `php artisan migrate`.
 
@@ -466,10 +466,47 @@ php artisan test --compact app-modules/Catalog/tests/Feature/ProductControllerTe
 
 **Multi-tenancy is deliberately left to each project.** Atrium is single-tenant. Decide on tenancy before the first module.
 
-**Deployment:**
-- `docker-compose.prod.yml` runs `app`, `horizon`, `pulse`, `scheduler`, `postgres` and `redis`.
-- On start, the entrypoint runs `migrate --force`, `admin:sync-permissions` and the caches (`config`, `route`, `view`, `event`). It is controlled by `WAIT_FOR_DB`, `RUN_MIGRATIONS` and `RUN_OPTIMIZE`.
-- New listeners need the event cache rebuilt, which a redeploy does.
+## Deploying
+
+`docker-compose.prod.yml` runs `app`, `horizon`, `pulse`, `scheduler`, `postgres` (18) and `redis` on one host. CI's `production-image` job builds and boots this exact stack on every push.
+
+1. **Environment:** `cp .env.production.example .env.production`, then fill in every value its comments mark as required:
+   - `APP_KEY`, `APP_URL`, and `DB_PASSWORD` (the same value as `POSTGRES_PASSWORD`).
+   - `PASSKEYS_USER_HANDLE_SECRET`: set it once, before anyone registers a passkey, and never change it.
+   - The container refuses to start without `APP_KEY` or `PASSKEYS_USER_HANDLE_SECRET`.
+2. **Mail:** set a real `MAIL_MAILER` (`smtp`, `ses`, `postmark`, `resend`).
+   - With `log`, verification, password-reset and invitation emails are never sent, so new users cannot get in.
+   - The entrypoint warns about this on every start.
+3. **HTTPS:** run a reverse proxy on the host (Caddy, nginx, Traefik) that terminates TLS and forwards to `127.0.0.1:8080`.
+   - The app port is bound to localhost (`APP_BIND`), and `TRUSTED_PROXIES` trusts only loopback and private ranges.
+   - A load balancer on another machine needs `APP_BIND=0.0.0.0`, its IPs in `TRUSTED_PROXIES`, and a firewall.
+   - Never set `TRUSTED_PROXIES=*` on a reachable port: clients could fake their IP and get around the rate limits.
+   - Session cookies are secure-only, so sign-in works only over HTTPS.
+4. **Start:** `docker compose --env-file .env.production -f docker-compose.prod.yml up -d --build`.
+5. **First admin:** `docker compose --env-file .env.production -f docker-compose.prod.yml exec app php artisan admin:create-user`.
+6. **Before going live:**
+   - Decide on public sign-up (admin **Settings → General**, open by default).
+   - Remove the example modules (see "Using Atrium as a template").
+   - Decide on tenancy.
+7. **Backups:** nothing is backed up for you.
+   - Schedule a database dump, e.g. `docker compose … exec -T postgres pg_dump -U atrium atrium | gzip > atrium-$(date +%F).sql.gz`, and copy it off the host.
+   - Back up the `storage-app` volume (uploads), or use `MEDIA_DISK=s3`.
+
+**What the entrypoint does on every start:**
+1. Checks the required secrets.
+2. Waits for the database.
+3. Runs `migrate --force --isolated` (with several app replicas, one migrates) and `admin:sync-permissions`.
+4. Rebuilds the caches (`config`, `route`, `view`, `event`).
+
+`WAIT_FOR_DB`, `RUN_MIGRATIONS` and `RUN_OPTIMIZE` switch the steps off. New listeners need the event cache rebuilt, which a redeploy does.
+
+**Health:** `GET /up` answers 200 only when PHP, the database and the cache respond (a `DiagnosingHealth` listener in `AppServiceProvider`). The image's `HEALTHCHECK` calls it, and the worker containers wait for it.
+
+**PostgreSQL upgrades:** a major version cannot open the previous one's data, so Dependabot skips major bumps. To upgrade (including an existing PostgreSQL 17 install moving to 18, whose volume path also changed to `/var/lib/postgresql`):
+1. `pg_dumpall` on the old version.
+2. Stop the stack and remove the `postgres-data` volume.
+3. Change the image and start the stack.
+4. Restore the dump.
 
 ## License
 

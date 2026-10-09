@@ -20,6 +20,9 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
         commands: __DIR__.'/../routes/console.php',
+        // The container health check: 200 only when PHP boots and the database
+        // and cache answer (see AppServiceProvider).
+        health: '/up',
     )
     // Event discovery (Laravel's own mechanism): listener classes in the shell's
     // or any module's Listeners folder are registered by the event their

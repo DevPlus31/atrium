@@ -3,7 +3,7 @@
 # ==============================================================================
 # Atrium production image (context = repo root)
 #
-#   docker build -f docker/prod/Dockerfile -t atrium-app .
+#   docker build -f docker/prod/Dockerfile -t atrium-prod .
 #
 # Stages:
 #   php    -> PHP CLI with the app's extensions and Composer (base of the next two)
@@ -146,8 +146,9 @@ ENV APP_ENV=production \
 
 EXPOSE 8080
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
-    CMD curl -fsS http://127.0.0.1:8080/healthz || exit 1
+# /up answers 200 only when PHP, the database and the cache all respond.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=90s --retries=3 \
+    CMD curl -fsS -H 'Accept: application/json' http://127.0.0.1:8080/up || exit 1
 
 ENTRYPOINT ["entrypoint.sh"]
 CMD ["frankenphp", "run", "--config", "/etc/frankenphp/Caddyfile"]
