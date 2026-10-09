@@ -27,7 +27,7 @@ Build a modular, extensible admin panel on top of the `nunomaduro/laravel-starte
 
 Backend: spatie/laravel-permission ^8.1, spatie/laravel-query-builder (index filtering/sorting), spatie/laravel-data + spatie/laravel-typescript-transformer (DTOs → TS), laravel/wayfinder (typed routes in TS), Inertia v3's built-in Precognition (`useForm`/`<Form>` live validation from FormRequests), spatie/laravel-activitylog (audit), spatie/laravel-medialibrary (uploads), spatie/laravel-settings (settings pages), laravel/sanctum (API personal access tokens), laravel/pennant (feature flags; module visibility is flagged), laravel/scout (search, driver configurable), laravel/pulse, laravel/horizon, opcodesio/log-viewer (mounted under admin middleware as "System"), maatwebsite/excel or spatie/simple-excel (exports), lab404/laravel-impersonate (impersonation), spatie/laravel-model-states (workflow states where needed), spatie/eloquent-sortable (manual ordering).
 
-Frontend: @tanstack/react-table, sonner (toasts, fed by `Inertia::flash('toast', ...)`), cmdk (command palette reading the nav registry), recharts (dashboard charts), tiptap (rich text where needed), dnd-kit (drag/drop, pairs with eloquent-sortable), react-dropzone (pairs with medialibrary), react-day-picker + date-fns (dates, shadcn calendar default), @tanstack/react-virtual (very long lists only), laravel-react-i18n (if i18n requested).
+Frontend: @tanstack/react-table, sonner (toasts, fed by `App\Modules\Toast`, the `toast` flash), cmdk (command palette reading the nav registry), recharts (dashboard charts), tiptap (rich text where needed), dnd-kit (drag/drop, pairs with eloquent-sortable), react-dropzone (pairs with medialibrary), react-day-picker + date-fns (dates, shadcn calendar default), @tanstack/react-virtual (very long lists only), laravel-react-i18n (if i18n requested).
 
 Do not add libraries outside this map without stating the reason and asking first.
 
@@ -59,7 +59,7 @@ Explicit non-goals: no runtime plugin install/uninstall, no module dependency re
 
 ## Frontend conventions
 
-- One `AdminLayout` (persistent layout pattern) with sidebar (from nav prop), breadcrumbs, `<Toaster/>` fed by Inertia flash data (`Inertia::flash('toast', ...)`), and cmdk palette.
+- One `AdminLayout` (persistent layout pattern) with sidebar (from nav prop), breadcrumbs, `<Toaster/>` fed by Inertia flash data (`App\Modules\Toast`, the `toast` flash), and cmdk palette.
 - One generic data-table composition: `DataTable`, `DataTableToolbar` (debounced search, faceted filters via Popover+Command, actions slot), `DataTableColumnHeader`, `DataTablePagination`, `DataTableRowActions` — all consuming a Laravel paginator DTO and a URL-state hook issuing Inertia partial reloads (`preserveState`, `preserveScroll`, `only: [prop]`, `replace`). New resources provide only a columns file and facet config.
 - Forms use Inertia v3's `useForm(route, data)` or `<Form>` with their built-in Precognition (no wrapper package) + shadcn form primitives. Destructive actions always go through the shared AlertDialog confirm component.
 - All routes referenced through Wayfinder-generated helpers; no hardcoded URL strings.

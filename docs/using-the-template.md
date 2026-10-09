@@ -41,7 +41,7 @@ tokens) is optional; the core modules (`Users`, `Roles`, `Audit`, `Dashboard`,
 pages, translations and tests all live in its folder:
 
 ```bash
-docker compose run --rm --no-deps app php artisan module:remove Shop
+docker compose run --rm --no-deps app php artisan module:remove Shop --force
 docker compose run --rm --no-deps app php artisan admin:sync-permissions   # prunes its permissions
 docker compose run --rm --no-deps app php artisan typescript:transform
 docker compose run --rm --no-deps app php artisan wayfinder:generate --with-form
@@ -67,8 +67,8 @@ docker compose run --rm --no-deps app php artisan make:aggregate Shop Order
 `make:aggregate` generates, gates-green: the Domain repository contract; the
 Eloquent model, migration, factory, and repository implementation; Create /
 Update / Delete actions; an index Query; a scalar DTO; the controller, form
-requests, and policy; the `routes/admin.php` resource route; React index /
-create / edit pages + columns; a controller feature test and unit tests for the
+requests (sharing a `Validates<X>Input` trait), and policy; the `routes/admin.php` resource route; React index /
+create / edit pages + columns + form fields; a controller feature test and unit tests for the
 three actions, the policy and the index query, together covering 100% of the
 generated backend; and the
 module's `lang/en.json` plus one catalogue per other locale (`fr.json`, in
@@ -102,7 +102,7 @@ The generator cannot infer your invariants — follow the **Catalog** module
 
 | To add… | Follow Catalog's… | Rule |
 |---|---|---|
-| A validated value (money, SKU, email) | `Domain/ValueObjects/` (e.g. Catalog's `Sku`; shared ones such as `Money` live in `app/Domain/ValueObjects`) | `final readonly`, validate in the constructor, throw a module `DomainException`. **Never put a value object in a Data DTO** — DTOs stay scalar (keeps TypeScript generation working). |
+| A validated value (money, SKU, email) | `Domain/ValueObjects/` (e.g. Catalog's `Sku`; shared ones such as `Money` and `Email` live in `app/Domain/ValueObjects`) | `final readonly`, validate in the constructor, throw a module `DomainException`. **Never put a value object in a Data DTO** — DTOs stay scalar (keeps TypeScript generation working). |
 | A "something happened" event | `Domain/Events/ProductPublished` + `Product::publish()` | The model records via `recordThat(...)`; the Action calls `flushDomainEvents()` after commit. |
 | An invariant (can't publish twice) | `Product::publish()` throwing `ProductAlreadyPublished`, called by `PublishProduct` | The rule lives on the model: it throws a module `DomainException`. The action locks the row first (`$repository->lockForUpdate()`) so two requests can't both pass the check. Policies keep the UI from offering the action; if a stale page still triggers it, the shell turns the exception into an error toast (a 409 for API clients) — no try/catch in controllers. |
 | A non-CRUD action (publish, export) | `PublishProductController` (invokable) | Controllers keep only the seven CRUD verbs; everything else is its own invokable controller. |
@@ -124,7 +124,7 @@ shell or in another module is edited:
 | Let a model own files (photos, attachments) | `implements HasMedia` + `use InteractsWithMedia` and declare collections/conversions on the model (see `User`); the `ImageInput` component uploads, `File::image()` validates |
 | Add a page for people without an account (signed link, public form) | Put it under `resources/js/pages/public/` and route it from `routes/web.php`: it renders without the admin shell and wraps itself in `AuthLayout` (see Users' `public/accept-invitation`) |
 | Expose a module over the API | `routes/api.php` in the module (served under `/api/v1`, token-authenticated) with controllers in `Http/Controllers/Api/V1` and Eloquent resources in `Http/Resources/V1`; authorize with `#[Authorize]` as usual — tokens narrow permissions (see Shop's orders API) |
-| Let admins act on many rows at once | `useRowSelection` + `<DataTableBulkActions>` on the index page; a `ValidatesBulkSelection` request, an invokable controller that hands the permitted rows and the single-row delete action to `App\Actions\DeleteEach` and toasts `$request->deletedMessage(...)`, and `<DataTableBulkDelete>` on the page (see Catalog's `DeleteProductsController`) |
+| Let admins act on many rows at once | `useResourceTable({ key, rows, destroyUrl, bulkDestroyUrl })` + `<DataTableBulkDelete>` on the index page; a `ValidatesBulkSelection` request with a getter returning `$this->permitted(Model::query(), 'delete')`, and an invokable controller using `App\Modules\Concerns\DeletesSelection`: `$this->deleteSelection($request, $records, $deleteX->handle(...), fn (int $count) => trans_choice(...))` (see Catalog's `DeleteProductsController`) |
 | Make a module's records findable from the command palette | `search()`: `$search->add(module: $this->name(), label: '…', searcher: <Name>Search::class, permission: '…')` with an invokable `Search/<Name>Search` returning `SearchResultData` (see Shop's `OrdersSearch`) |
 | Tell a user something happened (bell + email) | A `Notifications/<Name>Notification` extending `AppNotification` with `message()`, sent from a listener in `Listeners/` (see Shop's `NotifyCustomerOfOrderStatus`) |
 | Give admins editable settings | A `Settings/<Name>Settings` class (spatie/laravel-settings), a `SettingsMigration` in `Database/Migrations` with the defaults, a page, and a menu item in the `Settings` group (see Shop's default currency) |

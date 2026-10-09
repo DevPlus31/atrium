@@ -22,7 +22,7 @@ A module (`app-modules/<Name>/`) is organised into four layers. Existing folders
 
 | Layer | Location | Contents |
 |---|---|---|
-| **Domain** | `Domain/` | `ValueObjects/`, `Events/`, `Exceptions/`, `Repositories/` (interfaces). Framework-light, no HTTP/Inertia/DTO deps. |
+| **Domain** | `Domain/` | `ValueObjects/`, `Events/`, `Exceptions/`, `Repositories/` (interfaces), `Enums/`. Framework-light, no HTTP/Inertia/DTO deps. |
 | **Infrastructure** | `Infrastructure/` | `Models/` (Eloquent aggregates), `Repositories/` (`Eloquent*` implementations). |
 | **Application** | `Actions/`, `Queries/`, `Data/` | Actions = command use-cases (own `DB::transaction`, `AuditLog::record()`, event flush). Queries = read use-cases (spatie/query-builder). Data = Inertia DTOs. |
 | **Presentation** | `Http/`, `Policies/`, `routes/`, `resources/js/` | Controllers (7 CRUD verbs; non-CRUD ⇒ invokable), FormRequests, Policies, React pages. |

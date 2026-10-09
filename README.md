@@ -43,9 +43,9 @@ composer run dev                 # server, queue worker, logs (pail), Vite
 
 | Path | What |
 |---|---|
-| `app/Modules/` | The module contract: base provider, registries (`NavRegistry`, `PermissionRegistry`, `WidgetRegistry`, `SearchRegistry`), `IndexQuery`, `ModuleSwitch`, shared DTOs in `Data/`, `Concerns/ValidatesBulkSelection` |
-| `app/Domain/` | Shared DDD kernel: contracts, `InteractsWithDomainEvents`, `DomainException`, `Money` |
-| `app/` (rest) | The shell: auth (Fortify), account settings, notifications, search endpoint, shared settings, `Rules/ValidEmail` |
+| `app/Modules/` | The module contract: base provider, registries (`NavRegistry`, `PermissionRegistry`, `WidgetRegistry`, `SearchRegistry`), `IndexQuery`, `ModuleSwitch`, shared helpers (`AuditLog`, `Toast`, `TextSearch`, `RoleOptions`, `NotificationMessage`), shared DTOs in `Data/`, request and controller traits in `Concerns/` (`ValidatesBulkSelection`, `DeletesSelection`, `ReadsValidatedInput`) |
+| `app/Domain/` | Shared DDD kernel: contracts, `InteractsWithDomainEvents`, `DomainException`, the shared value objects `Email` and `Money` |
+| `app/` (rest) | The shell: auth (Fortify), account settings, notifications, search endpoint, shared settings, `Rules/AccountRules`, `Rules/ValidEmail`, `Actions/DeleteEach` |
 | `app-modules/<Name>/` | One module: code, pages, translations and tests together |
 | `resources/js/` | Shell frontend: `layouts/`, `components/data-table`, `components/ui` (vendored shadcn), `hooks/`, `lib/` |
 | `stubs/ddd/` | Generator templates (`make:module`, `make:aggregate`) |
@@ -66,7 +66,7 @@ composer lint                                  # Rector, Pint, Oxfmt/OxLint: for
 **What `make:aggregate` writes:**
 - model, migration, factory, repository interface and Eloquent implementation;
 - Create/Update/Delete actions (update and delete lock the row first);
-- store/update requests, policy, `<Plural>IndexQuery`, `<Aggregate>Data`, resource controller;
+- store/update requests sharing a `Http/Requests/Concerns/Validates<Aggregate>Input` trait (rules and typed getters), policy, `<Plural>IndexQuery`, `<Aggregate>Data`, resource controller;
 - `routes/admin.php` (overwritten);
 - index/create/edit pages, `<aggregate>-columns.tsx`, `<aggregate>-form-fields.tsx` (kebab-case, e.g. `invoice-columns.tsx`);
 - controller, actions, policy and query tests;
@@ -119,7 +119,7 @@ It refuses a second aggregate in the same module. Add further aggregates by hand
 |---|---|---|---|
 | Admin page | `admin.php` | `Area::Admin` (default) | `AdminLayout`, automatic |
 | Member page (signed-in users without panel access) | `web.php` with `auth`, `verified` | `Area::Member` | `AdminLayout`, automatic |
-| Account-settings tab | `web.php`, `settings/<x>` with `auth` | `Area::Settings` (no permission) | the page wraps itself in `SettingsLayout` (`@/layouts/settings/layout`); see `Api/resources/js/pages/tokens.tsx` |
+| Account-settings tab | `web.php`, `settings/<x>` with `auth` | `Area::Settings` (no permission) | the page wraps itself in `<SettingsPage title href>` (`@/layouts/settings/page`); see `Api/resources/js/pages/tokens.tsx` |
 | Public page (no account) | `web.php` with `guest`/`signed` | none | under `pages/public/`; no automatic layout, so it wraps itself in `AuthLayout` |
 
 After sign-in, `/dashboard` redirects to the first nav item the user can see in their area, ordered by group (ungrouped first), then `sort`, then label.
@@ -131,22 +131,22 @@ After sign-in, `/dashboard` redirects to the first nav item the user can see in 
   - `Gate::allows()` for a page's `can` prop is fine. `Gate::authorize()` in a method body is not.
 - **FormRequests** hold every rule.
   - `authorize()` returns `$this->user()?->can('create', Product::class) ?? false`.
-  - They expose typed getters (`$request->name()`, `$request->priceCents()`) built on `ReadsValidatedInput`; controllers never read `$request->input()`. Rules and getters both requests share live in one `Http/Requests/Concerns/Validates<X>Input` trait.
-  - Account fields use `App\Rules\AccountRules` (`name()`, `email()`, `password()`, `roles()`); any other email field adds `App\Rules\ValidEmail`.
+  - They expose typed getters (`$request->name()`, `$request->priceCents()`) built on `ReadsValidatedInput`; controllers never read `$request->input()`. Getters both requests share live in one `Http/Requests/Concerns` trait: `Validates<X>Input` when the rules are shared too (the generator writes one), a getters-only trait such as `ProvidesRoleInput` when they differ.
+  - Account fields use `App\Rules\AccountRules` (`name()`, `email()`, `password()`, `roles()`); any other email field spreads `...ValidEmail::rules()` (they require lowercase, so normalise with `Email::normalize()` first).
 - **Actions** own every write: a transaction, `AuditLog::record()`, events. Compose them rather than duplicating them. Each one has a unit test.
 - **Index pages:**
   - The controller sends `XData::collect($query->paginate(), PaginatedDataCollection::class)`.
   - `IndexQuery` implements `query()` with spatie/query-builder `allowedFilters` / `allowedSorts` / `defaultSort`. A text filter is `$this->whereLikeAny($query, ['name', 'sku'], $value)`.
   - `per_page` defaults to 15 and is clamped to 1–100. Sorting ties break on the primary key.
   - URL contract: `filter[search]`, `filter[<field>]` (comma-separated values), `sort` / `-sort`, `page`, `per_page`.
-  - On the page, `useTableState('<prop name>')` reloads only that prop, so the names must match.
+  - On the page, `useResourceTable({ key: '<prop name>', … })` (or `useTableState('<prop name>')` for a read-only table) reloads only that prop, so the names must match.
 - **DTOs:** `final class XData extends Data` with a static `fromModel()`. Scalars only (no value objects), dates as `toIso8601String()`, each row with a `can` map built from `Auth::user()?->can(...)`. Use the generated types globally, without imports (`Modules.Catalog.Data.ProductData`, `App.Enums.Area`).
 - **Frontend:**
-  - Forms: `useForm(store(), data)` with a Wayfinder route inside `<FormCard onSubmit={() => form.submit({ preserveScroll: true })}>`, each control in `<FormField id label error={form.errors.x}>` with `onBlur={() => form.validate('x')}`.
+  - Forms: `useForm(store(), data)` with a Wayfinder route inside `<FormCard onSubmit={() => form.submit({ preserveScroll: true })}>`. The fields live in `<XFormFields form={form} />`, each a `<TextField form={form} name="x" label=…>` (value, error and Precognition validate-on-blur come from `form` + `name`). `FormField`, `SelectField` and `CheckboxField` are for other controls.
   - Routes come from Wayfinder only: `@/routes/admin/products` (named) or `@/actions/Modules/...` (controllers). No hard-coded URLs.
   - Strings: `const { t, tChoice } = useLaravelReactI18n()`. Dates and money: `useFormatters()`. Breadcrumbs: `useBreadcrumbs({ title, href }, …)`.
   - Deferred props need a skeleton.
-- **Toasts:** `Toast::success(__('…'))` (also `info`, `warning`, `error`; `App\Modules\Toast`). No `Inertia::flash()` by hand, no `->with()`.
+- **Toasts:** `Toast::success(__('…'))` (also `info`, `warning`, `error`; `App\Modules\Toast`). No `Inertia::flash()` by hand, no `->with()` (only the shell's auth pages keep Fortify's `status` flash).
 - **Activity log:** inside the action's transaction, `AuditLog::record('<module name()>', '<slug>', $model, ['attributes' => [...]])` (`App\Modules\AuditLog`; add `'old' => [...]` on updates). Give the slug a label in the module's `lang/*.json`, since the Audit page translates it.
 - **Models:** UUID keys (`HasUuids`, `$table->uuid('id')->primary()`, `string $id` in DTOs). Text search goes through `TextSearch::whereLikeAny()` (case-insensitive on SQLite and PostgreSQL), never raw `like`.
 
@@ -262,8 +262,8 @@ How access is decided:
 | Menu item, member page, account tab | `navigation()` with `Area::Admin` / `Member` / `Settings` (see "Pages" above) | `Catalog`, `Dashboard`, `Api` providers |
 | Dashboard card | `widgets()` + `Widgets/<Name>Widget.php` + `resources/js/widgets/<key>.tsx` in the module | `Users` widgets |
 | Command-palette search | `search()` + `Search/<Name>Search.php` | `Shop/Search/OrdersSearch` |
-| Table with bulk delete | Server: a request using `ValidatesBulkSelection` (`ids` 1–100); a getter returning `$this->permitted(Model::query(), 'delete')`; an invokable controller that aborts 403 when nothing is permitted, passes the records and the single-row action (`$deleteX->handle(...)`) to `App\Actions\DeleteEach`, then calls `Toast::success($request->deletedMessage(trans_choice(...), $count))`. Client: `useRowSelection` + `useBulkDelete` + `<DataTableBulkDelete>` | `Catalog` `DeleteProductsController`, `pages/index.tsx` |
-| Delete with confirmation | `useDeleteDialog` + `<DataTableDeleteDialog>` (any other confirmed visit: `useConfirmDialog` + `ConfirmDialog`) | `Catalog/resources/js/pages/index.tsx`, Shop's cancel-order |
+| Table with bulk delete | Server: a request using `ValidatesBulkSelection` (`ids` 1–100) with a getter returning `$this->permitted(Model::query(), 'delete')`; an invokable controller using `DeletesSelection` that calls `$this->deleteSelection($request, $request->products(), $deleteProduct->handle(...), fn (int $count) => trans_choice(...))`, then redirects. Client: `useResourceTable({ key, rows, destroyUrl, bulkDestroyUrl })` + `<DataTableBulkDelete>` | `Catalog` `DeleteProductsController`, `pages/index.tsx` |
+| Delete with confirmation | Index page: `useResourceTable`'s `deleteDialog` + `<DataTableDeleteDialog>`. Other lists: `useDeleteDialog` + `ConfirmDialog`. Any other confirmed visit: `useConfirmDialog` + `ConfirmDialog` | `Catalog/resources/js/pages/index.tsx`, `Api` tokens page, Shop's cancel-order |
 | Notify a user (bell + email) | extend `AppNotification` (queued: needs the queue worker), implement `message(User): NotificationMessage`, send from a listener. Email only when the user has `notify_by_email` | `Shop/Listeners/NotifyCustomerOfOrderStatus` |
 | Admin-editable settings | spatie settings class in `Settings/`, its `SettingsMigration` in `Database/Migrations`, routes `GET\|PUT admin/settings/<x>`, nav group `Settings` | `Shop/Settings/ShopSettings` |
 | File uploads | `HasMedia` on the model, `ImageInput` component, `File::image()` rule, a **POST** route (PUT cannot carry files). Files go to `MEDIA_DISK` (`public` or `s3`) | `User` avatar |
@@ -275,8 +275,8 @@ How access is decided:
 | PHP | What it does |
 |---|---|
 | `App\Modules\Toast::success\|info\|warning\|error(string)` | Flash the toast the frontend shows after the redirect |
-| `App\Modules\AuditLog::record(log, event, ?subject, properties, ?causer, ?description)` | Write one activity-log entry (event and description default to the same slug) |
-| `App\Modules\Concerns\DeletesSelection` → `deleteSelection($request, $records, $deleteOne, fn (int $count) => trans_choice(...))` | A bulk-delete controller's whole body: 403 when nothing is permitted, `DeleteEach`, the "N deleted / M could not be deleted" toast |
+| `App\Modules\AuditLog::record(log, event, ?subject, properties, ?causer, ?description)` | Write one activity-log entry (the description defaults to the event slug) |
+| `App\Modules\Concerns\DeletesSelection` → `deleteSelection($request, $records, $deleteOne, fn (int $count) => trans_choice(...))` | A bulk-delete controller's body except the redirect: 403 when nothing is permitted, `DeleteEach`, the "N deleted / M could not be deleted" toast |
 | `App\Actions\DeleteEach::handle(iterable $records, Closure $delete)` | Delete a selection through the single-row action, all or nothing |
 | `App\Modules\Concerns\ValidatesBulkSelection` | Bulk-selection request: `ids` rules (1–100) and `permitted(Model::query(), 'delete')` |
 | `App\Modules\Concerns\ReadsValidatedInput` | Request trait: `validatedString()`, `validatedNullableString()`, `normalizeInput()` (before validation) |
@@ -290,12 +290,12 @@ How access is decided:
 
 | Frontend (`@/…`) | What it does |
 |---|---|
-| `components/text-field` → `TextField` | A form-bound field (text, email, password, number, currency, date-time, multi-line): id, value, change, error and Precognition validate-on-blur from `form` + `name` |
+| `components/text-field` → `TextField` | A form-bound field (text, email, password, url, tel, number, currency via `CurrencyInput`, date-time, multi-line): id, value, change, error and Precognition validate-on-blur from `form` + `name` |
 | `components/form-field` → `FormField`; `select-field` → `SelectField`; `checkbox-field` → `CheckboxField` | Label, control, hint and error for a custom control; a labelled select over `{value, label}` options; a labelled checkbox |
 | `components/checkbox-group` → `CheckboxGroupField`, `CheckboxList` | A fieldset of checkboxes over a string array (`lib/selection` → `toggleValue`, `toggleValues`) |
 | `components/form-card` → `FormCard`; `section-card` → `SectionCard`, `PageStack` | The single-card form (title, fields, submit with spinner, optional cancel); a titled non-form card; the `max-w-2xl` page column |
 | `types/ui` → `FormLike<T>`, `FormFieldsProps<T>` | A module's `<X>FormFields` takes `form={form}` (the `useForm` result) |
-| `hooks/use-resource-table` → `useResourceTable({ key, paginated, destroyUrl, bulkDestroyUrl? })` | An index page's table state, row selection, delete dialog and bulk delete in one call |
+| `hooks/use-resource-table` → `useResourceTable({ key, rows, destroyUrl, bulkDestroyUrl? })` → `{ tableState, deleteDialog, selection, bulkDelete }` | An index page's table state, row selection, delete dialog and bulk delete in one call (wraps `useTableState`, `useRowSelection`, `useDeleteDialog`, `useBulkDelete`) |
 | `components/data-table` → `sortableColumn`, `dateColumn`, `actionsColumn`, `EditMenuItem`, `DeleteMenuItem`, `EmptyValue` | Column building blocks for every `*-columns.tsx` |
 | `components/data-table` → `DataTableCreateButton`, `DataTableBulkDelete`, `DataTableDeleteDialog` | Index-page toolbar button, bulk-delete bar with its dialog, single-delete dialog |
 | `hooks/use-confirm-dialog` → `useConfirmDialog` (wrapped by `useDeleteDialog`, `useBulkDelete`) | Open, confirm and track a visit that needs confirmation |
@@ -355,7 +355,7 @@ Full contract: `THEMING.md`.
 | Colours | the `:root` (light) and `.dark` blocks in `resources/css/app.css` | Shadcn names: `--background`, `--primary`, `--muted`, `--sidebar-*`, `--chart-1…5`. Keep WCAG AA on text/background and `primary-foreground`/`primary` |
 | Page background | `--background`, **and** the matching `background-color` in `resources/views/app.blade.php` | That inline style paints before the CSS loads; `FirstPaintBackgroundTest` fails when they differ |
 | Fonts | `--font-body`, `--font-display`, `--font-mono` in `app.css`, and the font `<link>` in `app.blade.php` | `font-sans` follows `--font-body` |
-| Corners, row spacing, sizes | `--radius`, `--density` (table rows), `--header-height`, `--content-max-width` (boxed width), `--sidebar-width`, `--sidebar-width-icon` | Presets may override these too |
+| Corners, row spacing, sizes | `--radius`, `--density` (table rows), `--header-height`, `--content-max-width` (boxed width), `--sidebar-width`, `--sidebar-width-icon`, `--sidebar-width-mobile` | Presets may override these too |
 | One component's look | `resources/js/components/ui/*` (vendored shadcn) | A shell change: every module gets it. Use tokens, never colours |
 | Logo, favicons, auth artwork, error pages, emails | see "Branding a project" in `THEMING.md` | `rg -n "@branding"` lists every spot |
 
@@ -416,7 +416,7 @@ After a change, check light and dark, each preset, `rtl`, and the `topbar` layou
 ## Testing and quality gates (all must pass)
 
 ```bash
-composer test          # everything CI runs: lint check, type coverage, PHPStan + tsc, tests with 100% coverage
+composer test          # CI's main job: lint check, type coverage, PHPStan + tsc, tests with 100% coverage
 composer lint          # fixers: Rector, Pint, Oxfmt, OxLint, theme lint
 ```
 
@@ -440,7 +440,8 @@ php artisan test --compact app-modules/Catalog/tests/Feature/ProductControllerTe
 - **Permissions in tests:** feature tests start with `beforeEach(fn () => $this->artisan('admin:sync-permissions')->assertSuccessful());`. Without the sync, admins have no permissions.
 - **Coverage:** every controller gets an `assertAdminOnly()` test, a forbidden test (`adminWithout()`), validation and happy-path tests (`assertToast()`). Every action, policy and query gets a unit test.
 - **Browser tests:** they fail while `public/hot` exists, so stop `composer run dev` and run `bun run build` first. They need `bunx playwright install` once.
-- **PostgreSQL:** CI runs the Feature and Unit suites on PostgreSQL 17 too. Write portable queries: `whereLike`, no raw SQL dialects.
+- **CI** (`.github/workflows/tests.yml`, each job set up by `.github/actions/setup`): `bun run build` + `composer test`; the Feature and Unit suites on PostgreSQL 17; and a `generators` job that scaffolds a module and an aggregate, then runs lint, types and the generated tests.
+- **Portable queries:** CI runs on SQLite and PostgreSQL, so use `whereLike`, no raw SQL dialects.
 - **Never** run `migrate:fresh`, `db:wipe` or `--env=testing` commands: there is no `.env.testing`, and they would wipe the dev database. Only additive `php artisan migrate`.
 
 ## Rules that fail review
