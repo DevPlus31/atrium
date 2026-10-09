@@ -169,8 +169,16 @@ jobs:
             -e "s|^POSTGRES_PASSWORD=.*|POSTGRES_PASSWORD=ci-secret|" \
             .env.production
 
-      - name: Build and Start the Stack
-        run: docker compose --env-file .env.production -f docker-compose.prod.yml up -d --build --wait --wait-timeout 300
+      - name: Build the Image
+        run: docker compose --env-file .env.production -f docker-compose.prod.yml build
+
+      # --wait only on the services with a healthcheck (pulse and scheduler
+      # have none, which --wait reports as an error); then all six must run.
+      - name: Start the Stack
+        run: |
+          docker compose --env-file .env.production -f docker-compose.prod.yml up -d
+          docker compose --env-file .env.production -f docker-compose.prod.yml up -d --wait --wait-timeout 300 app horizon
+          test "$(docker compose --env-file .env.production -f docker-compose.prod.yml ps --status running --services | sort | tr '\n' ' ')" = "app horizon postgres pulse redis scheduler "
 
       - name: Health Check
         run: |

@@ -9,6 +9,7 @@ it('reports up when the database and the cache answer', function (): void {
 });
 
 it('reports down when the database is unreachable', function (): void {
+    $default = config()->string('database.default');
     config()->set('app.debug', false);
     config()->set('database.connections.unreachable', [
         'driver' => 'sqlite',
@@ -20,5 +21,5 @@ it('reports down when the database is unreachable', function (): void {
         ->assertInternalServerError()
         ->assertExactJson(['status' => 'down']);
 
-    config()->set('database.default', 'sqlite');
+    config()->set('database.default', $default);
 });
