@@ -88,7 +88,9 @@ export function buildActivityColumns(
             enableSorting: false,
             header: t('Description'),
             cell: ({ row }) => (
-                <span className="font-medium">{row.original.description}</span>
+                <span className="font-medium">
+                    {t(row.original.description)}
+                </span>
             ),
         },
         {

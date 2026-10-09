@@ -19,6 +19,7 @@ final class SystemServiceProvider extends ModuleServiceProvider
         // would be overwritten by its local-environment-only default.
         $this->app->booted(static function (): void {
             Gate::define('viewPulse', static fn (User $user): bool => $user->can('system.pulse.view'));
+            Gate::define('viewHorizon', static fn (User $user): bool => $user->can('system.horizon.view'));
             Gate::define('viewLogViewer', static fn (User $user): bool => $user->can('system.logs.view'));
             Gate::define('downloadLogFile', static fn (User $user): bool => $user->can('system.logs.view'));
             Gate::define('downloadLogFolder', static fn (User $user): bool => $user->can('system.logs.view'));

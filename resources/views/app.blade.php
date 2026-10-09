@@ -28,11 +28,16 @@
             html.dark {
                 background-color: oklch(0.145 0 0);
             }
+
+            html.dark[data-theme='contrast'] {
+                background-color: oklch(0.08 0 0);
+            }
         </style>
 
         {{-- @branding The tab title comes from APP_NAME. Replace the favicons in public/ and the
-             web fonts below with your own; the background colours above must match the
-             default preset's --background in resources/css/app.css (no flash on first paint). --}}
+             web fonts below with your own; the background colours above must match each
+             preset's --background (resources/css/app.css and themes/*.css) so the first
+             paint does not flash. --}}
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
 
         <link rel="icon" href="/favicon.ico" sizes="any">

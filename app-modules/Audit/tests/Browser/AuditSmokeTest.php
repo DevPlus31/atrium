@@ -28,10 +28,13 @@ it('renders the audit log index with seeded activity', function (): void {
 
     activity()->log('scheduled maintenance');
 
+    activity('users')->causedBy($admin)->event('invitation-revoked')->log('invitation-revoked');
+
     visit(route('admin.audit.index'))
         ->assertSee('Audit log')
         ->assertSee('user account created')
         ->assertSee('role permissions updated')
         ->assertSee('scheduled maintenance')
+        ->assertSee('Invitation revoked')
         ->assertNoJavaScriptErrors();
 });

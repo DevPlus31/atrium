@@ -19,17 +19,12 @@ final readonly class UpdateProduct
 
     public function handle(Product $product, string $name, string $sku, int $priceCents, string $currency, ?string $description): Product
     {
-        $sku = (string) new Sku($sku);
-        $money = new Money($priceCents, $currency);
+        $sku = new Sku($sku);
+        $price = new Money($priceCents, $currency);
 
-        return DB::transaction(function () use ($product, $name, $sku, $money, $description): Product {
-            $product->fill([
-                'name' => $name,
-                'sku' => $sku,
-                'price_cents' => $money->amount,
-                'currency' => $money->currency,
-                'description' => $description,
-            ]);
+        return DB::transaction(function () use ($product, $name, $sku, $price, $description): Product {
+            $product = $this->products->lockForUpdate($product);
+            $product->revise($name, $sku, $price, $description);
 
             $this->products->save($product);
 
@@ -37,11 +32,11 @@ final readonly class UpdateProduct
                 ->performedOn($product)
                 ->event('updated')
                 ->withProperties([
-                    'attributes' => ['name' => $name, 'sku' => $sku],
+                    'attributes' => ['name' => $product->name, 'sku' => $product->sku],
                 ])
                 ->log('updated');
 
-            return $product->refresh();
+            return $product;
         });
     }
 }

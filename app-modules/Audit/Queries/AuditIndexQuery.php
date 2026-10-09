@@ -32,7 +32,7 @@ final readonly class AuditIndexQuery extends IndexQuery
             ->allowedSorts('created_at')
             ->defaultSort('-created_at');
 
-        $builder->getEloquentBuilder()->with(['causer', 'subject']);
+        $builder->getEloquentBuilder()->with('causer');
 
         return $builder;
     }

@@ -1,8 +1,8 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "nunomaduro/laravel-starter-kit-inertia-react",
+    "name": "devplus31/atrium",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
+    "description": "A modular Laravel, Inertia and React admin template: permissions, DDD modules, generators and a themable shell.",
     "keywords": [
         "laravel",
         "framework"
@@ -11,7 +11,7 @@
     "require": {
         "php": "^8.5.0",
         "inertiajs/inertia-laravel": "^3.5.1",
-        "lab404/laravel-impersonate": ">=1.7.8",
+        "lab404/laravel-impersonate": "^1.7.8",
         "laravel/fortify": "^1.37.2",
         "laravel/framework": "^13.18.0",
         "laravel/horizon": "^5.47.2",

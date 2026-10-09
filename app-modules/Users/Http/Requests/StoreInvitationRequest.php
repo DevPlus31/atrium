@@ -10,11 +10,14 @@ use App\Rules\ValidEmail;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Modules\Users\Http\Requests\Concerns\ReadsAccountInput;
 use Modules\Users\Infrastructure\Models\Invitation;
 use Spatie\Permission\Models\Role;
 
 final class StoreInvitationRequest extends FormRequest
 {
+    use ReadsAccountInput;
+
     public function authorize(): bool
     {
         return $this->user()?->can('create', User::class) ?? false;
@@ -55,16 +58,5 @@ final class StoreInvitationRequest extends FormRequest
         return [
             'email.unique' => __('This person already has an account or a pending invitation.'),
         ];
-    }
-
-    /**
-     * @return list<string>
-     */
-    public function roles(): array
-    {
-        /** @var list<string> $roles */
-        $roles = $this->validated('roles', []);
-
-        return $roles;
     }
 }

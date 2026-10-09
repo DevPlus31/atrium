@@ -1,0 +1,24 @@
+<?php
+
+declare(strict_types=1);
+
+use App\Models\User;
+use Modules\{{ module }}\Policies\{{ aggregate }}Policy;
+use Spatie\Permission\Models\Permission;
+
+it('gates each ability behind its matching permission', function (string $ability, string $permission): void {
+    Permission::findOrCreate($permission);
+    $user = User::factory()->create();
+    $policy = new {{ aggregate }}Policy();
+
+    expect($policy->{$ability}($user))->toBeFalse();
+
+    $user->givePermissionTo($permission);
+
+    expect($policy->{$ability}($user->refresh()))->toBeTrue();
+})->with([
+    'viewAny' => ['viewAny', '{{ slug }}.view'],
+    'create' => ['create', '{{ slug }}.create'],
+    'update' => ['update', '{{ slug }}.update'],
+    'delete' => ['delete', '{{ slug }}.delete'],
+]);

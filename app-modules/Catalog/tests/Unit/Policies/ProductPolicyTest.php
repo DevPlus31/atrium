@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Models\User;
+use Modules\Catalog\Infrastructure\Models\Product;
 use Modules\Catalog\Policies\ProductPolicy;
 use Spatie\Permission\Models\Permission;
 
@@ -16,12 +17,13 @@ beforeEach(function (): void {
 
 it('gates each ability behind its matching permission', function (string $ability, string $permission): void {
     $user = User::factory()->create();
+    $product = Product::factory()->create();
 
-    expect($this->policy->{$ability}($user))->toBeFalse();
+    expect($this->policy->{$ability}($user, $product))->toBeFalse();
 
     $user->givePermissionTo($permission);
 
-    expect($this->policy->{$ability}($user->refresh()))->toBeTrue();
+    expect($this->policy->{$ability}($user->refresh(), $product))->toBeTrue();
 })->with([
     'viewAny' => ['viewAny', 'products.view'],
     'create' => ['create', 'products.create'],
@@ -29,3 +31,10 @@ it('gates each ability behind its matching permission', function (string $abilit
     'delete' => ['delete', 'products.delete'],
     'publish' => ['publish', 'products.publish'],
 ]);
+
+it('does not offer publishing a product that is already published', function (): void {
+    $user = User::factory()->create();
+    $user->givePermissionTo('products.publish');
+
+    expect($this->policy->publish($user, Product::factory()->published()->create()))->toBeFalse();
+});

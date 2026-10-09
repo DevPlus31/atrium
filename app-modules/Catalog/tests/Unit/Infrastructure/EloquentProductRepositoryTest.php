@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Modules\Catalog\Domain\Exceptions\SkuAlreadyTaken;
 use Modules\Catalog\Domain\Repositories\ProductRepository;
 use Modules\Catalog\Infrastructure\Models\Product;
 use Modules\Catalog\Infrastructure\Repositories\EloquentProductRepository;
@@ -27,4 +28,11 @@ it('re-reads a product under a row lock', function (): void {
     $product = Product::factory()->create();
 
     expect(resolve(ProductRepository::class)->lockForUpdate($product)->is($product))->toBeTrue();
+});
+
+it('turns a SKU taken by a concurrent save into a domain exception', function (): void {
+    Product::factory()->create(['sku' => 'WIDGET-01']);
+
+    expect(fn () => resolve(ProductRepository::class)->save(Product::factory()->make(['sku' => 'WIDGET-01'])))
+        ->toThrow(SkuAlreadyTaken::class, 'Another product already uses the SKU [WIDGET-01].');
 });

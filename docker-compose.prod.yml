@@ -25,9 +25,8 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
-  # Queue worker. Laravel Horizon is not installed yet — this service will
-  # crash-loop harmlessly (restart: unless-stopped) until the horizon package
-  # lands; remove this note once it does.
+  # Queue workers (Laravel Horizon). No HTTP here, so the image's web
+  # healthcheck is replaced by Horizon's own status.
   horizon:
     image: atrium-prod
     command: php artisan horizon
@@ -40,8 +39,29 @@ services:
     depends_on:
       app:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "php", "artisan", "horizon:status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     restart: unless-stopped
 
+  # Pulse's server card (CPU, memory, disk) needs this long-running check.
+  pulse:
+    image: atrium-prod
+    command: php artisan pulse:check
+    env_file: .env.production
+    environment:
+      RUN_MIGRATIONS: "false"
+      RUN_OPTIMIZE: "true"
+    depends_on:
+      app:
+        condition: service_healthy
+    healthcheck:
+      disable: true
+    restart: unless-stopped
+
+  # Runs routes/console.php (Horizon snapshots, retention clean-up).
   scheduler:
     image: atrium-prod
     command: php artisan schedule:work
@@ -54,6 +74,8 @@ services:
     depends_on:
       app:
         condition: service_healthy
+    healthcheck:
+      disable: true
     restart: unless-stopped
 
   postgres:

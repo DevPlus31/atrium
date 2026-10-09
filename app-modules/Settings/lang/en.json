@@ -7,7 +7,6 @@
     "Shown on error pages so people know who to ask. Leave empty to hide it.": "Shown on error pages so people know who to ask. Leave empty to hide it.",
     "Allow sign-ups": "Allow sign-ups",
     "When off, only administrators can create accounts.": "When off, only administrators can create accounts.",
-    "Settings saved.": "Settings saved.",
     "Logo updated.": "Logo updated.",
     "Logo removed.": "Logo removed.",
     "Announcement": "Announcement",
@@ -17,10 +16,13 @@
     "e.g. Planned maintenance on Sunday from 2:00 to 4:00.": "e.g. Planned maintenance on Sunday from 2:00 to 4:00.",
     "Level": "Level",
     "Information": "Information",
-    "Warning": "Warning",
     "Ends (optional)": "Ends (optional)",
-    "Publish": "Publish",
-    "Remove": "Remove",
     "Announcement published.": "Announcement published.",
-    "Announcement removed.": "Announcement removed."
+    "Announcement removed.": "Announcement removed.",
+    "support@example.com": "support@example.com",
+    "announcement-removed": "Announcement removed",
+    "announcement-updated": "Announcement updated",
+    "general-updated": "General settings updated",
+    "logo-removed": "Logo removed",
+    "logo-updated": "Logo updated"
 }

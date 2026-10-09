@@ -123,7 +123,7 @@ export default function GeneralSettings({ settings }: GeneralSettingsProps) {
                                     onBlur={() =>
                                         form.validate('support_email')
                                     }
-                                    placeholder="support@example.com"
+                                    placeholder={t('support@example.com')}
                                 />
                                 <p className="text-sm text-muted-foreground">
                                     {t(

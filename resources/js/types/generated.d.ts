@@ -56,6 +56,13 @@ declare namespace App {
                 read_at: string | null;
                 created_at: string;
             };
+            export type PasskeyData = {
+                id: number;
+                name: string;
+                authenticator: string | null;
+                last_used_at: string | null;
+                created_at: string | null;
+            };
             export type SearchGroupData = {
                 label: string;
                 icon: string | null;
@@ -129,7 +136,6 @@ declare namespace Modules {
                 abilities: string[];
                 last_used_at: string | null;
                 expires_at: string | null;
-                created_at: string;
             };
         }
     }
@@ -276,7 +282,6 @@ declare namespace Modules {
                 roles: string[];
                 invited_by: string | null;
                 expires_at: string;
-                created_at: string;
             };
             export type RecentUsersWidgetData = {
                 users: {

@@ -16,20 +16,19 @@ import type { Translator } from '@/types/ui';
 export type OrderRow = Modules.Shop.Data.OrderData;
 export type OrderStatus = Modules.Shop.Domain.Enums.OrderStatus;
 
-/** Display label and badge style per status, exhaustive over the enum. */
+/**
+ * Display label and badge style per status, exhaustive over the enum, plus
+ * the menu label for moving an order there (no order goes back to pending).
+ */
 export const orderStatuses: Record<
     OrderStatus,
     {
         label: string;
-        action: string;
+        action?: string;
         variant: 'default' | 'secondary' | 'outline' | 'destructive';
     }
 > = {
-    pending: {
-        label: 'Pending',
-        action: 'Mark as pending',
-        variant: 'outline',
-    },
+    pending: { label: 'Pending', variant: 'outline' },
     paid: { label: 'Paid', action: 'Mark as paid', variant: 'secondary' },
     shipped: {
         label: 'Shipped',
@@ -154,7 +153,10 @@ export function buildOrderColumns(
                                                 onTransition(order, status)
                                             }
                                         >
-                                            {t(orderStatuses[status].action)}
+                                            {t(
+                                                orderStatuses[status].action ??
+                                                    orderStatuses[status].label,
+                                            )}
                                         </DropdownMenuItem>
                                     ))}
                                     {order.can.delete && (

@@ -10,10 +10,13 @@ use App\Rules\ValidEmail;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Modules\Users\Http\Requests\Concerns\ReadsAccountInput;
 use Spatie\Permission\Models\Role;
 
 final class UpdateUserRequest extends FormRequest
 {
+    use ReadsAccountInput;
+
     public function authorize(): bool
     {
         return $this->user()?->can('update', $this->routedUser()) ?? false;

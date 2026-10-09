@@ -29,6 +29,7 @@ export default function TwoFactor({
         hasSetupData,
         manualSetupKey,
         clearSetupData,
+        clearErrors,
         fetchSetupData,
         recoveryCodesList,
         fetchRecoveryCodes,
@@ -38,7 +39,7 @@ export default function TwoFactor({
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
-            title: t('Two-Factor Authentication'),
+            title: t('Two-factor authentication'),
             href: show(),
         },
     ];
@@ -46,7 +47,7 @@ export default function TwoFactor({
 
     return (
         <>
-            <Head title={t('Two-Factor Authentication')} />
+            <Head title={t('Two-factor authentication')} />
             <SettingsLayout>
                 {canManageTwoFactor && (
                     <div className="space-y-6">
@@ -132,6 +133,7 @@ export default function TwoFactor({
                             qrCodeSvg={qrCodeSvg}
                             manualSetupKey={manualSetupKey}
                             clearSetupData={clearSetupData}
+                            clearErrors={clearErrors}
                             fetchSetupData={fetchSetupData}
                             errors={errors}
                         />

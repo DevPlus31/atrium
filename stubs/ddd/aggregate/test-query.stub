@@ -1,0 +1,27 @@
+<?php
+
+declare(strict_types=1);
+
+use Illuminate\Http\Request;
+use Modules\{{ module }}\Infrastructure\Models\{{ aggregate }};
+use Modules\{{ module }}\Queries\{{ plural }}IndexQuery;
+
+it('searches by name', function (): void {
+    {{ aggregate }}::factory()->create(['name' => 'Blue widget']);
+    {{ aggregate }}::factory()->create(['name' => 'Red gadget']);
+
+    $query = new {{ plural }}IndexQuery(Request::create('/', 'GET', ['filter' => ['search' => 'widget']]));
+
+    expect($query->builder()->pluck('name')->all())->toBe(['Blue widget']);
+});
+
+it('sorts by name and defaults to the newest first', function (): void {
+    {{ aggregate }}::factory()->create(['name' => 'Bravo', 'created_at' => now()->subDay()]);
+    {{ aggregate }}::factory()->create(['name' => 'Alpha', 'created_at' => now()]);
+
+    $byName = new {{ plural }}IndexQuery(Request::create('/', 'GET', ['sort' => '-name']));
+    $byDefault = new {{ plural }}IndexQuery(Request::create('/', 'GET'));
+
+    expect($byName->builder()->pluck('name')->all())->toBe(['Bravo', 'Alpha'])
+        ->and($byDefault->builder()->pluck('name')->all())->toBe(['Alpha', 'Bravo']);
+});

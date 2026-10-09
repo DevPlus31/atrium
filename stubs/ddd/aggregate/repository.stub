@@ -9,6 +9,12 @@ use Modules\{{ module }}\Infrastructure\Models\{{ aggregate }};
 
 interface {{ aggregate }}Repository extends Repository
 {
+    /**
+     * Re-read the {{ variable }} inside the current transaction, locking its row
+     * so two simultaneous changes check the latest state.
+     */
+    public function lockForUpdate({{ aggregate }} ${{ variable }}): {{ aggregate }};
+
     public function save({{ aggregate }} ${{ variable }}): void;
 
     public function delete({{ aggregate }} ${{ variable }}): void;

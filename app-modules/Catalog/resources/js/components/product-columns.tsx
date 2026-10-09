@@ -89,10 +89,12 @@ export function buildProductColumns(
             header: () => <span className="sr-only">{t('Actions')}</span>,
             cell: ({ row }) => {
                 const product = row.original;
-                const canPublish =
-                    product.can.publish && product.published_at === null;
 
-                if (!product.can.update && !canPublish && !product.can.delete) {
+                if (
+                    !product.can.update &&
+                    !product.can.publish &&
+                    !product.can.delete
+                ) {
                     return null;
                 }
 
@@ -108,7 +110,7 @@ export function buildProductColumns(
                                             </Link>
                                         </DropdownMenuItem>
                                     )}
-                                    {canPublish && (
+                                    {product.can.publish && (
                                         <DropdownMenuItem
                                             onSelect={() => onPublish(product)}
                                         >

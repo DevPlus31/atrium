@@ -18,7 +18,7 @@ export default function AlertError({
             <AlertDescription>
                 <ul className="list-inside list-disc text-sm">
                     {Array.from(new Set(errors)).map((error) => (
-                        <li key={error}>{error}</li>
+                        <li key={error}>{t(error)}</li>
                     ))}
                 </ul>
             </AlertDescription>

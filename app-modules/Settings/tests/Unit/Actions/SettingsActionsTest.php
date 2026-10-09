@@ -6,6 +6,7 @@ use App\Enums\AnnouncementLevel;
 use App\Settings\AnnouncementSettings;
 use App\Settings\GeneralSettings;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
 use Modules\Settings\Actions\RemoveAnnouncement;
 use Modules\Settings\Actions\RemoveLogo;
@@ -13,6 +14,7 @@ use Modules\Settings\Actions\UpdateAnnouncement;
 use Modules\Settings\Actions\UpdateGeneralSettings;
 use Modules\Settings\Actions\UpdateLogo;
 use Spatie\Activitylog\Models\Activity;
+use Spatie\LaravelSettings\Events\SavingSettings;
 
 beforeEach(function (): void {
     Storage::fake('public');
@@ -77,4 +79,17 @@ it('publishes and removes the announcement', function (): void {
     expect($settings->refresh()->message)->toBeNull()
         ->and($settings->isActive())->toBeFalse()
         ->and(Activity::query()->where('description', 'announcement-removed')->count())->toBe(1);
+});
+
+it('keeps the logo file when the settings cannot be saved', function (): void {
+    $settings = resolve(GeneralSettings::class);
+    resolve(UpdateLogo::class)->handle($settings, UploadedFile::fake()->image('one.png', 200, 200));
+    $path = (string) $settings->logo_path;
+    Event::listen(SavingSettings::class, function (): never {
+        throw new RuntimeException('Settings store unavailable.');
+    });
+
+    expect(fn () => resolve(RemoveLogo::class)->handle($settings))->toThrow(RuntimeException::class);
+
+    expect(Storage::disk('public')->exists($path))->toBeTrue();
 });

@@ -5,7 +5,6 @@
     "Edit role": "Edit role",
     "No permissions available.": "No permissions available.",
     "No roles found.": "No roles found.",
-    "Permissions": "Permissions",
     "Role created.": "Role created.",
     "Role deleted.": "Role deleted.",
     "Role name": "Role name",
@@ -16,6 +15,5 @@
     "System roles cannot be renamed.": "System roles cannot be renamed.",
     "this role": "this role",
     "Update the role's name and permissions.": "Update the role's name and permissions.",
-    "Roles": "Roles",
     "+:count more|+:count more": "+:count more|+:count more"
 }

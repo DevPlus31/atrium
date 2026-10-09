@@ -31,6 +31,8 @@ jobs:
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
 
       - name: Setup Vite+
         uses: voidzero-dev/setup-vp@v1
@@ -155,6 +157,8 @@ jobs:
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
 
       - name: Setup Vite+
         uses: voidzero-dev/setup-vp@v1
@@ -206,3 +210,73 @@ jobs:
           DB_USERNAME: atrium
           DB_PASSWORD: secret
         run: php artisan test --compact --parallel --testsuite=Feature,Unit
+
+  # The generators are the downstream entry point: a freshly scaffolded
+  # module and aggregate must pass the static gates and its own tests.
+  generators:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.5
+          tools: composer:v2
+          coverage: none
+          ini-values: zend.assertions=1
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
+      - name: Setup Vite+
+        uses: voidzero-dev/setup-vp@v1
+        with:
+          node-version: 24
+
+      - name: Cache Composer Dependencies
+        uses: actions/cache@v6
+        with:
+          path: vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Cache Bun Dependencies
+        uses: actions/cache@v6
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
+          restore-keys: ${{ runner.os }}-bun-
+
+      - name: Install Dependencies
+        run: |
+          composer install --no-interaction --prefer-dist --optimize-autoloader --no-progress
+          bun install
+
+      - name: Prepare Application
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+          touch database/database.sqlite
+          php artisan migrate --force
+
+      - name: Scaffold a Module and Aggregate
+        run: |
+          php artisan make:module Scaffold --no-interaction
+          php artisan make:aggregate Scaffold Widget --no-interaction
+          composer dump-autoload --optimize
+          php artisan migrate --force
+          php artisan typescript:transform
+          php artisan wayfinder:generate --with-form
+          composer lint
+
+      - name: Static Analysis
+        run: composer test:types
+
+      - name: Generated Tests
+        run: php artisan test --compact app-modules/Scaffold

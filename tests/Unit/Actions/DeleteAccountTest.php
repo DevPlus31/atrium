@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Actions\DeleteAccount;
 use App\Domain\Exceptions\LastAdministrator;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Permission\Models\Role;
 
@@ -39,4 +40,20 @@ it('lets a super-admin go while another super-admin remains', function (): void 
     resolve(DeleteAccount::class)->handle($user);
 
     expect($user->exists)->toBeFalse();
+});
+
+it('checks the last-admin rule after locking the administrative roles', function (): void {
+    $user = User::factory()->create();
+    $user->assignRole(Role::findOrCreate(User::PANEL_ROLE));
+    User::factory()->create()->assignRole(User::PANEL_ROLE);
+
+    DB::enableQueryLog();
+    resolve(DeleteAccount::class)->handle($user);
+
+    $queries = collect(DB::getQueryLog())->pluck('query')->values();
+    $lock = $queries->search(fn (string $query): bool => str_contains($query, '"roles"') && str_contains($query, '"name" in'));
+    $count = $queries->search(fn (string $query): bool => str_contains($query, 'count(*)'));
+
+    expect($lock)->toBeInt()
+        ->and($count)->toBeGreaterThan($lock);
 });

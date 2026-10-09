@@ -85,7 +85,7 @@ it('renders the roles index', function (): void {
         ->where('roles.data.1.is_system', false)
         ->where('roles.data.1.users_count', 0)
         ->where('roles.data.1.permissions', ['users.view'])
-        ->where('permissions', fn (Collection $permissions) => collect($permissions)->contains('roles.view')));
+        ->missing('permissions'));
 });
 
 it('ships per-row abilities that forbid changing system roles', function (): void {

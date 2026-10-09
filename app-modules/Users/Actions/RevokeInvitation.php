@@ -21,6 +21,9 @@ final readonly class RevokeInvitation
     public function handle(Invitation $invitation): void
     {
         DB::transaction(function () use ($invitation): void {
+            $invitation = $this->invitations->lockForUpdate($invitation);
+            $invitation->revoke();
+
             $this->invitations->delete($invitation);
 
             activity('users')

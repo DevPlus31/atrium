@@ -90,6 +90,17 @@ final class Invitation extends Model implements RecordsDomainEvents
     }
 
     /**
+     * Withdraw it before anyone uses it; an accepted invitation is the
+     * record of how an account joined and stays.
+     */
+    public function revoke(): void
+    {
+        if ($this->accepted_at !== null) {
+            throw InvitationAlreadyAccepted::forEmail($this->email);
+        }
+    }
+
+    /**
      * Mark it used by the account just created; only once, and only before
      * it expires.
      */

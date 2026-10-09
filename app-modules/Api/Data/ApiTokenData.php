@@ -22,7 +22,6 @@ final class ApiTokenData extends Data
         public array $abilities,
         public ?string $last_used_at,
         public ?string $expires_at,
-        public string $created_at,
     ) {
         //
     }
@@ -35,7 +34,6 @@ final class ApiTokenData extends Data
             abilities: array_values(array_filter($token->abilities ?? [], is_string(...))),
             last_used_at: $token->last_used_at?->toIso8601String(),
             expires_at: $token->expires_at?->toIso8601String(),
-            created_at: ($token->created_at ?? now())->toIso8601String(),
         );
     }
 }

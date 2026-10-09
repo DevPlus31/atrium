@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Console\Commands\Concerns\GeneratesModuleCode;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -15,12 +16,16 @@ use Symfony\Component\Finder\Finder;
 #[Signature('module:remove {name : The module name in StudlyCase (e.g. Shop)} {--force : Skip the confirmation}')]
 final class RemoveModuleCommand extends Command
 {
+    use GeneratesModuleCode;
+
     public function handle(Filesystem $files): int
     {
-        /** @var string $name */
-        $name = $this->argument('name');
+        $studly = $this->studlyArgument('name');
 
-        $studly = Str::studly($name);
+        if ($studly === null) {
+            return self::FAILURE;
+        }
+
         $modulePath = base_path('app-modules/'.$studly);
 
         if (! $files->isDirectory($modulePath)) {
@@ -45,7 +50,13 @@ final class RemoveModuleCommand extends Command
         $tables = $this->createdTables($files, $modulePath);
 
         $files->deleteDirectory($modulePath);
-        $this->unregisterProvider($files, $studly);
+
+        if (! $this->unregisterProvider($files, $studly)) {
+            $this->components->warn(sprintf(
+                'bootstrap/providers.php has no Modules\\%1$s\\Providers\\%1$sServiceProvider::class line to remove; check it by hand.',
+                $studly,
+            ));
+        }
 
         $this->components->info(sprintf('Module [%s] removed.', $studly));
         $this->components->bulletList([
@@ -107,11 +118,19 @@ final class RemoveModuleCommand extends Command
         return $tables;
     }
 
-    private function unregisterProvider(Filesystem $files, string $studly): void
+    /**
+     * Drop the provider line; false when it was not there in the expected
+     * form (edited by hand), so the caller can say so.
+     */
+    private function unregisterProvider(Filesystem $files, string $studly): bool
     {
         $path = base_path('bootstrap/providers.php');
-        $entry = sprintf('    Modules\\%s\\Providers\\%sServiceProvider::class,', $studly, $studly);
+        $entry = sprintf('Modules\\%s\\Providers\\%sServiceProvider::class', $studly, $studly);
+        $contents = $files->get($path);
+        $updated = (string) preg_replace('/^[ \t]*'.preg_quote($entry, '/').',?[ \t]*\R/m', '', $contents);
 
-        $files->put($path, str_replace($entry.PHP_EOL, '', $files->get($path)));
+        $files->put($path, $updated);
+
+        return $updated !== $contents;
     }
 }

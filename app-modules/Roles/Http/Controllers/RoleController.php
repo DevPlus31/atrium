@@ -27,7 +27,6 @@ final readonly class RoleController
     {
         return Inertia::render('roles::index', [
             'roles' => RoleData::collect($query->paginate(), PaginatedDataCollection::class),
-            'permissions' => $this->permissionNames(),
             'can' => ['create' => Gate::allows('create', Role::class)],
         ]);
     }

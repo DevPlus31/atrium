@@ -20,7 +20,8 @@ final readonly class ResendInvitation
      */
     public function handle(Invitation $invitation): void
     {
-        DB::transaction(function () use ($invitation): void {
+        $invitation = DB::transaction(function () use ($invitation): Invitation {
+            $invitation = $this->invitations->lockForUpdate($invitation);
             $invitation->renew();
 
             $this->invitations->save($invitation);
@@ -30,6 +31,8 @@ final readonly class ResendInvitation
                 ->event('invitation-resent')
                 ->withProperties(['attributes' => ['email' => $invitation->email]])
                 ->log('invitation-resent');
+
+            return $invitation;
         });
 
         $invitation->flushDomainEvents();

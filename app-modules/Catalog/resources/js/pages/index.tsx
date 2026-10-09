@@ -5,6 +5,7 @@ import { ConfirmDialog } from '@/components/confirm-dialog';
 import {
     DataTable,
     DataTableBulkActions,
+    DataTableFacetedFilter,
     DataTableToolbar,
 } from '@/components/data-table';
 import { Button } from '@/components/ui/button';
@@ -77,7 +78,17 @@ export default function ProductsIndex({ products, can }: ProductsIndexProps) {
                         </Button>
                     )
                 }
-            />
+            >
+                <DataTableFacetedFilter
+                    tableState={tableState}
+                    field="status"
+                    title={t('Status')}
+                    options={[
+                        { label: t('Draft'), value: 'draft' },
+                        { label: t('Published'), value: 'published' },
+                    ]}
+                />
+            </DataTableToolbar>
             <DataTableBulkActions selection={selection}>
                 <Button
                     variant="destructive"

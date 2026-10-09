@@ -34,7 +34,7 @@ const sidebarNavItems: SettingsNavItem[] = [
         icon: null,
     },
     {
-        title: 'Two-Factor Auth',
+        title: 'Two-factor authentication',
         href: showTwoFactor(),
         icon: null,
     },

@@ -93,7 +93,7 @@ export default function Invitations({
                                         )
                                     }
                                     onBlur={() => form.validate('email')}
-                                    placeholder="email@example.com"
+                                    placeholder={t('email@example.com')}
                                 />
                                 <InputError message={form.errors.email} />
                             </div>
@@ -187,6 +187,10 @@ export default function Invitations({
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
+                                                aria-label={t(
+                                                    'Resend the invitation to :email',
+                                                    { email: invitation.email },
+                                                )}
                                                 onClick={() =>
                                                     router.post(
                                                         resend.url(
@@ -205,6 +209,10 @@ export default function Invitations({
                                                 variant="ghost"
                                                 size="sm"
                                                 className="text-destructive"
+                                                aria-label={t(
+                                                    'Revoke the invitation to :email',
+                                                    { email: invitation.email },
+                                                )}
                                                 onClick={() =>
                                                     revokeDialog.request(
                                                         invitation,

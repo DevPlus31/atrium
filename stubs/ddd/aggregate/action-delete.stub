@@ -18,6 +18,7 @@ final readonly class Delete{{ aggregate }}
     public function handle({{ aggregate }} ${{ variable }}): void
     {
         DB::transaction(function () use (${{ variable }}): void {
+            ${{ variable }} = $this->{{ variablePlural }}->lockForUpdate(${{ variable }});
             $this->{{ variablePlural }}->delete(${{ variable }});
 
             activity('{{ slug }}')

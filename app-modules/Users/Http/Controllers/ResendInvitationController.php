@@ -16,8 +16,6 @@ final readonly class ResendInvitationController
     #[Authorize('create', User::class)]
     public function __invoke(Invitation $invitation, ResendInvitation $action): RedirectResponse
     {
-        abort_if($invitation->accepted_at !== null, 404);
-
         $action->handle($invitation);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Invitation sent again to :email.', ['email' => $invitation->email])]);

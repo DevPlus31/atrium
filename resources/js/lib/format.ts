@@ -68,3 +68,57 @@ export function createFormatters(
         }),
     };
 }
+
+/** The wall-clock parts of an instant in a time zone (the viewer's if none). */
+const wallClock = (instant: number, timeZone?: string): number => {
+    const parts = Object.fromEntries(
+        new Intl.DateTimeFormat('en-US', {
+            timeZone,
+            hourCycle: 'h23',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+        })
+            .formatToParts(new Date(instant))
+            .map((part) => [part.type, Number(part.value)]),
+    );
+
+    return Date.UTC(
+        parts.year,
+        parts.month - 1,
+        parts.day,
+        parts.hour,
+        parts.minute,
+        parts.second,
+    );
+};
+
+/**
+ * An ISO instant as the value of a datetime-local input, in the given time
+ * zone (the user's preference) rather than the browser's.
+ */
+export function toZonedInput(iso: string | null, timeZone?: string): string {
+    if (iso === null) {
+        return '';
+    }
+
+    return new Date(wallClock(new Date(iso).getTime(), timeZone))
+        .toISOString()
+        .slice(0, 16);
+}
+
+/**
+ * A datetime-local value read as wall-clock time in the given time zone,
+ * back to an ISO instant. The zone's offset is taken at the result itself,
+ * so dates on the other side of a DST change come out right.
+ */
+export function fromZonedInput(value: string, timeZone?: string): string {
+    const asUtc = new Date(`${value}:00Z`).getTime();
+    let instant = asUtc - (wallClock(asUtc, timeZone) - asUtc);
+    instant = asUtc - (wallClock(instant, timeZone) - instant);
+
+    return new Date(instant).toISOString();
+}

@@ -4,11 +4,10 @@
     "New API token": "Nouveau jeton d’API",
     "Copy token": "Copier le jeton",
     "Create an API token": "Créer un jeton d’API",
-    "Send it as a Bearer token to /api/v1. It can only do what the permissions you tick allow, and never more than you can.": "Envoyez-le comme jeton Bearer à /api/v1. Il ne peut faire que ce que permettent les permissions cochées, et jamais plus que vous.",
+    "Send it as a Bearer token to /api/v1. It can only do what the permissions you tick allow, and never more than you can.": "Envoyez-le comme jeton Bearer à /api/v1. Il ne peut faire que ce que permettent les permissions cochées, et jamais plus que ce que vous pouvez faire vous-même.",
     "e.g. Reporting script": "ex. Script de reporting",
     "Expires": "Expiration",
     "In :days days": "Dans :days jours",
-    "Permissions": "Permissions",
     "Clear all": "Tout décocher",
     "Select all": "Tout cocher",
     "Create token": "Créer le jeton",
@@ -18,8 +17,10 @@
     "expires :date": "expire le :date",
     "never expires": "n’expire jamais",
     ":count permission|:count permissions": ":count permission|:count permissions",
-    "Revoke": "Révoquer",
     "Revoke token": "Révoquer le jeton",
     "Anything using :name will stop working.": "Tout ce qui utilise :name cessera de fonctionner.",
-    "Token revoked.": "Jeton révoqué."
+    "Token revoked.": "Jeton révoqué.",
+    "api-token-created": "Jeton d’API créé",
+    "api-token-revoked": "Jeton d’API révoqué",
+    "Revoke the token :name": "Révoquer le jeton :name"
 }

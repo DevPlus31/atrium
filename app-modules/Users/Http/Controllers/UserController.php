@@ -44,9 +44,9 @@ final readonly class UserController
     public function store(StoreUserRequest $request, CreateUser $action): RedirectResponse
     {
         $action->handle(
-            name: $request->string('name')->value(),
-            email: $request->string('email')->value(),
-            password: $request->string('password')->value(),
+            name: $request->name(),
+            email: $request->email(),
+            password: $request->password(),
             roles: $request->roles(),
         );
 
@@ -69,8 +69,8 @@ final readonly class UserController
     {
         $action->handle(
             user: $user,
-            name: $request->string('name')->value(),
-            email: $request->string('email')->value(),
+            name: $request->name(),
+            email: $request->email(),
             roles: $request->roles(),
         );
 

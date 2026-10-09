@@ -36,7 +36,7 @@ final readonly class ApiTokenController
     {
         $token = $action->handle(
             $user,
-            $request->string('name')->value(),
+            $request->name(),
             $request->abilities(),
             $request->expiresAt(),
         );

@@ -16,9 +16,11 @@ use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
 use Lab404\Impersonate\Models\Impersonate;
 use Lab404\Impersonate\Services\ImpersonateManager;
 use Laravel\Fortify\Contracts\PasskeyUser;
@@ -133,9 +135,18 @@ final class User extends Authenticatable implements HasLocalePreference, HasMedi
     }
 
     /**
-     * Whether the API token this request came with grants the ability;
-     * always true outside the API (no token).
+     * The user's rows in the sessions table. Only the database session
+     * driver keeps them; with any other driver the query finds nothing.
      */
+    public function browserSessions(): Builder
+    {
+        $connection = Config::get('session.connection');
+
+        return DB::connection(is_string($connection) ? $connection : null)
+            ->table(Config::string('session.table'))
+            ->where('user_id', $this->id);
+    }
+
     /**
      * Sanctum calls this when a request authenticates with a token. The
      * token is also kept in a nullable property: Sanctum's own docblocks
@@ -149,6 +160,10 @@ final class User extends Authenticatable implements HasLocalePreference, HasMedi
         return $this;
     }
 
+    /**
+     * Whether the API token this request came with grants the ability;
+     * always true outside the API (no token).
+     */
     public function tokenAllows(string $ability): bool
     {
         return ! $this->apiToken instanceof PersonalAccessToken || $this->apiToken->can($ability);

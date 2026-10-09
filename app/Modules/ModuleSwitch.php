@@ -20,6 +20,15 @@ final class ModuleSwitch
             return false;
         }
 
-        return Feature::for($scope)->active('module:'.$module);
+        $features = Feature::for($scope);
+
+        // One query for every module's flag (Pennant keeps them for the rest
+        // of the request) rather than one per module asked about.
+        $features->loadMissing(array_values(array_filter(
+            Feature::defined(),
+            static fn (mixed $feature): bool => is_string($feature) && str_starts_with($feature, 'module:'),
+        )));
+
+        return $features->active('module:'.$module);
     }
 }

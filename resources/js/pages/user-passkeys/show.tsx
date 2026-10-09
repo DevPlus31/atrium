@@ -18,13 +18,7 @@ import { destroy } from '@/routes/passkey';
 import { show } from '@/routes/passkeys';
 import type { BreadcrumbItem } from '@/types';
 
-type PasskeyItem = {
-    id: number;
-    name: string;
-    authenticator: string | null;
-    last_used_at: string | null;
-    created_at: string | null;
-};
+type PasskeyItem = App.Modules.Data.PasskeyData;
 
 type Props = {
     canManagePasskeys?: boolean;

@@ -28,7 +28,6 @@
     "Paid": "Paid",
     "Shipped": "Shipped",
     "Cancelled": "Cancelled",
-    "Mark as pending": "Mark as pending",
     "Mark as paid": "Mark as paid",
     "Mark as shipped": "Mark as shipped",
     "paid": "paid",
@@ -37,7 +36,6 @@
     "Shop settings": "Shop settings",
     "Defaults for new orders.": "Defaults for new orders.",
     "Default currency": "Default currency",
-    "Settings saved.": "Settings saved.",
     "Shop": "Shop",
     "Order :number is now :status": "Order :number is now :status",
     "We received your payment.": "We received your payment.",
@@ -46,5 +44,7 @@
     "View your orders": "View your orders",
     "Delete selected orders": "Delete selected orders",
     "This will permanently delete :count order and cannot be undone.|This will permanently delete :count orders and cannot be undone.": "This will permanently delete :count order and cannot be undone.|This will permanently delete :count orders and cannot be undone.",
-    ":count order deleted.|:count orders deleted.": ":count order deleted.|:count orders deleted."
+    ":count order deleted.|:count orders deleted.": ":count order deleted.|:count orders deleted.",
+    "settings-updated": "Shop settings updated",
+    "status-changed": "Status changed"
 }

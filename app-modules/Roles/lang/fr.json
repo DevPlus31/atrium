@@ -5,7 +5,6 @@
     "Edit role": "Modifier le rôle",
     "No permissions available.": "Aucune permission disponible.",
     "No roles found.": "Aucun rôle trouvé.",
-    "Permissions": "Permissions",
     "Role created.": "Rôle créé.",
     "Role deleted.": "Rôle supprimé.",
     "Role name": "Nom du rôle",
@@ -16,6 +15,5 @@
     "System roles cannot be renamed.": "Les rôles système ne peuvent pas être renommés.",
     "this role": "ce rôle",
     "Update the role's name and permissions.": "Modifiez le nom et les permissions du rôle.",
-    "Roles": "Rôles",
     "+:count more|+:count more": "+:count de plus|+:count de plus"
 }

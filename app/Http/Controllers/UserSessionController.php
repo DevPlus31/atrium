@@ -12,7 +12,6 @@ use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 use stdClass;
@@ -39,25 +38,13 @@ final readonly class UserSessionController
     }
 
     /**
-     * The connection holding the sessions table (null: the default one).
-     */
-    private function sessionConnection(): ?string
-    {
-        $connection = Config::get('session.connection');
-
-        return is_string($connection) ? $connection : null;
-    }
-
-    /**
      * The user's sessions, most recently active first.
      *
      * @return list<SessionData>
      */
     private function sessions(User $user, string $currentId): array
     {
-        return array_values(DB::connection($this->sessionConnection())
-            ->table(Config::string('session.table'))
-            ->where('user_id', $user->id)
+        return array_values($user->browserSessions()
             ->orderByDesc('last_activity')
             ->get()
             ->map(static fn (stdClass $session): SessionData => SessionData::fromRecord(

@@ -36,11 +36,7 @@ fi
 
 if [ "${RUN_MIGRATIONS:-true}" = "true" ]; then
     php artisan migrate --force
-
-    # Added by a parallel workstream — run it once it exists, no-op until then.
-    if php artisan list --raw | grep -q admin:sync-permissions; then
-        php artisan admin:sync-permissions
-    fi
+    php artisan admin:sync-permissions
 fi
 
 if [ "${RUN_OPTIMIZE:-true}" = "true" ]; then

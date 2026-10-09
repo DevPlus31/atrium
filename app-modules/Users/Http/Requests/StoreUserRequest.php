@@ -10,10 +10,13 @@ use App\Rules\ValidEmail;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
+use Modules\Users\Http\Requests\Concerns\ReadsAccountInput;
 use Spatie\Permission\Models\Role;
 
 final class StoreUserRequest extends FormRequest
 {
+    use ReadsAccountInput;
+
     public function authorize(): bool
     {
         return $this->user()?->can('create', User::class) ?? false;
@@ -47,16 +50,5 @@ final class StoreUserRequest extends FormRequest
             'roles' => ['array'],
             'roles.*' => ['string', Rule::exists(Role::class, 'name'), new GrantableRole($actor)],
         ];
-    }
-
-    /**
-     * @return list<string>
-     */
-    public function roles(): array
-    {
-        /** @var list<string> $roles */
-        $roles = $this->validated('roles', []);
-
-        return $roles;
     }
 }

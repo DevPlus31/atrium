@@ -289,6 +289,12 @@ export default function ApiTokens({
                                         variant="ghost"
                                         size="sm"
                                         className="text-destructive"
+                                        aria-label={t(
+                                            'Revoke the token :name',
+                                            {
+                                                name: token.name,
+                                            },
+                                        )}
                                         onClick={() =>
                                             revokeDialog.request(token)
                                         }

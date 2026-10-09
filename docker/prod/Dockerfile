@@ -127,7 +127,11 @@ RUN chmod +x /usr/local/bin/entrypoint.sh \
         storage/logs \
         bootstrap/cache \
         /data/caddy /config/caddy \
-    && chown -R www-data:www-data storage bootstrap/cache /data /config
+    && chown -R www-data:www-data storage bootstrap/cache /data /config \
+    # public/ is root-owned, so the uploads link (php artisan storage:link)
+    # is made here, not at runtime: files on MEDIA_DISK=public are served
+    # from /storage.
+    && ln -s /app/storage/app/public /app/public/storage
 
 USER www-data
 

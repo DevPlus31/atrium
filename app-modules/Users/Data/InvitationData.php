@@ -18,7 +18,6 @@ final class InvitationData extends Data
         public array $roles,
         public ?string $invited_by,
         public string $expires_at,
-        public string $created_at,
     ) {
         //
     }
@@ -31,7 +30,6 @@ final class InvitationData extends Data
             roles: $invitation->roles,
             invited_by: $invitation->inviter?->name,
             expires_at: $invitation->expires_at->toIso8601String(),
-            created_at: $invitation->created_at->toIso8601String(),
         );
     }
 }

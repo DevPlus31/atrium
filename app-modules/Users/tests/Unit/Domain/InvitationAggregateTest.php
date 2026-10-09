@@ -57,3 +57,8 @@ it('cannot be accepted once expired', function (): void {
 
     expect(fn () => $invitation->accept(User::factory()->create()))->toThrow(InvitationNotPending::class);
 });
+
+it('can be revoked until it is accepted', function (): void {
+    expect(fn () => Invitation::factory()->expired()->create()->revoke())->not->toThrow(InvitationAlreadyAccepted::class)
+        ->and(fn () => Invitation::factory()->accepted()->create()->revoke())->toThrow(InvitationAlreadyAccepted::class);
+});

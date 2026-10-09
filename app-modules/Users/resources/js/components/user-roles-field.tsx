@@ -1,7 +1,6 @@
 import { useLaravelReactI18n } from 'laravel-react-i18n';
 import InputError from '@/components/input-error';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
 
 type UserRolesFieldProps = {
     roles: string[];
@@ -27,8 +26,11 @@ export function UserRolesField({
     };
 
     return (
-        <div className="grid gap-2">
-            <Label>{t('Roles')}</Label>
+        // A group of checkboxes: the legend names the group for screen readers.
+        <fieldset className="grid gap-2">
+            <legend className="mb-2 text-sm leading-none font-medium">
+                {t('Roles')}
+            </legend>
             {roles.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
                     {t('No roles available.')}
@@ -52,6 +54,6 @@ export function UserRolesField({
                 </div>
             )}
             <InputError message={error} />
-        </div>
+        </fieldset>
     );
 }

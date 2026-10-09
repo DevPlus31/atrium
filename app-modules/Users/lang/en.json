@@ -52,11 +52,16 @@
     "Invited by :name · expires :date": "Invited by :name · expires :date",
     "Expires :date": "Expires :date",
     "Resend": "Resend",
-    "Revoke": "Revoke",
     "Revoke invitation": "Revoke invitation",
     "The link sent to :email will stop working.": "The link sent to :email will stop working.",
-    "Users": "Users",
     "Delete selected users": "Delete selected users",
     "This will permanently delete :count user and cannot be undone.|This will permanently delete :count users and cannot be undone.": "This will permanently delete :count user and cannot be undone.|This will permanently delete :count users and cannot be undone.",
-    ":count user deleted.|:count users deleted.": ":count user deleted.|:count users deleted."
+    ":count user deleted.|:count users deleted.": ":count user deleted.|:count users deleted.",
+    "exported": "Exported",
+    "impersonated": "Signed in as this user",
+    "invitation-resent": "Invitation sent again",
+    "invitation-revoked": "Invitation revoked",
+    "invited": "Invited",
+    "Resend the invitation to :email": "Resend the invitation to :email",
+    "Revoke the invitation to :email": "Revoke the invitation to :email"
 }

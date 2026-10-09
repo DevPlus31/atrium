@@ -1,4 +1,4 @@
-import { Head, router, useForm } from '@inertiajs/react';
+import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { useLaravelReactI18n } from 'laravel-react-i18n';
 import type { FormEvent } from 'react';
 import InputError from '@/components/input-error';
@@ -23,6 +23,7 @@ import {
 import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
 import { useBreadcrumbs } from '@/hooks/use-breadcrumbs';
+import { fromZonedInput, toZonedInput } from '@/lib/format';
 import { destroy, edit, update } from '@/routes/admin/settings/announcement';
 import type { BreadcrumbItem } from '@/types';
 
@@ -39,23 +40,13 @@ const levels: Record<Level, string> = {
     warning: 'Warning',
 };
 
-/** An ISO instant as the value of a datetime-local input (local time). */
-const toLocalInput = (iso: string | null): string => {
-    if (iso === null) {
-        return '';
-    }
-
-    const date = new Date(iso);
-    const offset = date.getTimezoneOffset() * 60_000;
-
-    return new Date(date.getTime() - offset).toISOString().slice(0, 16);
-};
-
 export default function Announcement({
     settings,
     maxLength,
 }: AnnouncementProps) {
     const { t } = useLaravelReactI18n();
+    // The user's chosen time zone; none means the browser's own.
+    const timeZone = usePage().props.timezone ?? undefined;
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: t('Announcement'), href: edit() },
@@ -65,14 +56,14 @@ export default function Announcement({
     const form = useForm(update(), {
         message: settings.message ?? '',
         level: settings.level,
-        ends_at: toLocalInput(settings.ends_at),
+        ends_at: toZonedInput(settings.ends_at, timeZone),
     });
 
-    // The server stores an instant: send the browser's local time with
-    // its offset rather than a bare wall-clock time.
+    // The input holds wall-clock time in the user's zone; the server
+    // stores an instant.
     form.transform((data) => ({
         ...data,
-        ends_at: data.ends_at ? new Date(data.ends_at).toISOString() : null,
+        ends_at: data.ends_at ? fromZonedInput(data.ends_at, timeZone) : null,
     }));
 
     const submit = (event: FormEvent<HTMLFormElement>) => {

@@ -37,6 +37,14 @@ it('filters by published and draft status', function (): void {
         ->and($draft->pluck('sku')->all())->toBe(['DRAFT-01']);
 });
 
+it('lists every product when both statuses are selected', function (): void {
+    Product::factory()->published()->create();
+    Product::factory()->create();
+
+    expect(productsIndexQuery(['filter' => ['status' => 'draft,published']])->builder()->count())->toBe(2)
+        ->and(productsIndexQuery(['filter' => ['status' => 'unknown']])->builder()->count())->toBe(2);
+});
+
 it('sorts by the allowed columns', function (): void {
     Product::factory()->create(['name' => 'Bravo', 'sku' => 'B-01', 'price_cents' => 200]);
     Product::factory()->create(['name' => 'Alpha', 'sku' => 'A-01', 'price_cents' => 100]);

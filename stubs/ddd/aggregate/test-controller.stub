@@ -50,7 +50,7 @@ it('renders the index with per-row abilities', function (): void {
 
     $response = $this->actingAs(adminUser())->get(route('admin.{{ slug }}.index'));
 
-    $response->assertOk()->assertInertia(fn (AssertableInertia $page) => $page
+    $response->assertOk()->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
         ->component('{{ moduleLower }}::index')
         ->has('{{ variablePlural }}.data', 1)
         ->where('{{ variablePlural }}.meta.per_page', 15)
@@ -68,17 +68,17 @@ it('applies the search filter and caps per_page', function (): void {
     $filtered = $this->actingAs($admin)->get(route('admin.{{ slug }}.index', ['filter' => ['search' => 'Alpha']]));
     $capped = $this->actingAs($admin)->get(route('admin.{{ slug }}.index', ['per_page' => 500]));
 
-    $filtered->assertOk()->assertInertia(fn (AssertableInertia $page) => $page
+    $filtered->assertOk()->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
         ->has('{{ variablePlural }}.data', 1)
         ->where('{{ variablePlural }}.data.0.name', 'Alpha'));
 
-    $capped->assertOk()->assertInertia(fn (AssertableInertia $page) => $page->where('{{ variablePlural }}.meta.per_page', 100));
+    $capped->assertOk()->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->where('{{ variablePlural }}.meta.per_page', 100));
 });
 
 it('renders the create page', function (): void {
     $this->actingAs(adminUser())->get(route('admin.{{ slug }}.create'))
         ->assertOk()
-        ->assertInertia(fn (AssertableInertia $page) => $page->component('{{ moduleLower }}::create'));
+        ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->component('{{ moduleLower }}::create'));
 });
 
 it('stores a {{ variable }} and redirects with a success flash', function (): void {
@@ -118,7 +118,7 @@ it('renders the edit page', function (): void {
 
     $this->actingAs(adminUser())->get(route('admin.{{ slug }}.edit', ${{ variable }}))
         ->assertOk()
-        ->assertInertia(fn (AssertableInertia $page) => $page
+        ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
             ->component('{{ moduleLower }}::edit')
             ->where('{{ variable }}.id', ${{ variable }}->id)
             ->where('{{ variable }}.name', 'Example'));
@@ -158,6 +158,8 @@ it('forbids admins without the matching permission', function (string $permissio
     $this->actingAs(adminUser())->{$method}(route($routeName, ${{ variable }}))->assertForbidden();
 })->with([
     'create' => ['{{ slug }}.create', 'get', 'admin.{{ slug }}.create'],
-    'update' => ['{{ slug }}.update', 'get', 'admin.{{ slug }}.edit'],
+    'store' => ['{{ slug }}.create', 'post', 'admin.{{ slug }}.store'],
+    'edit' => ['{{ slug }}.update', 'get', 'admin.{{ slug }}.edit'],
+    'update' => ['{{ slug }}.update', 'put', 'admin.{{ slug }}.update'],
     'delete' => ['{{ slug }}.delete', 'delete', 'admin.{{ slug }}.destroy'],
 ]);

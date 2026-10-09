@@ -15,9 +15,10 @@ use Illuminate\Support\Facades\Cookie;
 final readonly class UserPreferencesController
 {
     /**
-     * Update any subset of {appearance, theme, layout, locale} for the
-     * current user and re-issue the matching js-readable cookies so
-     * guests-turned-users and first paints stay consistent.
+     * Update any subset of {appearance, theme, layout, locale, timezone} for
+     * the current user and re-issue the js-readable cookies of the first
+     * four (the timezone lives on the account only), so guests-turned-users
+     * and first paints stay consistent.
      */
     public function __invoke(
         UpdateUserPreferencesRequest $request,

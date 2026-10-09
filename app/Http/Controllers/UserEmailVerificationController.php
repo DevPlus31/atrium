@@ -4,19 +4,17 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\RedirectResponse;
 
 final readonly class UserEmailVerificationController
 {
-    public function update(EmailVerificationRequest $request, #[CurrentUser] User $user): RedirectResponse
+    /**
+     * Mark the email verified; fulfill() does nothing (and fires no event)
+     * when it already is, so a second click lands in the same place.
+     */
+    public function update(EmailVerificationRequest $request): RedirectResponse
     {
-        if ($user->hasVerifiedEmail()) {
-            return redirect()->intended(route('dashboard', absolute: false).'?verified=1');
-        }
-
         $request->fulfill();
 
         return redirect()->intended(route('dashboard', absolute: false).'?verified=1');

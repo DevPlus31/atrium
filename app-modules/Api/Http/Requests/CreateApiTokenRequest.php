@@ -45,6 +45,14 @@ final class CreateApiTokenRequest extends FormRequest
         ];
     }
 
+    public function name(): string
+    {
+        /** @var string $name */
+        $name = $this->validated('name');
+
+        return $name;
+    }
+
     /**
      * @return list<string>
      */

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Laravel\Horizon\Horizon;
@@ -23,10 +22,12 @@ final class HorizonServiceProvider extends HorizonApplicationServiceProvider
     }
 
     /**
-     * Register the Horizon gate. Applies in every environment, production included.
+     * The System module defines `viewHorizon` with its other tool gates.
+     * Without that module the gate stays undefined, so Horizon is closed
+     * to everyone, in every environment.
      */
     protected function gate(): void
     {
-        Gate::define('viewHorizon', static fn (User $user): bool => $user->can('system.horizon.view'));
+        //
     }
 }

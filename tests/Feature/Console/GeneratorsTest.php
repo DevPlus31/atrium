@@ -74,7 +74,10 @@ it('scaffolds an aggregate and wires the module provider', function (): void {
         ->and(File::exists(base_path('app-modules/Zzdemo/resources/js/components/widgets-columns.tsx')))->toBeTrue()
         ->and(File::exists(base_path('app-modules/Zzdemo/resources/js/components/widgets-form-fields.tsx')))->toBeTrue()
         ->and(File::exists(base_path('app-modules/Zzdemo/tests/Feature/WidgetControllerTest.php')))->toBeTrue()
-        ->and(File::exists(base_path('app-modules/Zzdemo/tests/Unit/Actions/WidgetActionsTest.php')))->toBeTrue();
+        ->and(File::exists(base_path('app-modules/Zzdemo/tests/Unit/Actions/WidgetActionsTest.php')))->toBeTrue()
+        ->and(File::exists(base_path('app-modules/Zzdemo/tests/Unit/Policies/WidgetPolicyTest.php')))->toBeTrue()
+        ->and(File::exists(base_path('app-modules/Zzdemo/tests/Unit/Queries/WidgetsIndexQueryTest.php')))->toBeTrue()
+        ->and(File::get(base_path('app-modules/Zzdemo/Actions/UpdateWidget.php')))->toContain('->lockForUpdate($widget)');
 
     /** @var array<string, string> $module */
     $module = json_decode(File::get(base_path('app-modules/Zzdemo/lang/en.json')), true, flags: JSON_THROW_ON_ERROR);
@@ -171,4 +174,30 @@ it('warns about code elsewhere that still mentions the removed module', function
 
 it('fails to remove a module that does not exist', function (): void {
     $this->artisan('module:remove', ['name' => 'Missing', '--force' => true])->assertFailed();
+});
+
+it('refuses names that are not plain identifiers', function (string $command, array $arguments): void {
+    $this->artisan($command, $arguments)
+        ->expectsOutputToContain('is not a valid name')
+        ->assertFailed();
+
+    expect(File::directories(base_path('app-modules')))->toBe([]);
+})->with([
+    'module with a path' => ['make:module', ['name' => '../Escape']],
+    'module starting with a digit' => ['make:module', ['name' => '9Lives']],
+    'aggregate with a path' => ['make:aggregate', ['module' => 'Zzdemo', 'aggregate' => '../Widget']],
+    'removal with a path' => ['module:remove', ['name' => '../app', '--force' => true]],
+]);
+
+it('says when the provider line was edited by hand and could not be removed', function (): void {
+    $this->artisan('make:module', ['name' => 'Zzdemo'])->assertSuccessful();
+    File::put(base_path('bootstrap/providers.php'), str_replace(
+        'Modules\Zzdemo\Providers\ZzdemoServiceProvider::class',
+        'ZzdemoProvider::class',
+        File::get(base_path('bootstrap/providers.php')),
+    ));
+
+    $this->artisan('module:remove', ['name' => 'Zzdemo', '--force' => true])
+        ->expectsOutputToContain('check it by hand')
+        ->assertSuccessful();
 });

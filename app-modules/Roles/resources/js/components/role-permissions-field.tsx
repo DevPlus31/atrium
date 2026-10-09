@@ -1,7 +1,6 @@
 import { useLaravelReactI18n } from 'laravel-react-i18n';
 import InputError from '@/components/input-error';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
 
 type RolePermissionsFieldProps = {
     permissions: string[];
@@ -58,8 +57,11 @@ export function RolePermissionsField({
     };
 
     return (
-        <div className="grid gap-2">
-            <Label>{t('Permissions')}</Label>
+        // A group of checkboxes: the legend names the group for screen readers.
+        <fieldset className="grid gap-2">
+            <legend className="mb-2 text-sm leading-none font-medium">
+                {t('Permissions')}
+            </legend>
             {permissions.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
                     {t('No permissions available.')}
@@ -122,6 +124,6 @@ export function RolePermissionsField({
                 </div>
             )}
             <InputError message={error} />
-        </div>
+        </fieldset>
     );
 }

@@ -11,7 +11,8 @@ use Modules\Shop\Infrastructure\Models\Order;
 
 /**
  * Finds orders by number or customer email for the command palette.
- * Paid and shipped orders cannot be edited, so they open the filtered list.
+ * Orders the user cannot edit (no permission, or no longer pending) open
+ * the filtered list instead.
  */
 final readonly class OrdersSearch
 {

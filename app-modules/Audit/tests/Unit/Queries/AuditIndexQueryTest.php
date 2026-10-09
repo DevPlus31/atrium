@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Modules\Audit\Queries\AuditIndexQuery;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\QueryBuilder\Exceptions\InvalidSortQuery;
@@ -128,7 +129,7 @@ it('respects per_page within the allowed bounds', function (): void {
         ->and(auditIndexQuery(['per_page' => 0])->paginate()->perPage())->toBe(1);
 });
 
-it('eager loads the causer and subject', function (): void {
+it('eager loads only the causer (the page shows the subject by type and id)', function (): void {
     $causer = User::factory()->create();
     $subject = User::factory()->create();
 
@@ -137,7 +138,14 @@ it('eager loads the causer and subject', function (): void {
     $first = auditIndexQuery()->paginate()->first();
 
     expect($first?->relationLoaded('causer'))->toBeTrue()
-        ->and($first?->relationLoaded('subject'))->toBeTrue()
+        ->and($first?->relationLoaded('subject'))->toBeFalse()
         ->and($first?->causer?->is($causer))->toBeTrue()
-        ->and($first?->subject?->is($subject))->toBeTrue();
+        ->and($first?->subject_id)->toBe($subject->id);
+});
+
+it('has the event column indexed for the filter and its facet', function (): void {
+    $indexed = collect(Schema::getIndexes('activity_log'))
+        ->contains(fn (array $index): bool => $index['columns'] === ['event']);
+
+    expect($indexed)->toBeTrue();
 });

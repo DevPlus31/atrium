@@ -6,6 +6,7 @@ namespace Modules\Catalog\Infrastructure\Models;
 
 use App\Domain\Concerns\InteractsWithDomainEvents;
 use App\Domain\Contracts\RecordsDomainEvents;
+use App\Domain\ValueObjects\Money;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -13,6 +14,7 @@ use Illuminate\Database\Eloquent\Model;
 use Modules\Catalog\Database\Factories\ProductFactory;
 use Modules\Catalog\Domain\Events\ProductPublished;
 use Modules\Catalog\Domain\Exceptions\ProductAlreadyPublished;
+use Modules\Catalog\Domain\ValueObjects\Sku;
 
 /**
  * @property-read string $id
@@ -34,11 +36,40 @@ final class Product extends Model implements RecordsDomainEvents
     use InteractsWithDomainEvents;
 
     /**
+     * A new, unpublished product. Only valid values get this far: the SKU
+     * and the price are value objects.
+     */
+    public static function draft(string $name, Sku $sku, Money $price, ?string $description): self
+    {
+        $product = new self;
+        $product->revise($name, $sku, $price, $description);
+
+        return $product;
+    }
+
+    /**
+     * Change the product's details; publishing is a separate step.
+     */
+    public function revise(string $name, Sku $sku, Money $price, ?string $description): void
+    {
+        $this->name = $name;
+        $this->sku = (string) $sku;
+        $this->price_cents = $price->amount;
+        $this->currency = $price->currency;
+        $this->description = $description;
+    }
+
+    public function isPublished(): bool
+    {
+        return $this->published_at !== null;
+    }
+
+    /**
      * Publish the product, recording the domain event for dispatch after commit.
      */
     public function publish(): void
     {
-        if ($this->published_at !== null) {
+        if ($this->isPublished()) {
             throw ProductAlreadyPublished::withId($this->id);
         }
 

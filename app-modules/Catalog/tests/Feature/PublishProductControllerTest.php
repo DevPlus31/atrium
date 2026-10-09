@@ -28,16 +28,13 @@ it('publishes a draft product and redirects with a success flash', function (): 
     expect($product->refresh()->published_at)->not->toBeNull();
 });
 
-it('flashes an error when the product is already published', function (): void {
+it('refuses to publish a product twice', function (): void {
     $admin = adminUser();
     $product = Product::factory()->published()->create();
 
-    $response = $this->actingAs($admin)
-        ->from(route('admin.products.index'))
-        ->post(route('admin.products.publish', $product));
-
-    $response->assertRedirect(route('admin.products.index'))
-        ->assertInertiaFlash('toast.type', 'error');
+    $this->actingAs($admin)
+        ->post(route('admin.products.publish', $product))
+        ->assertForbidden();
 });
 
 it('forbids admins without the products.publish permission', function (): void {

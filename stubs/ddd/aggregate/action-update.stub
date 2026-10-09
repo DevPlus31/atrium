@@ -18,6 +18,7 @@ final readonly class Update{{ aggregate }}
     public function handle({{ aggregate }} ${{ variable }}, string $name, ?string $description): {{ aggregate }}
     {
         return DB::transaction(function () use (${{ variable }}, $name, $description): {{ aggregate }} {
+            ${{ variable }} = $this->{{ variablePlural }}->lockForUpdate(${{ variable }});
             ${{ variable }}->fill([
                 'name' => $name,
                 'description' => $description,
@@ -33,7 +34,7 @@ final readonly class Update{{ aggregate }}
                 ])
                 ->log('updated');
 
-            return ${{ variable }}->refresh();
+            return ${{ variable }};
         });
     }
 }

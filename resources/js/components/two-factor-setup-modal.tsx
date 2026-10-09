@@ -248,6 +248,7 @@ type Props = {
     qrCodeSvg: string | null;
     manualSetupKey: string | null;
     clearSetupData: () => void;
+    clearErrors: () => void;
     fetchSetupData: () => Promise<void>;
     errors: string[];
 };
@@ -260,6 +261,7 @@ export default function TwoFactorSetupModal({
     qrCodeSvg,
     manualSetupKey,
     clearSetupData,
+    clearErrors,
     fetchSetupData,
     errors,
 }: Props) {
@@ -313,17 +315,20 @@ export default function TwoFactorSetupModal({
 
     const resetModalState = useCallback(() => {
         setShowVerificationStep(false);
+        // Reopening after a failure tries again.
+        clearErrors();
 
         if (twoFactorEnabled) {
             clearSetupData();
         }
-    }, [twoFactorEnabled, clearSetupData]);
+    }, [twoFactorEnabled, clearSetupData, clearErrors]);
 
+    // Fetch once per opening; a failure waits for the user (no retry loop).
     useEffect(() => {
-        if (isOpen && !qrCodeSvg) {
+        if (isOpen && !qrCodeSvg && errors.length === 0) {
             void fetchSetupData();
         }
-    }, [isOpen, qrCodeSvg, fetchSetupData]);
+    }, [isOpen, qrCodeSvg, errors.length, fetchSetupData]);
 
     const handleClose = useCallback(() => {
         resetModalState();

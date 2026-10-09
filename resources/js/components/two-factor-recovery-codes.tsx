@@ -47,11 +47,12 @@ export default function TwoFactorRecoveryCodes({
         }
     }, [codesAreVisible, recoveryCodesList.length, fetchRecoveryCodes]);
 
+    // Fetch once; a failure waits for the user (no retry loop).
     useEffect(() => {
-        if (!recoveryCodesList.length) {
+        if (!recoveryCodesList.length && !errors?.length) {
             void fetchRecoveryCodes();
         }
-    }, [recoveryCodesList.length, fetchRecoveryCodes]);
+    }, [recoveryCodesList.length, errors?.length, fetchRecoveryCodes]);
 
     const RecoveryCodeIconComponent = codesAreVisible ? EyeOff : Eye;
 

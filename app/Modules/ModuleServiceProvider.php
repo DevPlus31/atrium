@@ -42,10 +42,12 @@ abstract class ModuleServiceProvider extends ServiceProvider
                 ->name('admin.')
                 ->group($this->modulePath('routes/admin.php'));
 
-            // Optional non-admin routes (e.g. actions available to users
-            // without panel access); the module applies its own middleware.
+            // Optional non-admin routes (member or guest pages); the module
+            // adds its own auth middleware, the module switch applies here so
+            // a disabled module's pages answer 404 for everyone.
             if (is_file($this->modulePath('routes/web.php'))) {
-                Route::middleware('web')->group($this->modulePath('routes/web.php'));
+                Route::middleware(['web', EnsureModuleIsEnabled::class.':'.$this->name()])
+                    ->group($this->modulePath('routes/web.php'));
             }
 
             // Optional API endpoints: version 1, token-authenticated. Gates

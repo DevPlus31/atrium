@@ -7,7 +7,6 @@
     "Shown on error pages so people know who to ask. Leave empty to hide it.": "Affiché sur les pages d’erreur pour savoir qui contacter. Laissez vide pour le masquer.",
     "Allow sign-ups": "Autoriser les inscriptions",
     "When off, only administrators can create accounts.": "Désactivé, seuls les administrateurs peuvent créer des comptes.",
-    "Settings saved.": "Paramètres enregistrés.",
     "Logo updated.": "Logo mis à jour.",
     "Logo removed.": "Logo retiré.",
     "Announcement": "Annonce",
@@ -17,10 +16,13 @@
     "e.g. Planned maintenance on Sunday from 2:00 to 4:00.": "ex. Maintenance prévue dimanche de 2 h à 4 h.",
     "Level": "Niveau",
     "Information": "Information",
-    "Warning": "Avertissement",
     "Ends (optional)": "Fin (facultative)",
-    "Publish": "Publier",
-    "Remove": "Retirer",
     "Announcement published.": "Annonce publiée.",
-    "Announcement removed.": "Annonce retirée."
+    "Announcement removed.": "Annonce retirée.",
+    "support@example.com": "support@exemple.com",
+    "announcement-removed": "Annonce retirée",
+    "announcement-updated": "Annonce mise à jour",
+    "general-updated": "Paramètres généraux modifiés",
+    "logo-removed": "Logo retiré",
+    "logo-updated": "Logo modifié"
 }

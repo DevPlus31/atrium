@@ -44,6 +44,7 @@ storage/pail
 
 # === Tests & dev-only tooling ===
 tests
+app-modules/*/tests
 .phpunit.cache
 .phpunit.result.cache
 phpunit.xml

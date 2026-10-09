@@ -85,7 +85,7 @@ export default function UsersEdit({ user, roles }: UsersEditProps) {
                                     form.setData('email', event.target.value)
                                 }
                                 onBlur={() => form.validate('email')}
-                                placeholder="email@example.com"
+                                placeholder={t('email@example.com')}
                             />
                             <InputError message={form.errors.email} />
                         </div>

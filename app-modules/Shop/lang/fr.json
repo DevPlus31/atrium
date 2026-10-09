@@ -28,7 +28,6 @@
     "Paid": "Payée",
     "Shipped": "Expédiée",
     "Cancelled": "Annulée",
-    "Mark as pending": "Marquer comme en attente",
     "Mark as paid": "Marquer comme payée",
     "Mark as shipped": "Marquer comme expédiée",
     "paid": "payée",
@@ -37,7 +36,6 @@
     "Shop settings": "Paramètres de la boutique",
     "Defaults for new orders.": "Valeurs par défaut des nouvelles commandes.",
     "Default currency": "Devise par défaut",
-    "Settings saved.": "Paramètres enregistrés.",
     "Shop": "Boutique",
     "Order :number is now :status": "La commande :number est maintenant :status",
     "We received your payment.": "Nous avons bien reçu votre paiement.",
@@ -46,5 +44,7 @@
     "View your orders": "Voir vos commandes",
     "Delete selected orders": "Supprimer les commandes sélectionnées",
     "This will permanently delete :count order and cannot be undone.|This will permanently delete :count orders and cannot be undone.": "Cela supprimera définitivement :count commande, sans retour possible.|Cela supprimera définitivement :count commandes, sans retour possible.",
-    ":count order deleted.|:count orders deleted.": ":count commande supprimée.|:count commandes supprimées."
+    ":count order deleted.|:count orders deleted.": ":count commande supprimée.|:count commandes supprimées.",
+    "settings-updated": "Paramètres de la boutique modifiés",
+    "status-changed": "Statut modifié"
 }

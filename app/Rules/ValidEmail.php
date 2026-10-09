@@ -10,7 +10,12 @@ use Illuminate\Translation\PotentiallyTranslatedString;
 
 final readonly class ValidEmail implements ValidationRule
 {
-    private const string REGEX = '/[a-z0-9!#$%&*+\/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&*+\/=?^_`{|}~-]+)*@[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.[a-z]{2,}/';
+    /**
+     * The whole value (anchored; D keeps `$` from accepting a trailing
+     * newline): a dot-atom local part, then one or more domain labels and
+     * a letters-only TLD, all lowercase.
+     */
+    private const string REGEX = '/^[a-z0-9!#$%&*+\/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&*+\/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}$/D';
 
     /**
      * Run the validation rule.
@@ -19,9 +24,7 @@ final readonly class ValidEmail implements ValidationRule
      */
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        assert(is_string($value));
-
-        if (in_array(preg_match(self::REGEX, $value), [0, false], true)) {
+        if (! is_string($value) || preg_match(self::REGEX, $value) !== 1) {
             $fail('The :attribute must be a valid email address.');
         }
     }

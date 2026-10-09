@@ -37,7 +37,7 @@ final readonly class InvitationController
 
     public function store(StoreInvitationRequest $request, #[CurrentUser] User $user, InviteUser $action): RedirectResponse
     {
-        $action->handle($user, $request->string('email')->value(), $request->roles());
+        $action->handle($user, $request->email(), $request->roles());
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Invitation sent.')]);
 

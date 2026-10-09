@@ -33,8 +33,8 @@ final readonly class AcceptInvitationController
     {
         $user = $action->handle(
             $invitation,
-            $request->string('name')->value(),
-            $request->string('password')->value(),
+            $request->name(),
+            $request->password(),
         );
 
         Auth::login($user);

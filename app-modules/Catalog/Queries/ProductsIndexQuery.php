@@ -50,12 +50,19 @@ final readonly class ProductsIndexQuery extends IndexQuery
      */
     private function status(Builder $query, mixed $value): void
     {
-        if ($value === 'published') {
-            $query->whereNotNull('published_at');
+        $statuses = array_intersect($this->stringValues($value), ['draft', 'published']);
+
+        // Both (or neither) selected: every product matches.
+        if (count($statuses) !== 1) {
+            return;
         }
 
-        if ($value === 'draft') {
-            $query->whereNull('published_at');
+        if (in_array('published', $statuses, true)) {
+            $query->whereNotNull('published_at');
+
+            return;
         }
+
+        $query->whereNull('published_at');
     }
 }

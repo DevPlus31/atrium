@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Console\Commands\Concerns\GeneratesModuleCode;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -15,10 +16,17 @@ use Illuminate\Support\Str;
 #[Signature('make:aggregate {module : The module name (e.g. Catalog)} {aggregate : The aggregate name (e.g. Product)}')]
 final class MakeAggregateCommand extends Command
 {
+    use GeneratesModuleCode;
+
     public function handle(Filesystem $files): int
     {
-        $module = Str::studly($this->stringArgument('module'));
-        $aggregate = Str::studly($this->stringArgument('aggregate'));
+        $module = $this->studlyArgument('module');
+        $aggregate = $this->studlyArgument('aggregate');
+
+        if ($module === null || $aggregate === null) {
+            return self::FAILURE;
+        }
+
         $modulePath = base_path('app-modules/'.$module);
 
         if (! $files->isDirectory($modulePath)) {
@@ -106,6 +114,8 @@ final class MakeAggregateCommand extends Command
             'aggregate/form-fields' => $modulePath.'/resources/js/components/'.$slug.'-form-fields.tsx',
             'aggregate/test-controller' => $modulePath.'/tests/Feature/'.$aggregate.'ControllerTest.php',
             'aggregate/test-actions' => $modulePath.'/tests/Unit/Actions/'.$aggregate.'ActionsTest.php',
+            'aggregate/test-policy' => $modulePath.'/tests/Unit/Policies/'.$aggregate.'PolicyTest.php',
+            'aggregate/test-query' => $modulePath.'/tests/Unit/Queries/'.$plural.'IndexQueryTest.php',
         ];
 
         foreach ($map as $stub => $target) {
@@ -187,18 +197,6 @@ final class MakeAggregateCommand extends Command
         return $strings;
     }
 
-    /**
-     * @param  array<string, string>  $replacements
-     */
-    private function render(Filesystem $files, string $stub, array $replacements): string
-    {
-        return str_replace(
-            array_keys($replacements),
-            array_values($replacements),
-            $files->get(base_path('stubs/ddd/'.$stub.'.stub')),
-        );
-    }
-
     private function wireProvider(Filesystem $files, string $modulePath, string $module, string $aggregate, string $slug, string $label): void
     {
         $path = $modulePath.'/Providers/'.$module.'ServiceProvider.php';
@@ -237,13 +235,5 @@ final class MakeAggregateCommand extends Command
         );
 
         $files->put($path, $contents);
-    }
-
-    private function stringArgument(string $key): string
-    {
-        /** @var string $value */
-        $value = $this->argument($key);
-
-        return $value;
     }
 }

@@ -9,10 +9,13 @@ use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\Validator;
+use Modules\Users\Http\Requests\Concerns\ReadsAccountInput;
 use Modules\Users\Infrastructure\Models\Invitation;
 
 final class AcceptInvitationRequest extends FormRequest
 {
+    use ReadsAccountInput;
+
     /**
      * @return array<string, array<mixed>>
      */

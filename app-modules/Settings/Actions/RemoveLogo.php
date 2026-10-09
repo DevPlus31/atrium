@@ -19,10 +19,14 @@ final readonly class RemoveLogo
             return;
         }
 
-        Storage::disk(Config::string('media-library.disk_name'))->delete($settings->logo_path);
+        $path = $settings->logo_path;
 
+        // Settings first: if saving fails the logo still shows; a file left
+        // behind by a failed delete is harmless, a missing one is not.
         $settings->logo_path = null;
         $settings->save();
+
+        Storage::disk(Config::string('media-library.disk_name'))->delete($path);
 
         activity('settings')->event('updated')->log('logo-removed');
     }

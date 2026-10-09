@@ -41,14 +41,6 @@ final class HandleInertiaRequests extends Middleware
     }
 
     /**
-     * @see https://inertiajs.com/asset-versioning
-     */
-    public function version(Request $request): ?string
-    {
-        return parent::version($request);
-    }
-
-    /**
      * @see https://inertiajs.com/shared-data
      *
      * @return array<string, mixed>

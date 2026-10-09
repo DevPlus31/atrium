@@ -9,6 +9,11 @@ use Modules\{{ module }}\Infrastructure\Models\{{ aggregate }};
 
 final readonly class Eloquent{{ aggregate }}Repository implements {{ aggregate }}Repository
 {
+    public function lockForUpdate({{ aggregate }} ${{ variable }}): {{ aggregate }}
+    {
+        return {{ aggregate }}::query()->whereKey(${{ variable }}->getKey())->lockForUpdate()->firstOrFail();
+    }
+
     public function save({{ aggregate }} ${{ variable }}): void
     {
         ${{ variable }}->save();

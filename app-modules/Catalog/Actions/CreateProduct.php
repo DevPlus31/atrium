@@ -19,25 +19,16 @@ final readonly class CreateProduct
 
     public function handle(string $name, string $sku, int $priceCents, string $currency, ?string $description): Product
     {
-        $sku = (string) new Sku($sku);
-        $money = new Money($priceCents, $currency);
+        $product = Product::draft($name, new Sku($sku), new Money($priceCents, $currency), $description);
 
-        return DB::transaction(function () use ($name, $sku, $money, $description): Product {
-            $product = new Product([
-                'name' => $name,
-                'sku' => $sku,
-                'price_cents' => $money->amount,
-                'currency' => $money->currency,
-                'description' => $description,
-            ]);
-
+        return DB::transaction(function () use ($product): Product {
             $this->products->save($product);
 
             activity('catalog')
                 ->performedOn($product)
                 ->event('created')
                 ->withProperties([
-                    'attributes' => ['name' => $name, 'sku' => $sku],
+                    'attributes' => ['name' => $product->name, 'sku' => $product->sku],
                 ])
                 ->log('created');
 

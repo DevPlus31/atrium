@@ -6,6 +6,7 @@ namespace Modules\Api\Actions;
 
 use App\Models\User;
 use Carbon\CarbonInterface;
+use Illuminate\Support\Facades\DB;
 use Laravel\Sanctum\NewAccessToken;
 
 final readonly class CreateApiToken
@@ -18,18 +19,20 @@ final readonly class CreateApiToken
      */
     public function handle(User $user, string $name, array $abilities, CarbonInterface $expiresAt): NewAccessToken
     {
-        $token = $user->createToken($name, $abilities, $expiresAt);
+        return DB::transaction(function () use ($user, $name, $abilities, $expiresAt): NewAccessToken {
+            $token = $user->createToken($name, $abilities, $expiresAt);
 
-        activity('users')
-            ->performedOn($user)
-            ->event('api-token-created')
-            ->withProperties(['attributes' => [
-                'name' => $name,
-                'abilities' => $abilities,
-                'expires_at' => $expiresAt->toIso8601String(),
-            ]])
-            ->log('api-token-created');
+            activity('users')
+                ->performedOn($user)
+                ->event('api-token-created')
+                ->withProperties(['attributes' => [
+                    'name' => $name,
+                    'abilities' => $abilities,
+                    'expires_at' => $expiresAt->toIso8601String(),
+                ]])
+                ->log('api-token-created');
 
-        return $token;
+            return $token;
+        });
     }
 }

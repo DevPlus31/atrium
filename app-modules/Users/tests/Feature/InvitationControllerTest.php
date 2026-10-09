@@ -133,10 +133,24 @@ it('does not resend an accepted invitation', function (): void {
     $invitation = Invitation::factory()->accepted()->create();
 
     $this->actingAs(adminUser())
+        ->from(route('admin.users.invitations.index'))
         ->post(route('admin.users.invitations.resend', $invitation))
-        ->assertNotFound();
+        ->assertRedirectToRoute('admin.users.invitations.index')
+        ->assertInertiaFlash('toast.type', 'error');
 
     Notification::assertNothingSent();
+});
+
+it('does not revoke an accepted invitation', function (): void {
+    $invitation = Invitation::factory()->accepted()->create();
+
+    $this->actingAs(adminUser())
+        ->from(route('admin.users.invitations.index'))
+        ->delete(route('admin.users.invitations.destroy', $invitation))
+        ->assertRedirectToRoute('admin.users.invitations.index')
+        ->assertInertiaFlash('toast.type', 'error');
+
+    expect($invitation->fresh())->not->toBeNull();
 });
 
 it('revokes an invitation', function (): void {

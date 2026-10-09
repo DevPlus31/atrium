@@ -39,3 +39,28 @@ it('revokes a token', function (): void {
     expect(PersonalAccessToken::query()->exists())->toBeFalse()
         ->and(Activity::query()->where('event', 'api-token-revoked')->sole()->properties['attributes'])->toBe(['name' => 'Old']);
 });
+
+it('keeps no token when the activity log cannot be written', function (): void {
+    $user = User::factory()->create();
+    Activity::creating(function (): never {
+        throw new RuntimeException('Activity log unavailable.');
+    });
+
+    expect(fn () => resolve(CreateApiToken::class)->handle($user, 'Script', [], now()->addDays(30)))
+        ->toThrow(RuntimeException::class);
+
+    expect(PersonalAccessToken::query()->count())->toBe(0);
+});
+
+it('keeps the token when its revocation cannot be logged', function (): void {
+    $user = User::factory()->create();
+    $token = $user->createToken('Script', [], now()->addDays(30))->accessToken;
+    Activity::creating(function (): never {
+        throw new RuntimeException('Activity log unavailable.');
+    });
+
+    expect(fn () => resolve(RevokeApiToken::class)->handle($user, $token))
+        ->toThrow(RuntimeException::class);
+
+    expect(PersonalAccessToken::query()->whereKey($token->id)->exists())->toBeTrue();
+});

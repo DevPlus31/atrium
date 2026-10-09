@@ -138,3 +138,10 @@ it('validates the name and password', function (): void {
     expect(User::query()->exists())->toBeFalse()
         ->and($invitation->refresh()->accepted_at)->toBeNull();
 });
+
+it('is not found while the Users module is switched off', function (): void {
+    config(['modules.disabled' => ['users']]);
+    $invitation = Invitation::factory()->create();
+
+    $this->get($invitation->acceptUrl())->assertNotFound();
+});

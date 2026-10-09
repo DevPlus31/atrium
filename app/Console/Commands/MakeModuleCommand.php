@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Console\Commands\Concerns\GeneratesModuleCode;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -14,6 +15,8 @@ use Illuminate\Support\Str;
 #[Signature('make:module {name : The module name in StudlyCase (e.g. Catalog)}')]
 final class MakeModuleCommand extends Command
 {
+    use GeneratesModuleCode;
+
     /**
      * Empty layer directories seeded with a .gitkeep so the structure is tracked.
      *
@@ -32,10 +35,12 @@ final class MakeModuleCommand extends Command
 
     public function handle(Filesystem $files): int
     {
-        /** @var string $name */
-        $name = $this->argument('name');
+        $studly = $this->studlyArgument('name');
 
-        $studly = Str::studly($name);
+        if ($studly === null) {
+            return self::FAILURE;
+        }
+
         $kebab = Str::kebab($studly);
         $modulePath = base_path('app-modules/'.$studly);
 
@@ -79,16 +84,6 @@ final class MakeModuleCommand extends Command
         ]);
 
         return self::SUCCESS;
-    }
-
-    /**
-     * @param  array<string, string>  $replacements
-     */
-    private function render(Filesystem $files, string $stub, array $replacements): string
-    {
-        $contents = $files->get(base_path('stubs/ddd/'.$stub.'.stub'));
-
-        return str_replace(array_keys($replacements), array_values($replacements), $contents);
     }
 
     private function registerProvider(Filesystem $files, string $studly): void
