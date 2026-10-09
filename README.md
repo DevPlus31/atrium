@@ -154,6 +154,51 @@ Already in the shell:
 - **Admin tooling:** audit log, Pulse, Horizon and Log Viewer.
 - **Platform:** themes (presets, light/dark, layout variants, RTL; see `THEMING.md`), plus security headers and CSP.
 
+## Styling and layout
+
+Every colour, font, radius and size is a CSS variable (a **token**), and one file decides the shell's structure. Restyle by changing token values; relayout by changing the layout config. Never edit pages or module components to change the look. `bun run lint:theme` fails on raw colours (`bg-white`, `#fff`, `oklch(…)` in a class or style) and on physical direction classes (`ml-`, `pr-`, `left-`; use `ms-`, `pe-`, `start-`). Full contract: `THEMING.md`.
+
+| To change | Edit | Notes |
+|---|---|---|
+| Colours | the `:root` (light) and `.dark` blocks in `resources/css/app.css` | Shadcn names: `--background`, `--primary`, `--muted`, `--sidebar-*`, `--chart-1…5`. Keep WCAG AA on text/background and `primary-foreground`/`primary` |
+| Page background | `--background`, **and** the matching `background-color` in `resources/views/app.blade.php` | That inline style paints before the CSS loads; `FirstPaintBackgroundTest` fails when they differ |
+| Fonts | `--font-body`, `--font-display`, `--font-mono` in `app.css`, and the font `<link>` in `app.blade.php` | `font-sans` follows `--font-body` |
+| Corners, row spacing, sizes | `--radius`, `--density` (table rows), `--header-height`, `--content-max-width` (boxed width), `--sidebar-width`, `--sidebar-width-icon` | Presets may override these too |
+| One component's look | `resources/js/components/ui/*` (vendored shadcn) | A shell change: every module gets it. Use tokens, never colours |
+| Logo, favicons, auth artwork, error pages, emails | see "Branding a project" in `THEMING.md` | `rg -n "@branding"` lists every spot |
+
+**Adding a theme preset** (users pick it in the header menu or the command palette):
+1. Copy `resources/css/themes/ember.css` to `themes/<name>.css`. Keep only the overridden tokens, in a `:root[data-theme='<name>']` block and a `.dark` companion block.
+2. `@import` it in `resources/css/app.css`.
+3. Add a `case` to `App\Enums\ThemePreset`, then run `php artisan typescript:transform`.
+4. Add the option to `themePresetOptions` in `resources/js/components/admin/theme-options.ts`, and its label to `lang/*.json`.
+5. If it changes `--background`, add an `html[data-theme='<name>']` (or `html.dark[data-theme='<name>']`) rule to the first-paint style in `app.blade.php`.
+
+**Layout.** The options below are saved per user (topbar settings menu, command palette):
+
+| Option | Values | Default |
+|---|---|---|
+| `nav_placement` | `sidebar-left` · `sidebar-right` · `topbar` | `sidebar-left` |
+| `sidebar_variant` | `sidebar` · `floating` · `inset` | `sidebar` |
+| `sidebar_collapsible` | `offcanvas` · `icon` · `none` | `icon` |
+| `content_width` | `fluid` · `boxed` | `fluid` |
+| `header` | `sticky` · `static` | `sticky` |
+| `direction` | `ltr` · `rtl` | `ltr` |
+
+- **Defaults for everyone:** `ResolveUserPreferences::DEFAULT_LAYOUT`; the default preset and appearance are the fallbacks in its `handle()`. A user's own choice still wins.
+- **Changing how a variant renders:** `resources/js/layouts/admin-layout.tsx` is the only file that reads the layout config. The pieces it assembles are `components/admin/admin-sidebar.tsx`, `admin-topbar.tsx` and `admin-header.tsx`. Menu items come from module `navigation()` hooks, never from the layout.
+- **Adding an option or value:**
+  1. Add the case to its enum in `app/Enums`.
+  2. If it is a new option, add it to `LayoutConfigData` and `DEFAULT_LAYOUT`.
+  3. Run `php artisan typescript:transform`.
+  4. Add the branch in `admin-layout.tsx`.
+  5. Add the menu entry in `theme-options.ts`, plus its translations.
+  6. Free-form or drag-and-drop layouts are out of scope by design.
+- **Other layouts:** account settings pages sit inside `AdminLayout` with `layouts/settings/layout.tsx` (its tab list adds the module-registered tabs). Sign-in pages and public module pages (`pages/public/`) use `layouts/auth-layout.tsx`. All of them use the same tokens, so restyling reaches them too.
+- **Module pages** render into the content area and never read layout config, position themselves against the shell, or add global CSS. That is what lets every module work in every layout and preset.
+
+After a change, check light and dark, each preset, `rtl`, and the `topbar` layout. `tests/Browser/ThemeMatrixTest.php` covers the theme and layout combinations. Then run the quality gates below.
+
 ## Translations
 
 - **Keys:** flat JSON with English keys, used by both `__()` in PHP and `t()` in React. The shell's strings live in `lang/<locale>.json`; a module's in `app-modules/<Name>/lang/<locale>.json`.
