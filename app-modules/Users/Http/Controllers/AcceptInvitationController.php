@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Users\Http\Controllers;
 
 use App\Models\User;
+use App\Modules\Toast;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
@@ -40,7 +41,7 @@ final readonly class AcceptInvitationController
         Auth::login($user);
         $request->session()->regenerate();
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Welcome to :app!', ['app' => Config::string('app.name')])]);
+        Toast::success(__('Welcome to :app!', ['app' => Config::string('app.name')]));
 
         return to_route('dashboard');
     }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Roles\Actions;
 
+use App\Modules\AuditLog;
 use Illuminate\Support\Facades\DB;
 use Modules\Roles\Domain\Repositories\RoleRepository;
 use Modules\Roles\Domain\ValueObjects\RoleName;
@@ -28,13 +29,14 @@ final readonly class CreateRole
 
             $this->roles->syncPermissions($role, $permissions);
 
-            activity('roles')
-                ->performedOn($role)
-                ->event('created')
-                ->withProperties([
+            AuditLog::record(
+                log: 'roles',
+                event: 'created',
+                subject: $role,
+                properties: [
                     'attributes' => ['name' => (string) $name, 'permissions' => $permissions],
-                ])
-                ->log('created');
+                ],
+            );
 
             return $role;
         });

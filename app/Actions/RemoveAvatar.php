@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\Models\User;
+use App\Modules\AuditLog;
 
 final readonly class RemoveAvatar
 {
@@ -19,9 +20,10 @@ final readonly class RemoveAvatar
 
         $user->clearMediaCollection(User::AVATAR);
 
-        activity('users')
-            ->performedOn($user)
-            ->event('avatar-removed')
-            ->log('avatar-removed');
+        AuditLog::record(
+            log: 'users',
+            event: 'avatar-removed',
+            subject: $user,
+        );
     }
 }

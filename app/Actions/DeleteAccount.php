@@ -6,6 +6,7 @@ namespace App\Actions;
 
 use App\Domain\Exceptions\LastAdministrator;
 use App\Models\User;
+use App\Modules\AuditLog;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
 
@@ -33,12 +34,13 @@ final readonly class DeleteAccount
 
             $user->delete();
 
-            activity('users')
-                ->performedOn($user)
-                ->causedBy($user)
-                ->event('account-deleted')
-                ->withProperties(['attributes' => ['name' => $user->name, 'email' => $user->email]])
-                ->log('account-deleted');
+            AuditLog::record(
+                log: 'users',
+                event: 'account-deleted',
+                subject: $user,
+                properties: ['attributes' => ['name' => $user->name, 'email' => $user->email]],
+                causer: $user,
+            );
         });
     }
 }

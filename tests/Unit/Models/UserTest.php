@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 use App\Models\User;
 use Carbon\CarbonImmutable;
+use Illuminate\Auth\Notifications\VerifyEmail;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -98,4 +101,32 @@ test('falls back to the application timezone and language', function (): void {
 
 test('sends notifications in the language the user chose', function (): void {
     expect(User::factory()->create(['locale' => 'fr'])->preferredLocale())->toBe('fr');
+});
+
+it('changes the email to its normalised form and asks for verification after commit', function (): void {
+    Notification::fake();
+    $user = User::factory()->create(['email' => 'old@example.com']);
+
+    DB::transaction(function () use ($user): void {
+        expect($user->changeEmail(' New@Example.com '))->toBeTrue();
+
+        $user->save();
+
+        Notification::assertNothingSent();
+    });
+
+    expect($user->refresh()->email)->toBe('new@example.com')
+        ->and($user->email_verified_at)->toBeNull();
+
+    Notification::assertSentTo($user, VerifyEmail::class);
+});
+
+it('keeps the verification when the email does not change', function (): void {
+    Notification::fake();
+    $user = User::factory()->create(['email' => 'same@example.com']);
+
+    expect($user->changeEmail('Same@Example.com'))->toBeFalse()
+        ->and($user->email_verified_at)->not->toBeNull();
+
+    Notification::assertNothingSent();
 });

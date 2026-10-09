@@ -1,16 +1,14 @@
-import { Form, Head } from '@inertiajs/react';
+import { Form } from '@inertiajs/react';
 import { useLaravelReactI18n } from 'laravel-react-i18n';
 import { ShieldCheck } from 'lucide-react';
 import { useState } from 'react';
-import Heading from '@/components/heading';
+import { SettingsSection } from '@/components/settings-section';
 import TwoFactorRecoveryCodes from '@/components/two-factor-recovery-codes';
 import TwoFactorSetupModal from '@/components/two-factor-setup-modal';
 import { Button } from '@/components/ui/button';
-import { useBreadcrumbs } from '@/hooks/use-breadcrumbs';
 import { useTwoFactorAuth } from '@/hooks/use-two-factor-auth';
-import SettingsLayout from '@/layouts/settings/layout';
+import { SettingsPage } from '@/layouts/settings/page';
 import { disable, enable, show } from '@/routes/two-factor';
-import type { BreadcrumbItem } from '@/types';
 
 type Props = {
     canManageTwoFactor?: boolean;
@@ -37,27 +35,16 @@ export default function TwoFactor({
     } = useTwoFactorAuth();
     const [showSetupModal, setShowSetupModal] = useState<boolean>(false);
 
-    const breadcrumbs: BreadcrumbItem[] = [
-        {
-            title: t('Two-factor authentication'),
-            href: show(),
-        },
-    ];
-    useBreadcrumbs(breadcrumbs);
-
     return (
         <>
-            <Head title={t('Two-factor authentication')} />
-            <SettingsLayout>
+            <SettingsPage title={t('Two-factor authentication')} href={show()}>
                 {canManageTwoFactor && (
-                    <div className="space-y-6">
-                        <Heading
-                            variant="small"
-                            title={t('Two-factor authentication')}
-                            description={t(
-                                'Manage your two-factor authentication settings',
-                            )}
-                        />
+                    <SettingsSection
+                        title={t('Two-factor authentication')}
+                        description={t(
+                            'Manage your two-factor authentication settings',
+                        )}
+                    >
                         {twoFactorEnabled ? (
                             <div className="flex flex-col items-start justify-start space-y-4">
                                 <p className="text-sm text-muted-foreground">
@@ -137,9 +124,9 @@ export default function TwoFactor({
                             fetchSetupData={fetchSetupData}
                             errors={errors}
                         />
-                    </div>
+                    </SettingsSection>
                 )}
-            </SettingsLayout>
+            </SettingsPage>
         </>
     );
 }

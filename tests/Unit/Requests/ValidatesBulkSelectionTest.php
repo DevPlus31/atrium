@@ -34,8 +34,7 @@ it('keeps the permitted records with integer keys and skips malformed ids', func
     $request = bulkSelection([(string) $editor->id, (string) $viewer->id, 'abc'], User::factory()->create());
     $permitted = $request->permitted(Role::query(), 'remove');
 
-    expect($permitted->pluck('name')->all())->toBe(['editor'])
-        ->and($request->skipped($permitted->count()))->toBe(2);
+    expect($permitted->pluck('name')->all())->toBe(['editor']);
 });
 
 it("matches each model's own key shape", function (string $model, array $keys, array $selected, array $expected): void {

@@ -1,22 +1,21 @@
-import { Head, router } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import { usePasskeyRegister } from '@laravel/passkeys/react';
 import { useLaravelReactI18n } from 'laravel-react-i18n';
 import { KeyRound, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { ConfirmDialog } from '@/components/confirm-dialog';
-import Heading from '@/components/heading';
-import InputError from '@/components/input-error';
+import { FormField } from '@/components/form-field';
+import { ItemList, ItemRow } from '@/components/item-list';
+import { SettingsSection } from '@/components/settings-section';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import { useBreadcrumbs } from '@/hooks/use-breadcrumbs';
 import { useDeleteDialog } from '@/hooks/use-delete-dialog';
 import { useFormatters } from '@/hooks/use-formatters';
-import SettingsLayout from '@/layouts/settings/layout';
+import { SettingsPage } from '@/layouts/settings/page';
+import { handleSubmit } from '@/lib/utils';
 import { destroy } from '@/routes/passkey';
 import { show } from '@/routes/passkeys';
-import type { BreadcrumbItem } from '@/types';
 
 type PasskeyItem = App.Modules.Data.PasskeyData;
 
@@ -43,28 +42,16 @@ export default function Passkeys({
         },
     });
 
-    const breadcrumbs: BreadcrumbItem[] = [
-        {
-            title: t('Passkeys'),
-            href: show(),
-        },
-    ];
-    useBreadcrumbs(breadcrumbs);
-
     return (
         <>
-            <Head title={t('Passkeys')} />
-            <SettingsLayout>
+            <SettingsPage title={t('Passkeys')} href={show()}>
                 {canManagePasskeys && (
-                    <div className="space-y-6">
-                        <Heading
-                            variant="small"
-                            title={t('Passkeys')}
-                            description={t(
-                                "Sign in securely with your device's screen lock or a hardware key",
-                            )}
-                        />
-
+                    <SettingsSection
+                        title={t('Passkeys')}
+                        description={t(
+                            "Sign in securely with your device's screen lock or a hardware key",
+                        )}
+                    >
                         <div className="flex flex-col items-start justify-start space-y-4">
                             <p className="text-sm text-muted-foreground">
                                 {t(
@@ -73,97 +60,99 @@ export default function Passkeys({
                             </p>
 
                             <form
-                                className="flex w-full flex-col gap-2"
-                                onSubmit={(event) => {
-                                    event.preventDefault();
-                                    void register(name);
-                                }}
-                            >
-                                <Label htmlFor="passkey-name">
-                                    {t('Passkey name')}
-                                </Label>
-                                <div className="flex w-full items-center gap-2">
-                                    <Input
-                                        id="passkey-name"
-                                        value={name}
-                                        onChange={(event) =>
-                                            setName(event.target.value)
-                                        }
-                                        placeholder={t('e.g. Work laptop')}
-                                        maxLength={255}
-                                    />
-                                    <Button
-                                        type="submit"
-                                        disabled={
-                                            !isSupported ||
-                                            isLoading ||
-                                            name.trim() === ''
-                                        }
-                                    >
-                                        {isLoading ? <Spinner /> : <KeyRound />}
-                                        {t('Add passkey')}
-                                    </Button>
-                                </div>
-                                {!isSupported && (
-                                    <p className="text-sm text-muted-foreground">
-                                        {t(
-                                            'This browser does not support passkeys.',
-                                        )}
-                                    </p>
+                                className="w-full"
+                                onSubmit={handleSubmit(
+                                    () => void register(name),
                                 )}
-                                <InputError message={error ?? undefined} />
+                            >
+                                <FormField
+                                    id="passkey-name"
+                                    label={t('Passkey name')}
+                                    error={error ?? undefined}
+                                    hint={
+                                        isSupported
+                                            ? undefined
+                                            : t(
+                                                  'This browser does not support passkeys.',
+                                              )
+                                    }
+                                >
+                                    <div className="flex w-full items-center gap-2">
+                                        <Input
+                                            id="passkey-name"
+                                            value={name}
+                                            onChange={(event) =>
+                                                setName(event.target.value)
+                                            }
+                                            placeholder={t('e.g. Work laptop')}
+                                            maxLength={255}
+                                        />
+                                        <Button
+                                            type="submit"
+                                            disabled={
+                                                !isSupported ||
+                                                isLoading ||
+                                                name.trim() === ''
+                                            }
+                                        >
+                                            {isLoading ? (
+                                                <Spinner />
+                                            ) : (
+                                                <KeyRound />
+                                            )}
+                                            {t('Add passkey')}
+                                        </Button>
+                                    </div>
+                                </FormField>
                             </form>
                         </div>
 
                         {passkeys.length > 0 && (
-                            <ul className="divide-y rounded-lg border">
+                            <ItemList>
                                 {passkeys.map((passkey) => (
-                                    <li
+                                    <ItemRow
                                         key={passkey.id}
-                                        className="flex items-center gap-4 p-4"
-                                    >
-                                        <KeyRound className="size-4 shrink-0 text-muted-foreground" />
-                                        <div className="min-w-0 flex-1">
-                                            <p className="truncate text-sm font-medium">
-                                                {passkey.name}
-                                            </p>
-                                            <p className="truncate text-sm text-muted-foreground">
-                                                {passkey.authenticator !== null
-                                                    ? `${passkey.authenticator} · `
-                                                    : ''}
-                                                {passkey.last_used_at !== null
-                                                    ? t('Last used :date', {
-                                                          date: format.date(
-                                                              passkey.last_used_at,
-                                                          ),
-                                                      })
-                                                    : passkey.created_at !==
-                                                        null
-                                                      ? t('Added :date', {
-                                                            date: format.date(
-                                                                passkey.created_at,
-                                                            ),
-                                                        })
-                                                      : t('Never used')}
-                                            </p>
-                                        </div>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="ms-auto text-destructive hover:text-destructive"
-                                            aria-label={t(
-                                                'Delete passkey :name',
-                                                { name: passkey.name },
-                                            )}
-                                            onClick={() =>
-                                                deleteDialog.request(passkey)
-                                            }
-                                        >
-                                            <Trash2 />
-                                        </Button>
-                                    </li>
+                                        icon={
+                                            <KeyRound className="size-4 shrink-0 text-muted-foreground" />
+                                        }
+                                        title={passkey.name}
+                                        details={[
+                                            passkey.authenticator,
+                                            passkey.last_used_at !== null
+                                                ? t('Last used :date', {
+                                                      date: format.date(
+                                                          passkey.last_used_at,
+                                                      ),
+                                                  })
+                                                : passkey.created_at !== null
+                                                  ? t('Added :date', {
+                                                        date: format.date(
+                                                            passkey.created_at,
+                                                        ),
+                                                    })
+                                                  : t('Never used'),
+                                        ]}
+                                        actions={
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="text-destructive hover:text-destructive"
+                                                aria-label={t(
+                                                    'Delete passkey :name',
+                                                    { name: passkey.name },
+                                                )}
+                                                onClick={() =>
+                                                    deleteDialog.request(
+                                                        passkey,
+                                                    )
+                                                }
+                                            >
+                                                <Trash2 />
+                                            </Button>
+                                        }
+                                    />
                                 ))}
-                            </ul>
+                            </ItemList>
                         )}
 
                         <ConfirmDialog
@@ -179,9 +168,9 @@ export default function Passkeys({
                             )}
                             confirmLabel={t('Delete')}
                         />
-                    </div>
+                    </SettingsSection>
                 )}
-            </SettingsLayout>
+            </SettingsPage>
         </>
     );
 }

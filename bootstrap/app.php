@@ -6,6 +6,7 @@ use App\Domain\Exceptions\DomainException;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\SecurityHeaders;
+use App\Modules\Toast;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -14,7 +15,6 @@ use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Session\Middleware\AuthenticateSession;
-use Inertia\Inertia;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -55,7 +55,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 return response()->json(['message' => $exception->getMessage()], 409);
             }
 
-            Inertia::flash('toast', ['type' => 'error', 'message' => __('That can’t be done any more: something changed in the meantime. Check and try again.')]);
+            Toast::error(__('That can’t be done any more: something changed in the meantime. Check and try again.'));
 
             return back();
         });

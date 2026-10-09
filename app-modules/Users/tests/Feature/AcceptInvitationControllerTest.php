@@ -8,10 +8,6 @@ use Inertia\Testing\AssertableInertia;
 use Modules\Users\Infrastructure\Models\Invitation;
 use Modules\Users\Notifications\InvitationAcceptedNotification;
 
-beforeEach(function (): void {
-    $this->withoutVite();
-});
-
 it('only opens from the signed link', function (): void {
     $invitation = Invitation::factory()->create();
 
@@ -77,7 +73,7 @@ it('creates the verified account with the invited roles and signs it in', functi
         'password_confirmation' => 'correct horse battery staple',
     ])
         ->assertRedirectToRoute('dashboard')
-        ->assertInertiaFlash('toast', ['type' => 'success', 'message' => 'Welcome to '.config('app.name').'!']);
+        ->assertToast('Welcome to '.config('app.name').'!');
 
     $user = User::query()->where('email', 'new@example.com')->sole();
 

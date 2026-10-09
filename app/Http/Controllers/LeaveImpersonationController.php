@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Actions\LeaveImpersonation;
 use App\Models\User;
+use App\Modules\Toast;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -29,7 +30,7 @@ final readonly class LeaveImpersonationController
         // The session belongs to another account again: drop the history the
         // impersonated user browsed so Back cannot reveal it.
         Inertia::clearHistory();
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Stopped impersonating :name.', ['name' => $impersonated->name])]);
+        Toast::success(__('Stopped impersonating :name.', ['name' => $impersonated->name]));
 
         // Back to the impersonator's own home (their first menu item).
         return to_route('dashboard');

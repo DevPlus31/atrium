@@ -1,10 +1,11 @@
-import { Link } from '@inertiajs/react';
 import {
-    DataTableColumnHeader,
-    DataTableRowActions,
+    actionsColumn,
+    dateColumn,
+    sortableColumn,
+    DeleteMenuItem,
+    EditMenuItem,
     type DataTableColumn,
 } from '@/components/data-table';
-import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import type { Formatters } from '@/lib/format';
 import { edit } from '@/routes/admin/{{ slug }}';
 import type { Translator } from '@/types/ui';
@@ -17,65 +18,30 @@ export function build{{ aggregate }}Columns(
     onDelete: (item: {{ aggregate }}Row) => void,
 ): DataTableColumn<{{ aggregate }}Row>[] {
     return [
-        {
+        sortableColumn<{{ aggregate }}Row>({
             id: 'name',
-            accessorKey: 'name',
-            enableSorting: true,
-            header: ({ column }) => (
-                <DataTableColumnHeader column={column} title={t('Name')} />
+            title: t('Name'),
+            cell: (row) => (
+                <span className="font-medium">{row.name}</span>
             ),
-            cell: ({ row }) => (
-                <span className="font-medium">{row.original.name}</span>
-            ),
-        },
-        {
+        }),
+        dateColumn<{{ aggregate }}Row>({
             id: 'created_at',
-            accessorKey: 'created_at',
-            enableSorting: true,
-            header: ({ column }) => (
-                <DataTableColumnHeader column={column} title={t('Created')} />
+            title: t('Created'),
+            value: (item) => item.created_at,
+            format: format.date,
+        }),
+        actionsColumn<{{ aggregate }}Row>({
+            label: t('Actions'),
+            visible: (item) => item.can.update || item.can.delete,
+            items: (item) => (
+                <>
+                    {item.can.update && <EditMenuItem href={edit(item.id)} />}
+                    {item.can.delete && (
+                        <DeleteMenuItem onSelect={() => onDelete(item)} />
+                    )}
+                </>
             ),
-            cell: ({ row }) => (
-                <span className="text-muted-foreground">
-                    {format.date(row.original.created_at)}
-                </span>
-            ),
-        },
-        {
-            id: 'actions',
-            enableSorting: false,
-            header: () => <span className="sr-only">{t('Actions')}</span>,
-            cell: ({ row }) => {
-                if (!row.original.can.update && !row.original.can.delete) {
-                    return null;
-                }
-
-                return (
-                    <div className="flex justify-end">
-                        <DataTableRowActions row={row}>
-                            {() => (
-                                <>
-                                    {row.original.can.update && (
-                                        <DropdownMenuItem asChild>
-                                            <Link href={edit(row.original.id)}>
-                                                {t('Edit')}
-                                            </Link>
-                                        </DropdownMenuItem>
-                                    )}
-                                    {row.original.can.delete && (
-                                        <DropdownMenuItem
-                                            variant="destructive"
-                                            onSelect={() => onDelete(row.original)}
-                                        >
-                                            {t('Delete')}
-                                        </DropdownMenuItem>
-                                    )}
-                                </>
-                            )}
-                        </DataTableRowActions>
-                    </div>
-                );
-            },
-        },
+        }),
     ];
 }

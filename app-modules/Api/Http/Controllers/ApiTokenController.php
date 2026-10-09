@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Api\Http\Controllers;
 
 use App\Models\User;
+use App\Modules\Toast;
 use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -50,7 +51,7 @@ final readonly class ApiTokenController
     {
         $action->handle($user, $user->tokens()->findOrFail($token));
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Token revoked.')]);
+        Toast::success(__('Token revoked.'));
 
         return to_route('api-tokens.index');
     }

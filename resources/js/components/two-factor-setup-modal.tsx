@@ -1,9 +1,10 @@
 import { Form } from '@inertiajs/react';
 import { REGEXP_ONLY_DIGITS } from 'input-otp';
 import { useLaravelReactI18n } from 'laravel-react-i18n';
-import { Check, Copy, ScanLine } from 'lucide-react';
+import { ScanLine } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import AlertError from '@/components/alert-error';
+import { CopyField } from '@/components/copy-field';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import {
@@ -20,7 +21,6 @@ import {
 } from '@/components/ui/input-otp';
 import { Spinner } from '@/components/ui/spinner';
 import { useAppearance } from '@/hooks/use-appearance';
-import { useClipboard } from '@/hooks/use-clipboard';
 import { OTP_MAX_LENGTH } from '@/hooks/use-two-factor-auth';
 import { confirm } from '@/routes/two-factor';
 
@@ -65,8 +65,6 @@ function TwoFactorSetupStep({
 }) {
     const { t } = useLaravelReactI18n();
     const { resolvedAppearance } = useAppearance();
-    const [copiedText, copy] = useClipboard();
-    const IconComponent = copiedText === manualSetupKey ? Check : Copy;
 
     return (
         <>
@@ -113,36 +111,17 @@ function TwoFactorSetupStep({
                         </span>
                     </div>
 
-                    <div className="flex w-full space-x-2">
-                        <div className="flex w-full items-stretch overflow-hidden rounded-xl border border-border">
-                            {!manualSetupKey ? (
-                                <div className="flex h-full w-full items-center justify-center bg-muted p-3">
-                                    <Spinner />
-                                </div>
-                            ) : (
-                                <>
-                                    <input
-                                        type="text"
-                                        readOnly
-                                        value={manualSetupKey}
-                                        aria-label={t('Setup key')}
-                                        className="h-full w-full bg-background p-3 text-foreground outline-none"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => copy(manualSetupKey)}
-                                        aria-label={t('Copy setup key')}
-                                        className="border-s border-border px-3 hover:bg-muted"
-                                    >
-                                        <IconComponent
-                                            className="w-4"
-                                            aria-hidden="true"
-                                        />
-                                    </button>
-                                </>
-                            )}
+                    {manualSetupKey ? (
+                        <CopyField
+                            value={manualSetupKey}
+                            label={t('Setup key')}
+                            copyLabel={t('Copy setup key')}
+                        />
+                    ) : (
+                        <div className="flex w-full items-center justify-center rounded-md border bg-muted p-3">
+                            <Spinner />
                         </div>
-                    </div>
+                    )}
                 </>
             )}
         </>

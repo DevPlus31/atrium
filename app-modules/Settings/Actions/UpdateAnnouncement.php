@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Settings\Actions;
 
 use App\Enums\AnnouncementLevel;
+use App\Modules\AuditLog;
 use App\Settings\AnnouncementSettings;
 use Carbon\CarbonInterface;
 
@@ -21,13 +22,15 @@ final readonly class UpdateAnnouncement
         $settings->ends_at = $endsAt?->toIso8601String();
         $settings->save();
 
-        activity('settings')
-            ->event('updated')
-            ->withProperties(['attributes' => [
+        AuditLog::record(
+            log: 'settings',
+            event: 'updated',
+            properties: ['attributes' => [
                 'message' => $message,
                 'level' => $level->value,
                 'ends_at' => $settings->ends_at,
-            ]])
-            ->log('announcement-updated');
+            ]],
+            description: 'announcement-updated',
+        );
     }
 }

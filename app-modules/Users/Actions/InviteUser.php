@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace Modules\Users\Actions;
 
+use App\Domain\ValueObjects\Email;
 use App\Models\User;
+use App\Modules\AuditLog;
 use Illuminate\Support\Facades\DB;
 use Modules\Users\Domain\Exceptions\AccountAlreadyExists;
 use Modules\Users\Domain\Exceptions\InvitationAlreadyPending;
 use Modules\Users\Domain\Repositories\InvitationRepository;
-use Modules\Users\Domain\ValueObjects\Email;
 use Modules\Users\Infrastructure\Models\Invitation;
 
 final readonly class InviteUser
@@ -43,11 +44,12 @@ final readonly class InviteUser
 
             $this->invitations->save($invitation);
 
-            activity('users')
-                ->performedOn($invitation)
-                ->event('invited')
-                ->withProperties(['attributes' => ['email' => $invitation->email, 'roles' => $roles]])
-                ->log('invited');
+            AuditLog::record(
+                log: 'users',
+                event: 'invited',
+                subject: $invitation,
+                properties: ['attributes' => ['email' => $invitation->email, 'roles' => $roles]],
+            );
 
             return $invitation;
         });

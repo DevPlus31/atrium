@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Settings\Actions;
 
+use App\Modules\AuditLog;
 use App\Settings\GeneralSettings;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
@@ -28,6 +29,10 @@ final readonly class RemoveLogo
 
         Storage::disk(Config::string('media-library.disk_name'))->delete($path);
 
-        activity('settings')->event('updated')->log('logo-removed');
+        AuditLog::record(
+            log: 'settings',
+            event: 'updated',
+            description: 'logo-removed',
+        );
     }
 }

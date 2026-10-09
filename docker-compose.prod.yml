@@ -6,6 +6,19 @@
 # The app container serves HTTP directly via FrankenPHP on internal port 8080;
 # it is published on ${APP_PORT:-80}. Terminate TLS at your edge proxy.
 
+# Containers that reuse the app image for a long-running command: the app
+# container has already migrated, so they only warm their own caches.
+x-worker: &worker
+  image: atrium-prod
+  env_file: .env.production
+  environment:
+    RUN_MIGRATIONS: "false"
+    RUN_OPTIMIZE: "true"
+  depends_on:
+    app:
+      condition: service_healthy
+  restart: unless-stopped
+
 services:
   app:
     build:
@@ -28,55 +41,31 @@ services:
   # Queue workers (Laravel Horizon). No HTTP here, so the image's web
   # healthcheck is replaced by Horizon's own status.
   horizon:
-    image: atrium-prod
+    <<: *worker
     command: php artisan horizon
-    env_file: .env.production
-    environment:
-      RUN_MIGRATIONS: "false"
-      RUN_OPTIMIZE: "true"
     volumes:
       - storage-app:/app/storage/app
-    depends_on:
-      app:
-        condition: service_healthy
     healthcheck:
       test: ["CMD", "php", "artisan", "horizon:status"]
       interval: 30s
       timeout: 10s
       retries: 3
-    restart: unless-stopped
 
   # Pulse's server card (CPU, memory, disk) needs this long-running check.
   pulse:
-    image: atrium-prod
+    <<: *worker
     command: php artisan pulse:check
-    env_file: .env.production
-    environment:
-      RUN_MIGRATIONS: "false"
-      RUN_OPTIMIZE: "true"
-    depends_on:
-      app:
-        condition: service_healthy
     healthcheck:
       disable: true
-    restart: unless-stopped
 
   # Runs routes/console.php (Horizon snapshots, retention clean-up).
   scheduler:
-    image: atrium-prod
+    <<: *worker
     command: php artisan schedule:work
-    env_file: .env.production
-    environment:
-      RUN_MIGRATIONS: "false"
-      RUN_OPTIMIZE: "true"
     volumes:
       - storage-app:/app/storage/app
-    depends_on:
-      app:
-        condition: service_healthy
     healthcheck:
       disable: true
-    restart: unless-stopped
 
   postgres:
     image: postgres:17-alpine

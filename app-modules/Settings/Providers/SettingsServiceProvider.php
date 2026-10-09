@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Settings\Providers;
 
+use App\Models\User;
 use App\Modules\ModuleServiceProvider;
 use App\Modules\NavRegistry;
 use App\Modules\PermissionRegistry;
@@ -45,6 +46,6 @@ final class SettingsServiceProvider extends ModuleServiceProvider
 
     protected function permissions(PermissionRegistry $permissions): void
     {
-        $permissions->declare('settings.update', roles: ['admin']);
+        $permissions->declare('settings.update', roles: [User::PANEL_ROLE]);
     }
 }

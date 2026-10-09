@@ -1,13 +1,15 @@
-import { Link } from '@inertiajs/react';
 import { BadgeCheck, CircleDashed } from 'lucide-react';
+import { BadgeList } from '@/components/badge-list';
 import {
-    DataTableColumnHeader,
-    DataTableRowActions,
+    actionsColumn,
+    dateColumn,
+    sortableColumn,
+    DeleteMenuItem,
+    EditMenuItem,
     type DataTableColumn,
 } from '@/components/data-table';
-import { Badge } from '@/components/ui/badge';
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
-import { UserAvatar } from '@/components/user-avatar';
+import { UserInfo } from '@/components/user-info';
 import type { Formatters } from '@/lib/format';
 import { edit } from '@/routes/admin/users';
 import type { Translator } from '@/types/ui';
@@ -21,47 +23,21 @@ export function buildUserColumns(
     onImpersonate: (user: UserRow) => void,
 ): DataTableColumn<UserRow>[] {
     return [
-        {
+        sortableColumn<UserRow>({
             id: 'name',
-            accessorKey: 'name',
-            enableSorting: true,
-            header: ({ column }) => (
-                <DataTableColumnHeader column={column} title={t('Name')} />
-            ),
-            cell: ({ row }) => (
+            title: t('Name'),
+            cell: (row) => (
                 <span className="flex items-center gap-3">
-                    <UserAvatar
-                        name={row.original.name}
-                        avatar={row.original.avatar}
-                    />
-                    <span className="font-medium">{row.original.name}</span>
+                    <UserInfo user={row} />
                 </span>
             ),
-        },
-        {
-            id: 'email',
-            accessorKey: 'email',
-            enableSorting: true,
-            header: ({ column }) => (
-                <DataTableColumnHeader column={column} title={t('Email')} />
-            ),
-        },
+        }),
+        sortableColumn<UserRow>({ id: 'email', title: t('Email') }),
         {
             id: 'roles',
             enableSorting: false,
             header: t('Roles'),
-            cell: ({ row }) =>
-                row.original.roles.length > 0 ? (
-                    <div className="flex flex-wrap gap-1">
-                        {row.original.roles.map((role) => (
-                            <Badge key={role} variant="secondary">
-                                {role}
-                            </Badge>
-                        ))}
-                    </div>
-                ) : (
-                    <span className="text-muted-foreground">—</span>
-                ),
+            cell: ({ row }) => <BadgeList items={row.original.roles} />,
         },
         {
             id: 'verified',
@@ -71,7 +47,7 @@ export function buildUserColumns(
                 row.original.email_verified_at === null ? (
                     <span className="flex items-center gap-1.5 text-muted-foreground">
                         <CircleDashed className="size-4" />
-                        {t('Unverified')}
+                        {t('Not verified')}
                     </span>
                 ) : (
                     <span className="flex items-center gap-1.5">
@@ -80,67 +56,29 @@ export function buildUserColumns(
                     </span>
                 ),
         },
-        {
+        dateColumn<UserRow>({
             id: 'created_at',
-            accessorKey: 'created_at',
-            enableSorting: true,
-            header: ({ column }) => (
-                <DataTableColumnHeader column={column} title={t('Created')} />
+            title: t('Created'),
+            value: (user) => user.created_at,
+            format: format.date,
+        }),
+        actionsColumn<UserRow>({
+            label: t('Actions'),
+            visible: (user) =>
+                user.can.update || user.can.delete || user.can.impersonate,
+            items: (user) => (
+                <>
+                    {user.can.update && <EditMenuItem href={edit(user.id)} />}
+                    {user.can.impersonate && (
+                        <DropdownMenuItem onSelect={() => onImpersonate(user)}>
+                            {t('Impersonate')}
+                        </DropdownMenuItem>
+                    )}
+                    {user.can.delete && (
+                        <DeleteMenuItem onSelect={() => onDelete(user)} />
+                    )}
+                </>
             ),
-            cell: ({ row }) => (
-                <span className="text-muted-foreground">
-                    {format.date(row.original.created_at)}
-                </span>
-            ),
-        },
-        {
-            id: 'actions',
-            enableSorting: false,
-            header: () => <span className="sr-only">{t('Actions')}</span>,
-            cell: ({ row }) => {
-                const user = row.original;
-
-                if (
-                    !user.can.update &&
-                    !user.can.delete &&
-                    !user.can.impersonate
-                ) {
-                    return null;
-                }
-
-                return (
-                    <div className="flex justify-end">
-                        <DataTableRowActions row={row}>
-                            {() => (
-                                <>
-                                    {user.can.update && (
-                                        <DropdownMenuItem asChild>
-                                            <Link href={edit(user.id)}>
-                                                {t('Edit')}
-                                            </Link>
-                                        </DropdownMenuItem>
-                                    )}
-                                    {user.can.impersonate && (
-                                        <DropdownMenuItem
-                                            onSelect={() => onImpersonate(user)}
-                                        >
-                                            {t('Impersonate')}
-                                        </DropdownMenuItem>
-                                    )}
-                                    {user.can.delete && (
-                                        <DropdownMenuItem
-                                            variant="destructive"
-                                            onSelect={() => onDelete(user)}
-                                        >
-                                            {t('Delete')}
-                                        </DropdownMenuItem>
-                                    )}
-                                </>
-                            )}
-                        </DataTableRowActions>
-                    </div>
-                );
-            },
-        },
+        }),
     ];
 }

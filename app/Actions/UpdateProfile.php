@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\Models\User;
+use App\Modules\AuditLog;
 use Illuminate\Support\Facades\DB;
 
 final readonly class UpdateProfile
@@ -16,25 +17,21 @@ final readonly class UpdateProfile
     {
         DB::transaction(function () use ($user, $attributes): void {
             $old = $user->only(array_keys($attributes));
-            $emailChanged = isset($attributes['email']) && $user->email !== $attributes['email'];
+            $email = $attributes['email'] ?? null;
 
-            $user->update([
-                ...$attributes,
-                ...($emailChanged ? ['email_verified_at' => null] : []),
-            ]);
-
-            activity('users')
-                ->causedBy($user)
-                ->performedOn($user)
-                ->event('updated')
-                ->withProperties(['old' => $old, 'attributes' => $attributes])
-                ->log('updated');
-
-            if ($emailChanged) {
-                DB::afterCommit(static function () use ($user): void {
-                    $user->sendEmailVerificationNotification();
-                });
+            if (is_string($email)) {
+                $user->changeEmail($email);
             }
+
+            $user->fill(array_diff_key($attributes, ['email' => true]))->save();
+
+            AuditLog::record(
+                log: 'users',
+                event: 'updated',
+                subject: $user,
+                properties: ['old' => $old, 'attributes' => $attributes],
+                causer: $user,
+            );
         });
     }
 }

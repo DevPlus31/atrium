@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Users\Actions;
 
+use App\Modules\AuditLog;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Modules\Users\Queries\UsersIndexQuery;
@@ -26,9 +27,10 @@ final readonly class RecordUsersExport
             Arr::only($filter, UsersIndexQuery::FILTERS),
         );
 
-        activity('users')
-            ->event('exported')
-            ->withProperties(['filter' => $applied])
-            ->log('exported');
+        AuditLog::record(
+            log: 'users',
+            event: 'exported',
+            properties: ['filter' => $applied],
+        );
     }
 }

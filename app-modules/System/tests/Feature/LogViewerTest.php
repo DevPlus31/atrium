@@ -2,31 +2,16 @@
 
 declare(strict_types=1);
 
-use App\Models\User;
-use Spatie\Permission\Models\Role;
-
 beforeEach(function (): void {
     $this->artisan('admin:sync-permissions')->assertSuccessful();
 });
 
-it('redirects guests to the login page', function (): void {
-    $response = $this->get('/log-viewer');
-
-    $response->assertRedirectToRoute('login');
-});
-
-it('forbids authenticated users without the admin role', function (): void {
-    $user = User::factory()->create();
-
-    $response = $this->actingAs($user)->get('/log-viewer');
-
-    $response->assertForbidden();
+it('keeps guests and non-admins out', function (): void {
+    assertAdminOnly('get', route('log-viewer.index'));
 });
 
 it('forbids admins without the system.logs.view permission', function (): void {
-    Role::findByName('admin')->revokePermissionTo('system.logs.view');
-
-    $response = $this->actingAs(adminUser())->get(route('log-viewer.index'));
+    $response = $this->actingAs(adminWithout('system.logs.view'))->get(route('log-viewer.index'));
 
     $response->assertForbidden();
 });

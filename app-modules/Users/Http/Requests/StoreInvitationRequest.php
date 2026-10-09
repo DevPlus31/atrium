@@ -5,14 +5,12 @@ declare(strict_types=1);
 namespace Modules\Users\Http\Requests;
 
 use App\Models\User;
-use App\Rules\GrantableRole;
-use App\Rules\ValidEmail;
+use App\Rules\AccountRules;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Modules\Users\Http\Requests\Concerns\ReadsAccountInput;
 use Modules\Users\Infrastructure\Models\Invitation;
-use Spatie\Permission\Models\Role;
 
 final class StoreInvitationRequest extends FormRequest
 {
@@ -34,19 +32,12 @@ final class StoreInvitationRequest extends FormRequest
 
         return [
             'email' => [
-                'required',
-                'string',
-                'lowercase',
-                'max:255',
-                'email',
-                new ValidEmail,
-                Rule::unique(User::class),
+                ...AccountRules::email(),
                 Rule::unique(Invitation::class)->where(fn (Builder $query): Builder => $query
                     ->whereNull('accepted_at')
                     ->where('expires_at', '>', now())),
             ],
-            'roles' => ['array'],
-            'roles.*' => ['string', Rule::exists(Role::class, 'name'), new GrantableRole($actor)],
+            ...AccountRules::roles($actor),
         ];
     }
 

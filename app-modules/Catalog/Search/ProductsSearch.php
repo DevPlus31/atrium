@@ -6,7 +6,7 @@ namespace Modules\Catalog\Search;
 
 use App\Models\User;
 use App\Modules\Data\SearchResultData;
-use Illuminate\Database\Eloquent\Builder;
+use App\Modules\TextSearch;
 use Modules\Catalog\Infrastructure\Models\Product;
 
 /**
@@ -19,20 +19,18 @@ final readonly class ProductsSearch
      */
     public function __invoke(string $term, User $user, int $limit): array
     {
-        $found = Product::query()
-            ->where(fn (Builder $query): Builder => $query
-                ->whereLike('name', '%'.$term.'%')
-                ->orWhereLike('sku', '%'.$term.'%'))
+        $found = TextSearch::whereLikeAny(Product::query(), ['name', 'sku'], $term)
             ->orderBy('name')
             ->limit($limit)
             ->get();
 
-        return array_values($found->map(fn (Product $product): SearchResultData => new SearchResultData(
+        return array_values($found->map(fn (Product $product): SearchResultData => SearchResultData::forRecord(
+            viewer: $user,
+            record: $product,
+            routes: 'admin.products',
             title: $product->name,
             description: $product->sku,
-            url: $user->can('update', $product)
-                ? route('admin.products.edit', $product)
-                : route('admin.products.index', ['filter' => ['search' => $product->sku]]),
+            filter: $product->sku,
         ))->all());
     }
 }

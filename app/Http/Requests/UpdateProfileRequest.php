@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests;
 
 use App\Models\User;
+use App\Rules\AccountRules;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -20,16 +21,8 @@ final class UpdateProfileRequest extends FormRequest
         assert($user instanceof User);
 
         return [
-            'name' => ['required', 'string', 'max:255'],
-
-            'email' => [
-                'required',
-                'string',
-                'lowercase',
-                'email',
-                'max:255',
-                Rule::unique(User::class)->ignore($user->id),
-            ],
+            'name' => AccountRules::name(),
+            'email' => AccountRules::email(ignore: $user),
             // Moving the email moves password resets with it, so it needs the
             // password: neither an impersonating admin nor someone at an
             // unlocked session can take the account over.

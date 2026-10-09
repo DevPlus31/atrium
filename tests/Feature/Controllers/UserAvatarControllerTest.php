@@ -10,7 +10,6 @@ use Spatie\Activitylog\Models\Activity;
 
 beforeEach(function (): void {
     Storage::fake('public');
-    $this->withoutVite();
 });
 
 it('requires a signed-in user', function (): void {
@@ -24,7 +23,7 @@ it('stores the photo with a square thumbnail and shares it', function (): void {
     $this->actingAs($user)
         ->post(route('user-avatar.update'), ['avatar' => UploadedFile::fake()->image('me.jpg', 600, 400)])
         ->assertRedirectToRoute('user-profile.edit')
-        ->assertInertiaFlash('toast', ['type' => 'success', 'message' => 'Photo updated.']);
+        ->assertToast('Photo updated.');
 
     $media = $user->refresh()->getFirstMedia(User::AVATAR);
 
@@ -40,8 +39,8 @@ it('stores the photo with a square thumbnail and shares it', function (): void {
 it('replaces the previous photo rather than keeping both', function (): void {
     $user = User::factory()->create();
 
-    $this->actingAs($user)->post(route('user-avatar.update'), ['avatar' => UploadedFile::fake()->image('one.png', 200, 200)]);
-    $this->actingAs($user)->post(route('user-avatar.update'), ['avatar' => UploadedFile::fake()->image('two.png', 200, 200)]);
+    $this->actingAs($user)->post(route('user-avatar.update'), ['avatar' => validImage('one.png')]);
+    $this->actingAs($user)->post(route('user-avatar.update'), ['avatar' => validImage('two.png')]);
 
     expect($user->refresh()->getMedia(User::AVATAR))->toHaveCount(1);
 });
@@ -63,13 +62,13 @@ it('rejects files that are not a usable photo', function (UploadedFile $file): v
 
 it('removes the photo and its files', function (): void {
     $user = User::factory()->create();
-    $this->actingAs($user)->post(route('user-avatar.update'), ['avatar' => UploadedFile::fake()->image('me.jpg', 200, 200)]);
+    $this->actingAs($user)->post(route('user-avatar.update'), ['avatar' => validImage('me.jpg')]);
     $path = $user->refresh()->getFirstMedia(User::AVATAR)?->getPathRelativeToRoot();
 
     $this->actingAs($user)
         ->delete(route('user-avatar.destroy'))
         ->assertRedirectToRoute('user-profile.edit')
-        ->assertInertiaFlash('toast', ['type' => 'success', 'message' => 'Photo removed.']);
+        ->assertToast('Photo removed.');
 
     expect($user->refresh()->hasMedia(User::AVATAR))->toBeFalse()
         ->and(Storage::disk('public')->exists((string) $path))->toBeFalse()
@@ -85,7 +84,7 @@ it('records nothing when there is no photo to remove', function (): void {
 
 it('deletes the photo files with the account', function (): void {
     $user = User::factory()->create();
-    $this->actingAs($user)->post(route('user-avatar.update'), ['avatar' => UploadedFile::fake()->image('me.jpg', 200, 200)]);
+    $this->actingAs($user)->post(route('user-avatar.update'), ['avatar' => validImage('me.jpg')]);
     $path = $user->refresh()->getFirstMedia(User::AVATAR)?->getPathRelativeToRoot();
 
     $user->delete();

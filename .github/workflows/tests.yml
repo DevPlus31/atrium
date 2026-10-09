@@ -21,56 +21,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+      - name: Setup
+        uses: ./.github/actions/setup
         with:
-          php-version: 8.5
-          tools: composer:v2
           coverage: pcov
-          ini-values: zend.assertions=1
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version-file: package.json
-
-      - name: Setup Vite+
-        uses: voidzero-dev/setup-vp@v1
-        with:
-          node-version: 24
-
-      - name: Cache Composer Dependencies
-        uses: actions/cache@v6
-        with:
-          path: vendor
-          key: ${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}
-          restore-keys: ${{ runner.os }}-composer-
-
-      - name: Cache Bun Dependencies
-        uses: actions/cache@v6
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
-          restore-keys: ${{ runner.os }}-bun-
-
-      - name: Install Dependencies
-        run: composer install --no-interaction --prefer-dist --optimize-autoloader --no-progress
-
-      - name: Copy Environment File
-        run: cp .env.example .env
-
-      - name: Generate Application Key
-        run: php artisan key:generate
-
-      # Wayfinder introspects route-model key types from the schema during
-      # asset builds; without a migrated database it degrades them to string.
-      - name: Prepare Database
-        run: |
-          touch database/database.sqlite
-          php artisan migrate --force
-
-      - name: Install Bun Dependencies
-        run: bun install
 
       - name: Build Assets
         run: bun run build
@@ -146,57 +100,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+      # The SQLite file the setup migrates only serves the asset build.
+      - name: Setup
+        uses: ./.github/actions/setup
         with:
-          php-version: 8.5
-          tools: composer:v2
           extensions: pdo_pgsql
-          coverage: none
-          ini-values: zend.assertions=1
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version-file: package.json
-
-      - name: Setup Vite+
-        uses: voidzero-dev/setup-vp@v1
-        with:
-          node-version: 24
-
-      - name: Cache Composer Dependencies
-        uses: actions/cache@v6
-        with:
-          path: vendor
-          key: ${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}
-          restore-keys: ${{ runner.os }}-composer-
-
-      - name: Cache Bun Dependencies
-        uses: actions/cache@v6
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
-          restore-keys: ${{ runner.os }}-bun-
-
-      - name: Install Dependencies
-        run: composer install --no-interaction --prefer-dist --optimize-autoloader --no-progress
-
-      - name: Copy Environment File
-        run: cp .env.example .env
-
-      - name: Generate Application Key
-        run: php artisan key:generate
-
-      # The asset build (Wayfinder) reads route-model key types from a
-      # migrated schema; the SQLite file only serves the build.
-      - name: Prepare Build Database
-        run: |
-          touch database/database.sqlite
-          php artisan migrate --force
-
-      - name: Install Bun Dependencies
-        run: bun install
 
       - name: Build Assets
         run: bun run build
@@ -221,49 +129,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: 8.5
-          tools: composer:v2
-          coverage: none
-          ini-values: zend.assertions=1
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version-file: package.json
-
-      - name: Setup Vite+
-        uses: voidzero-dev/setup-vp@v1
-        with:
-          node-version: 24
-
-      - name: Cache Composer Dependencies
-        uses: actions/cache@v6
-        with:
-          path: vendor
-          key: ${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}
-          restore-keys: ${{ runner.os }}-composer-
-
-      - name: Cache Bun Dependencies
-        uses: actions/cache@v6
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
-          restore-keys: ${{ runner.os }}-bun-
-
-      - name: Install Dependencies
-        run: |
-          composer install --no-interaction --prefer-dist --optimize-autoloader --no-progress
-          bun install
-
-      - name: Prepare Application
-        run: |
-          cp .env.example .env
-          php artisan key:generate
-          touch database/database.sqlite
-          php artisan migrate --force
+      - name: Setup
+        uses: ./.github/actions/setup
 
       - name: Scaffold a Module and Aggregate
         run: |

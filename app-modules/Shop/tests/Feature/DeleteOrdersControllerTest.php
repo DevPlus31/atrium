@@ -16,7 +16,7 @@ it('deletes pending and cancelled orders and keeps the ones that must stay', fun
     $this->actingAs(adminUser())
         ->delete(route('admin.orders.bulk-destroy'), ['ids' => [$pending->id, $cancelled->id, $paid->id]])
         ->assertRedirectToRoute('admin.orders.index')
-        ->assertInertiaFlash('toast', ['type' => 'success', 'message' => '2 orders deleted. 1 could not be deleted.']);
+        ->assertToast('2 orders deleted. 1 could not be deleted.');
 
     expect(Order::query()->pluck('id')->all())->toBe([$paid->id]);
 });
@@ -29,15 +29,12 @@ it('is forbidden when only kept orders are selected', function (): void {
         ->assertForbidden();
 });
 
-it('redirects guests to the login page', function (): void {
-    $this->delete(route('admin.orders.bulk-destroy'), ['ids' => ['x']])->assertRedirectToRoute('login');
+it('keeps guests and non-admins out', function (): void {
+    assertAdminOnly('delete', route('admin.orders.bulk-destroy'), ['ids' => ['x']]);
 });
 
 it('validates the selection', function (mixed $ids): void {
     $this->actingAs(adminUser())
         ->delete(route('admin.orders.bulk-destroy'), ['ids' => $ids])
         ->assertSessionHasErrors('ids');
-})->with([
-    'nothing' => [[]],
-    'not a list' => ['all'],
-]);
+})->with(invalidBulkSelections());

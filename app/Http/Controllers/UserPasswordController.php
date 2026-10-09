@@ -9,6 +9,7 @@ use App\Actions\UpdateUserPassword;
 use App\Http\Requests\CreateUserPasswordRequest;
 use App\Http\Requests\UpdateUserPasswordRequest;
 use App\Models\User;
+use App\Modules\Toast;
 use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -53,10 +54,7 @@ final readonly class UserPasswordController
     {
         $action->handle($user, $request->string('password')->value());
 
-        Inertia::flash('toast', [
-            'type' => 'success',
-            'message' => __('Password updated.'),
-        ]);
+        Toast::success(__('Password updated.'));
 
         return back();
     }

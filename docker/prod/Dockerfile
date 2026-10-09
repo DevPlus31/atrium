@@ -6,25 +6,36 @@
 #   docker build -f docker/prod/Dockerfile -t atrium-app .
 #
 # Stages:
+#   php    -> PHP CLI with the app's extensions and Composer (base of the next two)
 #   vendor -> composer install (no scripts, cache-friendly: only composer files)
 #   assets -> php + bun; regenerates optimized autoloader with the real app
 #             source, runs `bun run build` (wayfinder shells out to artisan)
 #   app    -> FrankenPHP runtime (single process serving HTTP + PHP)
 # ==============================================================================
 
+# The PHP extensions every stage installs (the runtime adds opcache).
+ARG PHP_EXTENSIONS="intl zip gd exif pcntl sockets bcmath redis pdo_pgsql"
+
 # ------------------------------------------------------------------------------
-# Stage 1: vendor — PHP dependencies only (composer.json/lock as cache key)
+# Base: PHP CLI with the extensions and Composer, shared by vendor and assets
 # ------------------------------------------------------------------------------
-FROM php:8.5-cli AS vendor
+FROM php:8.5-cli AS php
+
+ARG PHP_EXTENSIONS
 
 COPY --from=mlocati/php-extension-installer:2 /usr/bin/install-php-extensions /usr/local/bin/
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends git unzip \
     && rm -rf /var/lib/apt/lists/* \
-    && install-php-extensions intl zip gd exif pcntl sockets bcmath redis pdo_pgsql
+    && install-php-extensions ${PHP_EXTENSIONS}
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+# ------------------------------------------------------------------------------
+# Stage 1: vendor — PHP dependencies only (composer.json/lock as cache key)
+# ------------------------------------------------------------------------------
+FROM php AS vendor
 
 WORKDIR /app
 
@@ -44,17 +55,10 @@ RUN composer install \
 # Stage 2: assets — needs BOTH php and bun: the wayfinder vite plugin shells
 # out to `php artisan wayfinder:generate --with-form` during `bun run build`.
 # ------------------------------------------------------------------------------
-FROM php:8.5-cli AS assets
+FROM php AS assets
 
-COPY --from=mlocati/php-extension-installer:2 /usr/bin/install-php-extensions /usr/local/bin/
-
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends git unzip \
-    && rm -rf /var/lib/apt/lists/* \
-    && install-php-extensions intl zip gd exif pcntl sockets bcmath redis pdo_pgsql
-
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-COPY --from=oven/bun:1 /usr/local/bin/bun /usr/local/bin/bun
+# Keep in step with "packageManager" in package.json.
+COPY --from=oven/bun:1.4.2 /usr/local/bin/bun /usr/local/bin/bun
 RUN ln -s /usr/local/bin/bun /usr/local/bin/bunx
 
 WORKDIR /app
@@ -91,12 +95,14 @@ RUN composer dump-autoload --optimize --no-scripts \
 # ------------------------------------------------------------------------------
 FROM dunglas/frankenphp:1-php8.5 AS app
 
+ARG PHP_EXTENSIONS
+
 COPY --from=mlocati/php-extension-installer:2 /usr/bin/install-php-extensions /usr/local/bin/
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends curl \
     && rm -rf /var/lib/apt/lists/* \
-    && install-php-extensions intl zip gd exif pcntl sockets bcmath redis opcache pdo_pgsql
+    && install-php-extensions ${PHP_EXTENSIONS} opcache
 
 # Production PHP configuration.
 RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"

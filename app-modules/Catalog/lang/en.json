@@ -23,5 +23,6 @@
     "Delete selected products": "Delete selected products",
     "This will permanently delete :count product and cannot be undone.|This will permanently delete :count products and cannot be undone.": "This will permanently delete :count product and cannot be undone.|This will permanently delete :count products and cannot be undone.",
     ":count product deleted.|:count products deleted.": ":count product deleted.|:count products deleted.",
-    "published": "Published"
+    "published": "Published",
+    "Catalog": "Catalog"
 }

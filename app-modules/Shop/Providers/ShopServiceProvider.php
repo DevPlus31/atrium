@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Shop\Providers;
 
 use App\Enums\Area;
+use App\Models\User;
 use App\Modules\ModuleServiceProvider;
 use App\Modules\NavRegistry;
 use App\Modules\PermissionRegistry;
@@ -53,11 +54,11 @@ final class ShopServiceProvider extends ModuleServiceProvider
 
     protected function permissions(PermissionRegistry $permissions): void
     {
-        $permissions->declare('orders.view', roles: ['admin']);
-        $permissions->declare('orders.create', roles: ['admin']);
-        $permissions->declare('orders.update', roles: ['admin']);
-        $permissions->declare('orders.delete', roles: ['admin']);
-        $permissions->declare('shop.settings.update', roles: ['admin']);
+        $permissions->declare('orders.view', roles: [User::PANEL_ROLE]);
+        $permissions->declare('orders.create', roles: [User::PANEL_ROLE]);
+        $permissions->declare('orders.update', roles: [User::PANEL_ROLE]);
+        $permissions->declare('orders.delete', roles: [User::PANEL_ROLE]);
+        $permissions->declare('shop.settings.update', roles: [User::PANEL_ROLE]);
     }
 
     protected function widgets(WidgetRegistry $widgets): void

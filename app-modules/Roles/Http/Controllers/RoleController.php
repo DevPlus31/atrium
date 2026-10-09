@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\Roles\Http\Controllers;
 
+use App\Modules\RoleOptions;
+use App\Modules\Toast;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\Attributes\Controllers\Authorize;
 use Illuminate\Support\Facades\Gate;
@@ -17,7 +19,6 @@ use Modules\Roles\Http\Requests\StoreRoleRequest;
 use Modules\Roles\Http\Requests\UpdateRoleRequest;
 use Modules\Roles\Queries\RolesIndexQuery;
 use Spatie\LaravelData\PaginatedDataCollection;
-use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 final readonly class RoleController
@@ -35,7 +36,7 @@ final readonly class RoleController
     public function create(): Response
     {
         return Inertia::render('roles::create', [
-            'permissions' => $this->permissionNames(),
+            'permissions' => RoleOptions::permissionNames(),
         ]);
     }
 
@@ -47,7 +48,7 @@ final readonly class RoleController
             permissions: $request->permissions(),
         );
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Role created.')]);
+        Toast::success(__('Role created.'));
 
         return to_route('admin.roles.index');
     }
@@ -57,7 +58,7 @@ final readonly class RoleController
     {
         return Inertia::render('roles::edit', [
             'role' => RoleData::from($role->load('permissions')),
-            'permissions' => $this->permissionNames(),
+            'permissions' => RoleOptions::permissionNames(),
         ]);
     }
 
@@ -70,7 +71,7 @@ final readonly class RoleController
             permissions: $request->permissions(),
         );
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Role updated.')]);
+        Toast::success(__('Role updated.'));
 
         return to_route('admin.roles.index');
     }
@@ -80,19 +81,8 @@ final readonly class RoleController
     {
         $action->handle($role);
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Role deleted.')]);
+        Toast::success(__('Role deleted.'));
 
         return to_route('admin.roles.index');
-    }
-
-    /**
-     * @return list<string>
-     */
-    private function permissionNames(): array
-    {
-        /** @var list<string> $names */
-        $names = Permission::query()->orderBy('name')->pluck('name')->all();
-
-        return $names;
     }
 }

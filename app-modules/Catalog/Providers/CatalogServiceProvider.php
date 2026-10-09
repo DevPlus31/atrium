@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Catalog\Providers;
 
+use App\Models\User;
 use App\Modules\ModuleServiceProvider;
 use App\Modules\NavRegistry;
 use App\Modules\PermissionRegistry;
@@ -39,11 +40,11 @@ final class CatalogServiceProvider extends ModuleServiceProvider
 
     protected function permissions(PermissionRegistry $permissions): void
     {
-        $permissions->declare('products.view', roles: ['admin']);
-        $permissions->declare('products.create', roles: ['admin']);
-        $permissions->declare('products.update', roles: ['admin']);
-        $permissions->declare('products.delete', roles: ['admin']);
-        $permissions->declare('products.publish', roles: ['admin']);
+        $permissions->declare('products.view', roles: [User::PANEL_ROLE]);
+        $permissions->declare('products.create', roles: [User::PANEL_ROLE]);
+        $permissions->declare('products.update', roles: [User::PANEL_ROLE]);
+        $permissions->declare('products.delete', roles: [User::PANEL_ROLE]);
+        $permissions->declare('products.publish', roles: [User::PANEL_ROLE]);
     }
 
     protected function search(SearchRegistry $search): void

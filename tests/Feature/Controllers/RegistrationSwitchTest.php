@@ -5,10 +5,6 @@ declare(strict_types=1);
 use App\Settings\GeneralSettings;
 use Inertia\Testing\AssertableInertia;
 
-beforeEach(function (): void {
-    $this->withoutVite();
-});
-
 it('closes sign-up when General settings turn registration off', function (): void {
     $settings = resolve(GeneralSettings::class);
     $settings->registration_open = false;

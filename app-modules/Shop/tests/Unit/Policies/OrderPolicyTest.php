@@ -5,7 +5,6 @@ declare(strict_types=1);
 use App\Models\User;
 use Modules\Shop\Infrastructure\Models\Order;
 use Modules\Shop\Policies\OrderPolicy;
-use Spatie\Permission\Models\Role;
 
 beforeEach(function (): void {
     $this->artisan('admin:sync-permissions')->assertSuccessful();
@@ -46,9 +45,8 @@ it('allows deleting only pending or cancelled orders', function (): void {
 });
 
 it('needs the matching permission whatever the order state', function (): void {
-    Role::findByName('admin')->revokePermissionTo(['orders.update', 'orders.delete']);
     $policy = new OrderPolicy();
-    $admin = adminUser();
+    $admin = adminWithout(['orders.update', 'orders.delete']);
     $pending = Order::factory()->create();
 
     expect($policy->update($admin, $pending))->toBeFalse()

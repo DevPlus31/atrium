@@ -5,7 +5,6 @@ declare(strict_types=1);
 use App\Enums\AnnouncementLevel;
 use App\Settings\AnnouncementSettings;
 use App\Settings\GeneralSettings;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
 use Modules\Settings\Actions\RemoveAnnouncement;
@@ -37,10 +36,10 @@ it('stores a new logo and deletes the previous file', function (): void {
     $settings = resolve(GeneralSettings::class);
     $action = resolve(UpdateLogo::class);
 
-    $action->handle($settings, UploadedFile::fake()->image('one.png', 200, 200));
+    $action->handle($settings, validImage('one.png'));
 
     $first = $settings->logo_path;
-    $action->handle($settings, UploadedFile::fake()->image('two.png', 200, 200));
+    $action->handle($settings, validImage('two.png'));
 
     expect($first)->not->toBeNull()
         ->and(Storage::disk('public')->exists((string) $first))->toBeFalse()
@@ -50,7 +49,7 @@ it('stores a new logo and deletes the previous file', function (): void {
 
 it('removes the logo, and does nothing without one', function (): void {
     $settings = resolve(GeneralSettings::class);
-    resolve(UpdateLogo::class)->handle($settings, UploadedFile::fake()->image('one.png', 200, 200));
+    resolve(UpdateLogo::class)->handle($settings, validImage('one.png'));
     $path = (string) $settings->logo_path;
     $action = resolve(RemoveLogo::class);
 
@@ -83,7 +82,7 @@ it('publishes and removes the announcement', function (): void {
 
 it('keeps the logo file when the settings cannot be saved', function (): void {
     $settings = resolve(GeneralSettings::class);
-    resolve(UpdateLogo::class)->handle($settings, UploadedFile::fake()->image('one.png', 200, 200));
+    resolve(UpdateLogo::class)->handle($settings, validImage('one.png'));
     $path = (string) $settings->logo_path;
     Event::listen(SavingSettings::class, function (): never {
         throw new RuntimeException('Settings store unavailable.');

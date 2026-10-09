@@ -6,6 +6,7 @@ namespace Modules\Roles\Search;
 
 use App\Models\User;
 use App\Modules\Data\SearchResultData;
+use App\Modules\TextSearch;
 use Spatie\Permission\Models\Role;
 
 /**
@@ -18,18 +19,18 @@ final readonly class RolesSearch
      */
     public function __invoke(string $term, User $user, int $limit): array
     {
-        $found = Role::query()
-            ->whereLike('name', '%'.$term.'%')
+        $found = TextSearch::whereLikeAny(Role::query(), ['name'], $term)
             ->orderBy('name')
             ->limit($limit)
             ->get();
 
-        return array_values($found->map(fn (Role $role): SearchResultData => new SearchResultData(
+        return array_values($found->map(fn (Role $role): SearchResultData => SearchResultData::forRecord(
+            viewer: $user,
+            record: $role,
+            routes: 'admin.roles',
             title: $role->name,
             description: null,
-            url: $user->can('update', $role)
-                ? route('admin.roles.edit', $role)
-                : route('admin.roles.index', ['filter' => ['search' => $role->name]]),
+            filter: $role->name,
         ))->all());
     }
 }

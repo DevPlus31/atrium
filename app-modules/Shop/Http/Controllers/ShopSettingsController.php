@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Shop\Http\Controllers;
 
+use App\Modules\Toast;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\Attributes\Controllers\Authorize;
 use Inertia\Inertia;
@@ -26,7 +27,7 @@ final readonly class ShopSettingsController
     {
         $action->handle($settings, $request->defaultCurrency());
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Settings saved.')]);
+        Toast::success(__('Settings saved.'));
 
         return to_route('admin.shop.settings.edit');
     }

@@ -1,18 +1,18 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 import { useLaravelReactI18n } from 'laravel-react-i18n';
-import { Plus } from 'lucide-react';
-import { ConfirmDialog } from '@/components/confirm-dialog';
-import { DataTable, DataTableToolbar } from '@/components/data-table';
-import { Button } from '@/components/ui/button';
+import {
+    DataTable,
+    DataTableCreateButton,
+    DataTableDeleteDialog,
+    DataTableToolbar,
+} from '@/components/data-table';
 import { useBreadcrumbs } from '@/hooks/use-breadcrumbs';
-import { useDeleteDialog } from '@/hooks/use-delete-dialog';
 import { useFormatters } from '@/hooks/use-formatters';
-import { useTableState } from '@/hooks/use-table-state';
+import { useResourceTable } from '@/hooks/use-resource-table';
 import { create, destroy, index } from '@/routes/admin/{{ slug }}';
-import type { BreadcrumbItem } from '@/types';
 import type { Paginated } from '@/types/admin';
-import type { {{ aggregate }}Row } from '../components/{{ slug }}-columns';
-import { build{{ aggregate }}Columns } from '../components/{{ slug }}-columns';
+import type { {{ aggregate }}Row } from '../components/{{ aggregateKebab }}-columns';
+import { build{{ aggregate }}Columns } from '../components/{{ aggregateKebab }}-columns';
 
 type {{ plural }}IndexProps = {
     {{ variablePlural }}: Paginated<{{ aggregate }}Row>;
@@ -22,18 +22,15 @@ type {{ plural }}IndexProps = {
 export default function {{ plural }}Index({ {{ variablePlural }}, can }: {{ plural }}IndexProps) {
     const { t } = useLaravelReactI18n();
     const format = useFormatters();
-    const tableState = useTableState('{{ slug }}');
-    const deleteDialog = useDeleteDialog<{{ aggregate }}Row>((row) =>
-        destroy.url(row.id),
-    );
+    const { tableState, deleteDialog } = useResourceTable({
+        key: '{{ slug }}',
+        rows: {{ variablePlural }}.data,
+        destroyUrl: (row) => destroy.url(row.id),
+    });
 
-    const breadcrumbs: BreadcrumbItem[] = [
-        { title: t('{{ label }}'), href: index() },
-    ];
-    useBreadcrumbs(breadcrumbs);
+    useBreadcrumbs({ title: t('{{ label }}'), href: index() });
 
     const columns = build{{ aggregate }}Columns(t, format, deleteDialog.request);
-
 
     return (
         <>
@@ -43,12 +40,10 @@ export default function {{ plural }}Index({ {{ variablePlural }}, can }: {{ plur
                 searchPlaceholder={t('Search {{ slug }}...')}
                 actions={
                     can.create && (
-                        <Button size="sm" asChild>
-                            <Link href={create()}>
-                                <Plus className="size-4" />
-                                {t('Create {{ variable }}')}
-                            </Link>
-                        </Button>
+                        <DataTableCreateButton
+                            href={create()}
+                            label={t('Create {{ variable }}')}
+                        />
                     )
                 }
             />
@@ -58,14 +53,11 @@ export default function {{ plural }}Index({ {{ variablePlural }}, can }: {{ plur
                 tableState={tableState}
                 emptyMessage={t('No {{ slug }} found.')}
             />
-            <ConfirmDialog
-                {...deleteDialog.dialogProps}
+            <DataTableDeleteDialog
+                dialog={deleteDialog}
                 title={t('Delete {{ variable }}')}
-                description={t(
-                    'This will permanently delete :name and cannot be undone.',
-                    { name: deleteDialog.pending?.name ?? t('this {{ variable }}') },
-                )}
-                confirmLabel={t('Delete')}
+                name={(row) => row.name}
+                fallbackName={t('this {{ variable }}')}
             />
         </>
     );

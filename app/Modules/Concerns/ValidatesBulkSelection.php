@@ -61,14 +61,6 @@ trait ValidatesBulkSelection
     }
 
     /**
-     * How many selected rows were left out (gone, or not permitted).
-     */
-    public function skipped(int $permitted): int
-    {
-        return count((array) $this->validated('ids')) - $permitted;
-    }
-
-    /**
      * Whether a string has the shape of the model's keys.
      *
      * @return callable(string): bool

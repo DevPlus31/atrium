@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Catalog\Actions;
 
+use App\Modules\AuditLog;
 use Illuminate\Support\Facades\DB;
 use Modules\Catalog\Domain\Repositories\ProductRepository;
 use Modules\Catalog\Infrastructure\Models\Product;
@@ -23,13 +24,14 @@ final readonly class PublishProduct
 
             $this->products->save($product);
 
-            activity('catalog')
-                ->performedOn($product)
-                ->event('published')
-                ->withProperties([
+            AuditLog::record(
+                log: 'catalog',
+                event: 'published',
+                subject: $product,
+                properties: [
                     'attributes' => ['sku' => $product->sku],
-                ])
-                ->log('published');
+                ],
+            );
 
             return $product;
         });

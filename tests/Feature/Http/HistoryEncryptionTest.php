@@ -5,10 +5,6 @@ declare(strict_types=1);
 use App\Models\User;
 use Inertia\Support\SessionKey;
 
-beforeEach(function (): void {
-    $this->withoutVite();
-});
-
 it('encrypts the browser history of every page', function (): void {
     $page = $this->actingAs(User::factory()->create())->get(route('user-profile.edit'))->viewData('page');
 

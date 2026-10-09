@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use App\Models\User;
-use Spatie\Permission\Models\Role;
 
 beforeEach(function (): void {
     $this->artisan('admin:sync-permissions')->assertSuccessful();
@@ -26,8 +25,7 @@ it('finds users by name or email and opens them for editing', function (string $
 })->with(['hopper', 'navy.example']);
 
 it('opens the filtered list when the user cannot edit the match', function (): void {
-    Role::findByName('admin')->revokePermissionTo('users.update');
-    $admin = adminUser();
+    $admin = adminWithout('users.update');
     User::factory()->create(['name' => 'Grace Hopper', 'email' => 'grace@navy.example']);
 
     $this->actingAs($admin)
@@ -36,8 +34,7 @@ it('opens the filtered list when the user cannot edit the match', function (): v
 });
 
 it('finds no users without users.view', function (): void {
-    Role::findByName('admin')->revokePermissionTo('users.view');
-    $admin = adminUser();
+    $admin = adminWithout('users.view');
     User::factory()->create(['name' => 'Grace Hopper']);
 
     $this->actingAs($admin)

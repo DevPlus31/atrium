@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Actions\UpdateProfile;
 use App\Http\Requests\UpdateProfileRequest;
 use App\Models\User;
+use App\Modules\Toast;
 use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -26,10 +27,7 @@ final readonly class UserProfileController
     {
         $action->handle($user, $request->profile());
 
-        Inertia::flash('toast', [
-            'type' => 'success',
-            'message' => __('Profile updated.'),
-        ]);
+        Toast::success(__('Profile updated.'));
 
         return to_route('user-profile.edit');
     }

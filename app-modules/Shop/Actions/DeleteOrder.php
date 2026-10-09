@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Shop\Actions;
 
+use App\Modules\AuditLog;
 use Illuminate\Support\Facades\DB;
 use Modules\Shop\Domain\Repositories\OrderRepository;
 use Modules\Shop\Infrastructure\Models\Order;
@@ -24,13 +25,14 @@ final readonly class DeleteOrder
 
             $this->orders->delete($order);
 
-            activity('shop')
-                ->performedOn($order)
-                ->event('deleted')
-                ->withProperties([
+            AuditLog::record(
+                log: 'shop',
+                event: 'deleted',
+                subject: $order,
+                properties: [
                     'attributes' => ['number' => $order->number],
-                ])
-                ->log('deleted');
+                ],
+            );
         });
     }
 }

@@ -1,7 +1,9 @@
-import { Link } from '@inertiajs/react';
 import {
-    DataTableColumnHeader,
-    DataTableRowActions,
+    actionsColumn,
+    dateColumn,
+    sortableColumn,
+    DeleteMenuItem,
+    EditMenuItem,
     type DataTableColumn,
 } from '@/components/data-table';
 import { Badge } from '@/components/ui/badge';
@@ -19,46 +21,29 @@ export function buildProductColumns(
     onDelete: (product: ProductRow) => void,
 ): DataTableColumn<ProductRow>[] {
     return [
-        {
+        sortableColumn<ProductRow>({
             id: 'name',
-            accessorKey: 'name',
-            enableSorting: true,
-            header: ({ column }) => (
-                <DataTableColumnHeader column={column} title={t('Name')} />
-            ),
-            cell: ({ row }) => (
-                <span className="font-medium">{row.original.name}</span>
-            ),
-        },
-        {
+            title: t('Name'),
+            cell: (row) => <span className="font-medium">{row.name}</span>,
+        }),
+        sortableColumn<ProductRow>({
             id: 'sku',
-            accessorKey: 'sku',
-            enableSorting: true,
-            header: ({ column }) => (
-                <DataTableColumnHeader column={column} title={t('SKU')} />
-            ),
-            cell: ({ row }) => (
+            title: t('SKU'),
+            cell: (row) => (
                 <span className="font-mono text-sm text-muted-foreground">
-                    {row.original.sku}
+                    {row.sku}
                 </span>
             ),
-        },
-        {
+        }),
+        sortableColumn<ProductRow>({
             id: 'price_cents',
-            accessorKey: 'price_cents',
-            enableSorting: true,
-            header: ({ column }) => (
-                <DataTableColumnHeader column={column} title={t('Price')} />
-            ),
-            cell: ({ row }) => (
+            title: t('Price'),
+            cell: (row) => (
                 <span className="tabular-nums">
-                    {format.money(
-                        row.original.price_cents,
-                        row.original.currency,
-                    )}
+                    {format.money(row.price_cents, row.currency)}
                 </span>
             ),
-        },
+        }),
         {
             id: 'status',
             enableSorting: false,
@@ -70,67 +55,31 @@ export function buildProductColumns(
                     <Badge variant="outline">{t('Draft')}</Badge>
                 ),
         },
-        {
+        dateColumn<ProductRow>({
             id: 'created_at',
-            accessorKey: 'created_at',
-            enableSorting: true,
-            header: ({ column }) => (
-                <DataTableColumnHeader column={column} title={t('Created')} />
+            title: t('Created'),
+            value: (product) => product.created_at,
+            format: format.date,
+        }),
+        actionsColumn<ProductRow>({
+            label: t('Actions'),
+            visible: (product) =>
+                product.can.update || product.can.publish || product.can.delete,
+            items: (product) => (
+                <>
+                    {product.can.update && (
+                        <EditMenuItem href={edit(product.id)} />
+                    )}
+                    {product.can.publish && (
+                        <DropdownMenuItem onSelect={() => onPublish(product)}>
+                            {t('Publish')}
+                        </DropdownMenuItem>
+                    )}
+                    {product.can.delete && (
+                        <DeleteMenuItem onSelect={() => onDelete(product)} />
+                    )}
+                </>
             ),
-            cell: ({ row }) => (
-                <span className="text-muted-foreground">
-                    {format.date(row.original.created_at)}
-                </span>
-            ),
-        },
-        {
-            id: 'actions',
-            enableSorting: false,
-            header: () => <span className="sr-only">{t('Actions')}</span>,
-            cell: ({ row }) => {
-                const product = row.original;
-
-                if (
-                    !product.can.update &&
-                    !product.can.publish &&
-                    !product.can.delete
-                ) {
-                    return null;
-                }
-
-                return (
-                    <div className="flex justify-end">
-                        <DataTableRowActions row={row}>
-                            {() => (
-                                <>
-                                    {product.can.update && (
-                                        <DropdownMenuItem asChild>
-                                            <Link href={edit(product.id)}>
-                                                {t('Edit')}
-                                            </Link>
-                                        </DropdownMenuItem>
-                                    )}
-                                    {product.can.publish && (
-                                        <DropdownMenuItem
-                                            onSelect={() => onPublish(product)}
-                                        >
-                                            {t('Publish')}
-                                        </DropdownMenuItem>
-                                    )}
-                                    {product.can.delete && (
-                                        <DropdownMenuItem
-                                            variant="destructive"
-                                            onSelect={() => onDelete(product)}
-                                        >
-                                            {t('Delete')}
-                                        </DropdownMenuItem>
-                                    )}
-                                </>
-                            )}
-                        </DataTableRowActions>
-                    </div>
-                );
-            },
-        },
+        }),
     ];
 }

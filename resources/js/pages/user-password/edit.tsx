@@ -1,44 +1,28 @@
-import { Form, Head } from '@inertiajs/react';
+import { Form } from '@inertiajs/react';
 import { useLaravelReactI18n } from 'laravel-react-i18n';
 import { useRef } from 'react';
 import UserPasswordController from '@/actions/App/Http/Controllers/UserPasswordController';
-import Heading from '@/components/heading';
-import InputError from '@/components/input-error';
+import { FormField } from '@/components/form-field';
 import PasswordInput from '@/components/password-input';
+import { SettingsSection } from '@/components/settings-section';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { useBreadcrumbs } from '@/hooks/use-breadcrumbs';
-import SettingsLayout from '@/layouts/settings/layout';
+import { SettingsPage } from '@/layouts/settings/page';
 import { edit } from '@/routes/password';
-import type { BreadcrumbItem } from '@/types';
 
 export default function Password() {
     const { t } = useLaravelReactI18n();
     const passwordInput = useRef<HTMLInputElement>(null);
     const currentPasswordInput = useRef<HTMLInputElement>(null);
 
-    const breadcrumbs: BreadcrumbItem[] = [
-        {
-            title: t('Password settings'),
-            href: edit().url,
-        },
-    ];
-    useBreadcrumbs(breadcrumbs);
-
     return (
         <>
-            <Head title={t('Password settings')} />
-
-            <SettingsLayout>
-                <div className="space-y-6">
-                    <Heading
-                        variant="small"
-                        title={t('Update password')}
-                        description={t(
-                            'Ensure your account is using a long, random password to stay secure',
-                        )}
-                    />
-
+            <SettingsPage title={t('Password settings')} href={edit().url}>
+                <SettingsSection
+                    title={t('Update password')}
+                    description={t(
+                        'Ensure your account is using a long, random password to stay secure',
+                    )}
+                >
                     <Form
                         {...UserPasswordController.update.form()}
                         options={{
@@ -63,59 +47,46 @@ export default function Password() {
                     >
                         {({ errors, processing }) => (
                             <>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="current_password">
-                                        {t('Current password')}
-                                    </Label>
-
+                                <FormField
+                                    id="current_password"
+                                    label={t('Current password')}
+                                    error={errors.current_password}
+                                >
                                     <PasswordInput
                                         id="current_password"
                                         ref={currentPasswordInput}
                                         name="current_password"
-                                        className="mt-1 block w-full"
                                         autoComplete="current-password"
                                         placeholder={t('Current password')}
                                     />
+                                </FormField>
 
-                                    <InputError
-                                        message={errors.current_password}
-                                    />
-                                </div>
-
-                                <div className="grid gap-2">
-                                    <Label htmlFor="password">
-                                        {t('New password')}
-                                    </Label>
-
+                                <FormField
+                                    id="password"
+                                    label={t('New password')}
+                                    error={errors.password}
+                                >
                                     <PasswordInput
                                         id="password"
                                         ref={passwordInput}
                                         name="password"
-                                        className="mt-1 block w-full"
                                         autoComplete="new-password"
                                         placeholder={t('New password')}
                                     />
+                                </FormField>
 
-                                    <InputError message={errors.password} />
-                                </div>
-
-                                <div className="grid gap-2">
-                                    <Label htmlFor="password_confirmation">
-                                        {t('Confirm password')}
-                                    </Label>
-
+                                <FormField
+                                    id="password_confirmation"
+                                    label={t('Confirm password')}
+                                    error={errors.password_confirmation}
+                                >
                                     <PasswordInput
                                         id="password_confirmation"
                                         name="password_confirmation"
-                                        className="mt-1 block w-full"
                                         autoComplete="new-password"
                                         placeholder={t('Confirm password')}
                                     />
-
-                                    <InputError
-                                        message={errors.password_confirmation}
-                                    />
-                                </div>
+                                </FormField>
 
                                 <div className="flex items-center gap-4">
                                     <Button
@@ -128,8 +99,8 @@ export default function Password() {
                             </>
                         )}
                     </Form>
-                </div>
-            </SettingsLayout>
+                </SettingsSection>
+            </SettingsPage>
         </>
     );
 }

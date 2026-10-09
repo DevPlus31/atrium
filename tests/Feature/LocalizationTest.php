@@ -5,10 +5,6 @@ declare(strict_types=1);
 use App\Models\User;
 use Illuminate\Support\Facades\Lang;
 
-beforeEach(function (): void {
-    $this->withoutVite();
-});
-
 it('stamps the first paint with the locale from the cookie for guests', function (): void {
     config()->set('app.available_locales', ['en' => 'English', 'fr' => 'Français']);
 

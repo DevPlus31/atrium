@@ -13,28 +13,14 @@ beforeEach(function (): void {
     $this->artisan('admin:sync-permissions')->assertSuccessful();
 });
 
-it('redirects guests to the login page', function (): void {
-    $target = User::factory()->create();
-
-    $response = $this->post('/admin/users/'.$target->id.'/impersonate');
-
-    $response->assertRedirectToRoute('login');
-});
-
-it('forbids authenticated users without the admin role', function (): void {
-    $user = User::factory()->create();
-    $target = User::factory()->create();
-
-    $response = $this->actingAs($user)->post(route('admin.users.impersonate', $target));
-
-    $response->assertForbidden();
+it('keeps guests and non-admins out', function (): void {
+    assertAdminOnly('post', route('admin.users.impersonate', User::factory()->create()));
 });
 
 it('forbids admins without the users.impersonate permission', function (): void {
-    Role::findByName('admin')->revokePermissionTo('users.impersonate');
     $target = User::factory()->create();
 
-    $response = $this->actingAs(adminUser())->post(route('admin.users.impersonate', $target));
+    $response = $this->actingAs(adminWithout('users.impersonate'))->post(route('admin.users.impersonate', $target));
 
     $response->assertForbidden();
 });
@@ -46,7 +32,7 @@ it('impersonates a plain user and lands on a page they can open', function (): v
     $response = $this->actingAs($admin)->post(route('admin.users.impersonate', $target));
 
     $response->assertRedirectToRoute('user-profile.edit')
-        ->assertInertiaFlash('toast', ['type' => 'success', 'message' => 'Now impersonating Jane Doe.'])
+        ->assertToast('Now impersonating Jane Doe.')
         ->assertSessionHas(SessionKey::CLEAR_HISTORY, true);
 
     $this->get(route('user-profile.edit'))
@@ -115,15 +101,14 @@ it('redirects back with an error when impersonation fails', function (): void {
         ->post(route('admin.users.impersonate', $target));
 
     $response->assertRedirectToRoute('admin.users.index')
-        ->assertInertiaFlash('toast', ['type' => 'error', 'message' => 'Unable to impersonate Jane Doe.']);
+        ->assertToast('Unable to impersonate Jane Doe.', 'error');
 
     $this->assertAuthenticatedAs($admin);
 });
 
 it('forbids impersonating a user who holds permissions the admin lacks', function (): void {
     Role::findOrCreate('auditor')->givePermissionTo('audit.view');
-    Role::findByName('admin')->revokePermissionTo('audit.view');
-    $admin = adminUser();
+    $admin = adminWithout('audit.view');
     $target = User::factory()->create();
     $target->assignRole('auditor');
 
@@ -146,8 +131,7 @@ it('lets a super-admin impersonate a regular user', function (): void {
 });
 
 it('forbids impersonating a user granted a permission directly that the admin lacks', function (): void {
-    Role::findByName('admin')->revokePermissionTo('audit.view');
-    $admin = adminUser();
+    $admin = adminWithout('audit.view');
     $target = User::factory()->create();
     $target->givePermissionTo('audit.view');
 

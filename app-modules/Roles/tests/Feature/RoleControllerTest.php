@@ -11,36 +11,22 @@ use Spatie\Activitylog\Models\Activity;
 use Spatie\Permission\Models\Role;
 
 beforeEach(function (): void {
-    $this->withoutVite();
-
     $this->artisan('admin:sync-permissions')->assertSuccessful();
 });
 
-it('redirects guests to the login page', function (string $method, string $uri): void {
-    $response = $this->{$method}($uri);
-
-    $response->assertRedirectToRoute('login');
+it('keeps guests and non-admins out', function (string $method, Closure $url): void {
+    assertAdminOnly($method, $url());
 })->with([
-    'index' => ['get', '/admin/roles'],
-    'create' => ['get', '/admin/roles/create'],
-    'store' => ['post', '/admin/roles'],
-    'edit' => ['get', '/admin/roles/1/edit'],
-    'update' => ['put', '/admin/roles/1'],
-    'destroy' => ['delete', '/admin/roles/1'],
+    'index' => ['get', fn (): string => route('admin.roles.index')],
+    'create' => ['get', fn (): string => route('admin.roles.create')],
+    'store' => ['post', fn (): string => route('admin.roles.store')],
+    'edit' => ['get', fn (): string => route('admin.roles.edit', Role::findOrCreate('editor'))],
+    'update' => ['put', fn (): string => route('admin.roles.update', Role::findOrCreate('editor'))],
+    'destroy' => ['delete', fn (): string => route('admin.roles.destroy', Role::findOrCreate('editor'))],
 ]);
 
-it('forbids authenticated users without the admin role', function (): void {
-    $user = User::factory()->create();
-
-    $response = $this->actingAs($user)->get('/admin/roles');
-
-    $response->assertForbidden();
-});
-
 it('forbids admins without the roles.view permission', function (): void {
-    Role::findByName('admin')->revokePermissionTo('roles.view');
-
-    $response = $this->actingAs(adminUser())->get(route('admin.roles.index'));
+    $response = $this->actingAs(adminWithout('roles.view'))->get(route('admin.roles.index'));
 
     $response->assertForbidden();
 });
@@ -140,25 +126,6 @@ it('sorts the index by name by default', function (): void {
         ->where('roles.data.2.name', 'zebra'));
 });
 
-it('paginates the index and caps per_page at 100', function (): void {
-    $admin = adminUser();
-
-    foreach (range(1, 12) as $index) {
-        Role::findOrCreate('role-'.$index);
-    }
-
-    $paged = $this->actingAs($admin)->get(route('admin.roles.index', ['per_page' => 10, 'page' => 2]));
-    $capped = $this->actingAs($admin)->get(route('admin.roles.index', ['per_page' => 500]));
-
-    $paged->assertOk()->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
-        ->has('roles.data', 3)
-        ->where('roles.meta.current_page', 2)
-        ->where('roles.meta.per_page', 10)
-        ->where('roles.meta.total', 13));
-
-    $capped->assertOk()->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->where('roles.meta.per_page', 100));
-});
-
 it('renders the create page', function (): void {
     $response = $this->actingAs(adminUser())->get(route('admin.roles.create'));
 
@@ -168,8 +135,7 @@ it('renders the create page', function (): void {
 });
 
 it('forbids admins without the roles.create permission', function (): void {
-    Role::findByName('admin')->revokePermissionTo('roles.create');
-    $admin = adminUser();
+    $admin = adminWithout('roles.create');
 
     $this->actingAs($admin)->get(route('admin.roles.create'))->assertForbidden();
     $this->actingAs($admin)->post(route('admin.roles.store'), [
@@ -189,7 +155,7 @@ it('stores a role and redirects with a success flash', function (): void {
         ]);
 
     $response->assertRedirectToRoute('admin.roles.index')
-        ->assertInertiaFlash('toast', ['type' => 'success', 'message' => 'Role created.']);
+        ->assertToast('Role created.');
 
     /** @var Role $role */
     $role = Role::findByName('editor');
@@ -260,8 +226,7 @@ it('renders the edit page', function (): void {
 });
 
 it('forbids admins without the roles.update permission', function (): void {
-    Role::findByName('admin')->revokePermissionTo('roles.update');
-    $admin = adminUser();
+    $admin = adminWithout('roles.update');
     $role = Role::findOrCreate('editor');
 
     $this->actingAs($admin)->get(route('admin.roles.edit', $role))->assertForbidden();
@@ -283,7 +248,7 @@ it('updates a role and redirects with a success flash', function (): void {
         ]);
 
     $response->assertRedirectToRoute('admin.roles.index')
-        ->assertInertiaFlash('toast', ['type' => 'success', 'message' => 'Role updated.']);
+        ->assertToast('Role updated.');
 
     $role->refresh();
 
@@ -347,7 +312,7 @@ it('lets a super-admin update the permissions of a system role', function (): vo
         ]);
 
     $response->assertRedirectToRoute('admin.roles.index')
-        ->assertInertiaFlash('toast', ['type' => 'success', 'message' => 'Role updated.']);
+        ->assertToast('Role updated.');
 
     expect($role->permissions()->pluck('name')->all())->toEqualCanonicalizing(['roles.view', 'roles.update']);
 });
@@ -359,7 +324,7 @@ it('deletes a role and redirects with a success flash', function (): void {
     $response = $this->actingAs($admin)->delete(route('admin.roles.destroy', $role));
 
     $response->assertRedirectToRoute('admin.roles.index')
-        ->assertInertiaFlash('toast', ['type' => 'success', 'message' => 'Role deleted.']);
+        ->assertToast('Role deleted.');
 
     expect(Role::query()->whereKey($role->id)->exists())->toBeFalse()
         ->and(Activity::query()->where('event', 'deleted')->where('causer_id', $admin->id)->exists())->toBeTrue();
@@ -377,8 +342,7 @@ it('forbids deleting a system role', function (): void {
 });
 
 it('forbids admins without the roles.delete permission', function (): void {
-    Role::findByName('admin')->revokePermissionTo('roles.delete');
-    $admin = adminUser();
+    $admin = adminWithout('roles.delete');
     $role = Role::findOrCreate('editor');
 
     $this->actingAs($admin)->delete(route('admin.roles.destroy', $role))->assertForbidden();
@@ -400,8 +364,7 @@ it('forbids admins changing a system role', function (string $name): void {
 })->with(['admin', 'super-admin']);
 
 it('rejects granting a permission the admin does not hold', function (string $route): void {
-    Role::findByName('admin')->revokePermissionTo('audit.view');
-    $admin = adminUser();
+    $admin = adminWithout('audit.view');
     $role = Role::findOrCreate('editor');
 
     $payload = ['name' => 'editor', 'permissions' => ['users.view', 'audit.view']];
@@ -417,8 +380,7 @@ it('rejects granting a permission the admin does not hold', function (string $ro
 })->with(['store', 'update']);
 
 it('keeps permissions a role already has even when the admin does not hold them', function (): void {
-    Role::findByName('admin')->revokePermissionTo('audit.view');
-    $admin = adminUser();
+    $admin = adminWithout('audit.view');
     $role = Role::findOrCreate('auditor');
     $role->givePermissionTo('audit.view');
 

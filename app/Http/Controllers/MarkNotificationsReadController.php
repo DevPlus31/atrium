@@ -6,9 +6,9 @@ namespace App\Http\Controllers;
 
 use App\Actions\MarkAllNotificationsRead;
 use App\Models\User;
+use App\Modules\Toast;
 use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Http\RedirectResponse;
-use Inertia\Inertia;
 
 final readonly class MarkNotificationsReadController
 {
@@ -19,7 +19,7 @@ final readonly class MarkNotificationsReadController
     {
         $action->handle($user);
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('All notifications marked as read.')]);
+        Toast::success(__('All notifications marked as read.'));
 
         return back();
     }

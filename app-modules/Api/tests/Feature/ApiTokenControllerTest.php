@@ -10,8 +10,6 @@ use Laravel\Sanctum\PersonalAccessToken;
 use Spatie\Activitylog\Models\Activity;
 
 beforeEach(function (): void {
-    $this->withoutVite();
-
     // The tokens screen sits behind password confirmation.
     $this->withSession(['auth.password_confirmed_at' => time()]);
 
@@ -101,7 +99,7 @@ it("revokes one of the user's tokens", function (): void {
     $this->actingAs($user)
         ->delete(route('api-tokens.destroy', $token->id))
         ->assertRedirectToRoute('api-tokens.index')
-        ->assertInertiaFlash('toast', ['type' => 'success', 'message' => 'Token revoked.']);
+        ->assertToast('Token revoked.');
 
     expect(PersonalAccessToken::query()->exists())->toBeFalse()
         ->and(Activity::query()->where('event', 'api-token-revoked')->exists())->toBeTrue();

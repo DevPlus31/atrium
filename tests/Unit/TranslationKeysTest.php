@@ -6,7 +6,8 @@ use Symfony\Component\Finder\Finder;
 
 /**
  * Every literal string the app translates — `t()`/`tChoice()` in React and
- * `__()`/`trans()`/`trans_choice()` in PHP and Blade — must be in an English catalogue translators copy when
+ * `__()`/`trans()`/`trans_choice()` in PHP and Blade, plus the `label:`/`group:`
+ * strings module providers register for the menu and search — must be in an English catalogue translators copy when
  * adding a locale: the shell's lang/en.json, or for module code that
  * module's own lang/en.json (a module never relies on another's strings).
  * Dotted PHP keys (`auth.failed`) live in PHP lang files and are skipped.
@@ -16,6 +17,8 @@ function missingTranslations(string $directory, array $catalogue, array $exclude
     $patterns = [
         '/\b(?:t|tChoice)\(\s*([\'"])((?:\\\\.|(?!\1).)*)\1/s' => ['*.ts', '*.tsx'],
         '/\b(?:__|trans|trans_choice)\(\s*([\'"])((?:\\\\.|(?!\1).)*)\1/s' => ['*.php'],
+        // Menu and search labels: plain strings the shell translates when it renders them.
+        '/\b(?:label|group):\s*([\'"])((?:\\\\.|(?!\1).)*)\1/s' => ['*ServiceProvider.php'],
     ];
 
     $missing = [];

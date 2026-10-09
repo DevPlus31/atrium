@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\Models\User;
+use App\Modules\AuditLog;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use SensitiveParameter;
@@ -28,9 +29,10 @@ final readonly class SignOutOtherSessions
             $user->browserSessions()->where('id', '!=', $currentSessionId)->delete();
         }
 
-        activity('users')
-            ->performedOn($user)
-            ->event('other-sessions-signed-out')
-            ->log('other-sessions-signed-out');
+        AuditLog::record(
+            log: 'users',
+            event: 'other-sessions-signed-out',
+            subject: $user,
+        );
     }
 }

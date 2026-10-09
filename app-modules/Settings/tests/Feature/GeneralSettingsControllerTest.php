@@ -9,11 +9,9 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia;
 use Spatie\Activitylog\Models\Activity;
-use Spatie\Permission\Models\Role;
 
 beforeEach(function (): void {
     Storage::fake('public');
-    $this->withoutVite();
     $this->artisan('admin:sync-permissions')->assertSuccessful();
 });
 
@@ -21,10 +19,10 @@ it('keeps the page from guests, members and admins without the permission', func
     $this->get(route('admin.settings.general.edit'))->assertRedirectToRoute('login');
     $this->actingAs(User::factory()->create())->get(route('admin.settings.general.edit'))->assertForbidden();
 
-    Role::findByName('admin')->revokePermissionTo('settings.update');
-    $this->actingAs(adminUser())->get(route('admin.settings.general.edit'))->assertForbidden();
-    $this->actingAs(adminUser())->put(route('admin.settings.general.update'), ['registration_open' => false])->assertForbidden();
-    $this->actingAs(adminUser())->delete(route('admin.settings.logo.destroy'))->assertForbidden();
+    $admin = adminWithout('settings.update');
+    $this->actingAs($admin)->get(route('admin.settings.general.edit'))->assertForbidden();
+    $this->actingAs($admin)->put(route('admin.settings.general.update'), ['registration_open' => false])->assertForbidden();
+    $this->actingAs($admin)->delete(route('admin.settings.logo.destroy'))->assertForbidden();
 });
 
 it('shows the current settings', function (): void {
@@ -48,7 +46,7 @@ it('saves the settings and records the change', function (): void {
     $this->actingAs(adminUser())
         ->put(route('admin.settings.general.update'), ['support_email' => 'help@example.com', 'registration_open' => false])
         ->assertRedirectToRoute('admin.settings.general.edit')
-        ->assertInertiaFlash('toast', ['type' => 'success', 'message' => 'Settings saved.']);
+        ->assertToast('Settings saved.');
 
     $settings = resolve(GeneralSettings::class)->refresh();
 
@@ -86,7 +84,7 @@ it('uploads a logo, replaces it and removes it', function (): void {
     $this->actingAs($admin)
         ->post(route('admin.settings.logo.update'), ['logo' => UploadedFile::fake()->image('one.png', 120, 40)])
         ->assertRedirectToRoute('admin.settings.general.edit')
-        ->assertInertiaFlash('toast', ['type' => 'success', 'message' => 'Logo updated.']);
+        ->assertToast('Logo updated.');
 
     $first = resolve(GeneralSettings::class)->refresh()->logo_path;
 
@@ -104,7 +102,7 @@ it('uploads a logo, replaces it and removes it', function (): void {
 
     $this->actingAs($admin)
         ->delete(route('admin.settings.logo.destroy'))
-        ->assertInertiaFlash('toast', ['type' => 'success', 'message' => 'Logo removed.']);
+        ->assertToast('Logo removed.');
 
     Storage::disk('public')->assertMissing((string) $second);
 

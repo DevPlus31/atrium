@@ -8,10 +8,6 @@ use Illuminate\Support\Facades\Hash;
 use Inertia\Testing\AssertableInertia;
 use Spatie\Activitylog\Models\Activity;
 
-beforeEach(function (): void {
-    $this->withoutVite();
-});
-
 const CHROME_ON_MAC = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36';
 
 function storeSession(User $user, string $id, int $minutesAgo, string $agent = CHROME_ON_MAC): void
@@ -74,7 +70,7 @@ it('signs out the other sessions once the password is confirmed', function (): v
     $this->actingAs($user)
         ->delete(route('sessions.destroy'), ['password' => 'password'])
         ->assertRedirectToRoute('sessions.index')
-        ->assertInertiaFlash('toast', ['type' => 'success', 'message' => 'Signed out of your other sessions.']);
+        ->assertToast('Signed out of your other sessions.');
 
     // Only the current session (saved after this request) is left for the user.
     expect(DB::table('sessions')->whereIn('id', ['laptop', 'phone'])->exists())->toBeFalse()

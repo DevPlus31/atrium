@@ -4,34 +4,29 @@ declare(strict_types=1);
 
 namespace Modules\Users\Http\Requests\Concerns;
 
+use App\Modules\Concerns\ReadsValidatedInput;
+
 /**
  * Typed reads of the validated account fields the Users forms share. Each
  * getter is only called by requests whose rules validate that field.
  */
 trait ReadsAccountInput
 {
+    use ReadsValidatedInput;
+
     public function name(): string
     {
-        /** @var string $name */
-        $name = $this->validated('name');
-
-        return $name;
+        return $this->validatedString('name');
     }
 
     public function email(): string
     {
-        /** @var string $email */
-        $email = $this->validated('email');
-
-        return $email;
+        return $this->validatedString('email');
     }
 
     public function password(): string
     {
-        /** @var string $password */
-        $password = $this->validated('password');
-
-        return $password;
+        return $this->validatedString('password');
     }
 
     /**

@@ -7,10 +7,6 @@ use Illuminate\Notifications\DatabaseNotification;
 use Inertia\Testing\AssertableInertia;
 use Tests\Fixtures\Notifications\GreetingNotification;
 
-beforeEach(function (): void {
-    $this->withoutVite();
-});
-
 it('requires a verified, signed-in user', function (): void {
     $this->get(route('notifications.index'))->assertRedirectToRoute('login');
     $this->patch(route('notifications.read-all'))->assertRedirectToRoute('login');
@@ -111,7 +107,7 @@ it('marks every unread notification read', function (): void {
         ->from(route('notifications.index'))
         ->patch(route('notifications.read-all'))
         ->assertRedirect(route('notifications.index'))
-        ->assertInertiaFlash('toast', ['type' => 'success', 'message' => 'All notifications marked as read.']);
+        ->assertToast('All notifications marked as read.');
 
     expect($user->unreadNotifications()->count())->toBe(0)
         ->and($other->unreadNotifications()->count())->toBe(1);

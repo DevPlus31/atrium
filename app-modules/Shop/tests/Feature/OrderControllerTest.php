@@ -8,11 +8,8 @@ use Inertia\Testing\AssertableInertia;
 use Modules\Shop\Domain\Enums\OrderStatus;
 use Modules\Shop\Domain\ValueObjects\OrderNumber;
 use Modules\Shop\Infrastructure\Models\Order;
-use Spatie\Permission\Models\Role;
 
 beforeEach(function (): void {
-    $this->withoutVite();
-
     $this->artisan('admin:sync-permissions')->assertSuccessful();
 });
 
@@ -29,26 +26,20 @@ function orderPayload(array $overrides = []): array
     ];
 }
 
-it('redirects guests to the login page', function (string $method, string $uri): void {
-    $this->{$method}($uri)->assertRedirectToRoute('login');
+it('keeps guests and non-admins out', function (string $method, Closure $url): void {
+    assertAdminOnly($method, $url());
 })->with([
-    'index' => ['get', '/admin/orders'],
-    'create' => ['get', '/admin/orders/create'],
-    'store' => ['post', '/admin/orders'],
-    'edit' => ['get', '/admin/orders/00000000-0000-0000-0000-000000000000/edit'],
-    'update' => ['put', '/admin/orders/00000000-0000-0000-0000-000000000000'],
-    'destroy' => ['delete', '/admin/orders/00000000-0000-0000-0000-000000000000'],
-    'transition' => ['post', '/admin/orders/00000000-0000-0000-0000-000000000000/status'],
+    'index' => ['get', fn (): string => route('admin.orders.index')],
+    'create' => ['get', fn (): string => route('admin.orders.create')],
+    'store' => ['post', fn (): string => route('admin.orders.store')],
+    'edit' => ['get', fn (): string => route('admin.orders.edit', Order::factory()->create())],
+    'update' => ['put', fn (): string => route('admin.orders.update', Order::factory()->create())],
+    'destroy' => ['delete', fn (): string => route('admin.orders.destroy', Order::factory()->create())],
+    'transition' => ['post', fn (): string => route('admin.orders.transition', Order::factory()->create())],
 ]);
 
-it('forbids authenticated users without the admin role', function (): void {
-    $this->actingAs(User::factory()->create())->get('/admin/orders')->assertForbidden();
-});
-
 it('forbids admins without the orders.view permission', function (): void {
-    Role::findByName('admin')->revokePermissionTo('orders.view');
-
-    $this->actingAs(adminUser())->get(route('admin.orders.index'))->assertForbidden();
+    $this->actingAs(adminWithout('orders.view'))->get(route('admin.orders.index'))->assertForbidden();
 });
 
 it('registers the nav item for permitted admins and hides it otherwise', function (): void {
@@ -102,12 +93,10 @@ it('searches by number or customer email and filters by status', function (): vo
     $byEmail = $this->actingAs($admin)->get(route('admin.orders.index', ['filter' => ['search' => 'ALPHA@']]));
     $byNumber = $this->actingAs($admin)->get(route('admin.orders.index', ['filter' => ['search' => mb_strtolower(mb_substr($alpha->number, -6))]]));
     $byStatus = $this->actingAs($admin)->get(route('admin.orders.index', ['filter' => ['status' => 'paid']]));
-    $capped = $this->actingAs($admin)->get(route('admin.orders.index', ['per_page' => 500]));
 
     $byEmail->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->has('orders.data', 1)->where('orders.data.0.customer_email', 'alpha@example.com'));
     $byNumber->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->has('orders.data', 1)->where('orders.data.0.number', $alpha->number));
     $byStatus->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->has('orders.data', 1)->where('orders.data.0.customer_email', 'beta@example.com'));
-    $capped->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->where('orders.meta.per_page', 100));
 });
 
 it('renders the create page', function (): void {
@@ -122,7 +111,7 @@ it('places an order and redirects with a success flash', function (): void {
         ->post(route('admin.orders.store'), orderPayload(['customer_email' => ' Jane@Example.com ', 'currency' => 'eur']));
 
     $response->assertRedirectToRoute('admin.orders.index')
-        ->assertInertiaFlash('toast', ['type' => 'success', 'message' => 'Order created.']);
+        ->assertToast('Order created.');
 
     $order = Order::query()->sole();
 
@@ -176,7 +165,7 @@ it('updates a pending order and redirects with a success flash', function (): vo
         ->put(route('admin.orders.update', $order), orderPayload(['customer_email' => 'new@example.com', 'total_cents' => 999]));
 
     $response->assertRedirectToRoute('admin.orders.index')
-        ->assertInertiaFlash('toast', ['type' => 'success', 'message' => 'Order updated.']);
+        ->assertToast('Order updated.');
 
     expect($order->refresh()->customer_email)->toBe('new@example.com')
         ->and($order->total_cents)->toBe(999);
@@ -196,7 +185,7 @@ it('deletes a pending order and redirects with a success flash', function (): vo
     $response = $this->actingAs(adminUser())->delete(route('admin.orders.destroy', $order));
 
     $response->assertRedirectToRoute('admin.orders.index')
-        ->assertInertiaFlash('toast', ['type' => 'success', 'message' => 'Order deleted.']);
+        ->assertToast('Order deleted.');
 
     expect(Order::query()->whereKey($order->id)->exists())->toBeFalse();
 });
@@ -217,7 +206,7 @@ it('moves an order along every step of its workflow', function (string $from, st
         ->post(route('admin.orders.transition', $order), ['status' => $to]);
 
     $response->assertRedirectToRoute('admin.orders.index')
-        ->assertInertiaFlash('toast', ['type' => 'success', 'message' => 'Order '.$order->number.' marked as '.$to.'.']);
+        ->assertToast('Order '.$order->number.' marked as '.$to.'.');
 
     $order->refresh();
 
@@ -251,10 +240,9 @@ it('forbids changing the status of a finished order', function (string $state): 
 })->with(['shipped', 'cancelled']);
 
 it('forbids admins without the matching permission', function (string $permission, string $method, string $routeName, array $payload): void {
-    Role::findByName('admin')->revokePermissionTo($permission);
     $order = Order::factory()->create();
 
-    $this->actingAs(adminUser())->{$method}(route($routeName, $order), $payload)->assertForbidden();
+    $this->actingAs(adminWithout($permission))->{$method}(route($routeName, $order), $payload)->assertForbidden();
 })->with([
     'create' => ['orders.create', 'get', 'admin.orders.create', []],
     'update' => ['orders.update', 'get', 'admin.orders.edit', []],

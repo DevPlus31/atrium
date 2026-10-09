@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Audit\Providers;
 
 use App\Enums\Area;
+use App\Models\User;
 use App\Modules\ModuleServiceProvider;
 use App\Modules\NavRegistry;
 use App\Modules\PermissionRegistry;
@@ -41,7 +42,7 @@ final class AuditServiceProvider extends ModuleServiceProvider
 
     protected function permissions(PermissionRegistry $permissions): void
     {
-        $permissions->declare('audit.view', roles: ['admin']);
+        $permissions->declare('audit.view', roles: [User::PANEL_ROLE]);
     }
 
     protected function widgets(WidgetRegistry $widgets): void

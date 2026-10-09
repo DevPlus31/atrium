@@ -6,11 +6,8 @@ use App\Models\User;
 use App\Modules\NavRegistry;
 use Illuminate\Support\Collection;
 use Inertia\Testing\AssertableInertia;
-use Spatie\Permission\Models\Role;
 
 beforeEach(function (): void {
-    $this->withoutVite();
-
     $this->artisan('admin:sync-permissions')->assertSuccessful();
 });
 
@@ -42,9 +39,7 @@ it('registers the system nav items for permitted admins', function (): void {
 });
 
 it('hides a system nav item when its permission is missing', function (): void {
-    Role::findByName('admin')->revokePermissionTo('system.horizon.view');
-
-    $admin = adminUser();
+    $admin = adminWithout('system.horizon.view');
 
     $navItems = collect($this->app->make(NavRegistry::class)->itemsFor($admin));
     $systemItems = $navItems

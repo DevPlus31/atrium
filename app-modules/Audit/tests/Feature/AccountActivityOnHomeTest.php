@@ -8,8 +8,6 @@ use Inertia\Testing\AssertableInertia;
 use Laravel\Pennant\Feature;
 
 beforeEach(function (): void {
-    $this->withoutVite();
-
     $this->artisan('admin:sync-permissions')->assertSuccessful();
 });
 

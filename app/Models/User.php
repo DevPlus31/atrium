@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Domain\Concerns\InteractsWithDomainEvents;
 use App\Domain\Contracts\RecordsDomainEvents;
+use App\Domain\ValueObjects\Email;
 use App\Enums\Appearance;
 use App\Enums\ThemePreset;
 use Carbon\CarbonInterface;
@@ -108,6 +109,29 @@ final class User extends Authenticatable implements HasLocalePreference, HasMedi
      * The token of the current API request; null on the app's own pages.
      */
     private ?PersonalAccessToken $apiToken = null;
+
+    /**
+     * Move the account to another address (stored normalised). A new address
+     * is unverified until its owner confirms it: the verification mail goes
+     * out when the surrounding transaction commits, so call this inside the
+     * one that saves the user. Whether the address changed.
+     */
+    public function changeEmail(string $email): bool
+    {
+        $email = (string) new Email($email);
+
+        if ($email === $this->email) {
+            return false;
+        }
+
+        $this->forceFill(['email' => $email, 'email_verified_at' => null]);
+
+        DB::afterCommit(function (): void {
+            $this->sendEmailVerificationNotification();
+        });
+
+        return true;
+    }
 
     public function canAccessPanel(): bool
     {

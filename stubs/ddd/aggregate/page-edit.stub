@@ -1,21 +1,11 @@
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 import { useLaravelReactI18n } from 'laravel-react-i18n';
-import type { FormEvent } from 'react';
-import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
-import { Spinner } from '@/components/ui/spinner';
+import { FormCard } from '@/components/form-card';
 import { useBreadcrumbs } from '@/hooks/use-breadcrumbs';
 import { edit, index, update } from '@/routes/admin/{{ slug }}';
-import type { BreadcrumbItem } from '@/types';
-import type { {{ aggregate }}Row } from '../components/{{ slug }}-columns';
-import { {{ aggregate }}FormFields } from '../components/{{ slug }}-form-fields';
-import type { {{ aggregate }}FormData } from '../components/{{ slug }}-form-fields';
+import type { {{ aggregate }}Row } from '../components/{{ aggregateKebab }}-columns';
+import { {{ aggregate }}FormFields } from '../components/{{ aggregateKebab }}-form-fields';
+import type { {{ aggregate }}FormData } from '../components/{{ aggregateKebab }}-form-fields';
 
 type {{ plural }}EditProps = {
     {{ variable }}: {{ aggregate }}Row;
@@ -24,53 +14,31 @@ type {{ plural }}EditProps = {
 export default function {{ plural }}Edit({ {{ variable }} }: {{ plural }}EditProps) {
     const { t } = useLaravelReactI18n();
 
-    const breadcrumbs: BreadcrumbItem[] = [
+    useBreadcrumbs(
         { title: t('{{ label }}'), href: index() },
         { title: {{ variable }}.name, href: edit({{ variable }}.id) },
-    ];
-    useBreadcrumbs(breadcrumbs);
+    );
 
     const form = useForm<{{ aggregate }}FormData>(update({{ variable }}.id), {
         name: {{ variable }}.name,
         description: {{ variable }}.description ?? '',
     });
 
-    const submit = (event: FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        form.submit({ preserveScroll: true });
-    };
-
     return (
         <>
             <Head title={t('Edit :name', { name: {{ variable }}.name })} />
-            <Card className="max-w-2xl">
-                <CardHeader>
-                    <CardTitle>{t('Edit {{ variable }}')}</CardTitle>
-                    <CardDescription>
-                        {t('Update the {{ variable }} details.')}
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <form onSubmit={submit} className="grid gap-6">
-                        <{{ aggregate }}FormFields
-                            data={form.data}
-                            errors={form.errors}
-                            setData={form.setData}
-                            validate={(field) => form.validate(field)}
-                        />
-
-                        <div className="flex items-center gap-2">
-                            <Button type="submit" disabled={form.processing}>
-                                {form.processing && <Spinner />}
-                                {t('Save changes')}
-                            </Button>
-                            <Button variant="ghost" asChild>
-                                <Link href={index()}>{t('Cancel')}</Link>
-                            </Button>
-                        </div>
-                    </form>
-                </CardContent>
-            </Card>
+            <FormCard
+                title={t('Edit {{ variable }}')}
+                description={t('Update the {{ variable }} details.')}
+                onSubmit={() => form.submit({ preserveScroll: true })}
+                processing={form.processing}
+                submitLabel={t('Save changes')}
+                cancelHref={index()}
+            >
+                <{{ aggregate }}FormFields
+                    form={form}
+                />
+            </FormCard>
         </>
     );
 }

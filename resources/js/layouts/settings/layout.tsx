@@ -1,7 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import type { InertiaLinkProps } from '@inertiajs/react';
 import { useLaravelReactI18n } from 'laravel-react-i18n';
-import type { LucideIcon } from 'lucide-react';
 import type { PropsWithChildren } from 'react';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
@@ -19,45 +18,16 @@ import { edit } from '@/routes/user-profile';
 type SettingsNavItem = {
     title: string;
     href: NonNullable<InertiaLinkProps['href']>;
-    icon: LucideIcon | null;
 };
 
 const sidebarNavItems: SettingsNavItem[] = [
-    {
-        title: 'Profile',
-        href: edit(),
-        icon: null,
-    },
-    {
-        title: 'Password',
-        href: editPassword(),
-        icon: null,
-    },
-    {
-        title: 'Two-factor authentication',
-        href: showTwoFactor(),
-        icon: null,
-    },
-    {
-        title: 'Passkeys',
-        href: showPasskeys(),
-        icon: null,
-    },
-    {
-        title: 'Sessions',
-        href: sessions(),
-        icon: null,
-    },
-    {
-        title: 'Appearance',
-        href: editAppearance(),
-        icon: null,
-    },
-    {
-        title: 'Notifications',
-        href: editNotificationPreferences(),
-        icon: null,
-    },
+    { title: 'Profile', href: edit() },
+    { title: 'Password', href: editPassword() },
+    { title: 'Two-factor authentication', href: showTwoFactor() },
+    { title: 'Passkeys', href: showPasskeys() },
+    { title: 'Sessions', href: sessions() },
+    { title: 'Appearance', href: editAppearance() },
+    { title: 'Notifications', href: editNotificationPreferences() },
 ];
 
 export default function SettingsLayout({ children }: PropsWithChildren) {
@@ -72,7 +42,6 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
         ...settingsNav.map((item) => ({
             title: item.label,
             href: item.href,
-            icon: null,
         })),
     ];
 
@@ -99,12 +68,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                                     'bg-muted': isCurrentOrParentUrl(item.href),
                                 })}
                             >
-                                <Link href={item.href}>
-                                    {item.icon && (
-                                        <item.icon className="h-4 w-4" />
-                                    )}
-                                    {item.title}
-                                </Link>
+                                <Link href={item.href}>{item.title}</Link>
                             </Button>
                         ))}
                     </nav>

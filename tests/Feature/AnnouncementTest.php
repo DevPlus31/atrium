@@ -7,10 +7,6 @@ use App\Models\User;
 use App\Settings\AnnouncementSettings;
 use Inertia\Testing\AssertableInertia;
 
-beforeEach(function (): void {
-    $this->withoutVite();
-});
-
 function announce(string $message, ?string $endsAt = null): AnnouncementSettings
 {
     $settings = resolve(AnnouncementSettings::class);

@@ -4,13 +4,14 @@ import { useLaravelReactI18n } from 'laravel-react-i18n';
 import { KeyRound } from 'lucide-react';
 import { useState } from 'react';
 import { AuthStatus } from '@/components/auth/auth-status';
+import { AuthSubmit } from '@/components/auth/auth-submit';
+import { CheckboxField } from '@/components/checkbox-field';
+import { FormField } from '@/components/form-field';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import AuthLayout from '@/layouts/auth-layout';
 import { dashboard, register } from '@/routes';
@@ -61,10 +62,11 @@ export default function Login({
                 {({ processing, errors }) => (
                     <>
                         <div className="grid gap-6">
-                            <div className="grid gap-2">
-                                <Label htmlFor="email">
-                                    {t('Email address')}
-                                </Label>
+                            <FormField
+                                id="email"
+                                label={t('Email address')}
+                                error={errors.email}
+                            >
                                 <Input
                                     id="email"
                                     type="email"
@@ -74,23 +76,23 @@ export default function Login({
                                     autoComplete="email"
                                     placeholder={t('email@example.com')}
                                 />
-                                <InputError message={errors.email} />
-                            </div>
+                            </FormField>
 
-                            <div className="grid gap-2">
-                                <div className="flex items-center">
-                                    <Label htmlFor="password">
-                                        {t('Password')}
-                                    </Label>
-                                    {canResetPassword && (
+                            <FormField
+                                id="password"
+                                label={t('Password')}
+                                error={errors.password}
+                                labelAside={
+                                    canResetPassword && (
                                         <TextLink
                                             href={request()}
-                                            className="ms-auto text-sm"
+                                            className="text-sm"
                                         >
                                             {t('Forgot password?')}
                                         </TextLink>
-                                    )}
-                                </div>
+                                    )
+                                }
+                            >
                                 <PasswordInput
                                     id="password"
                                     name="password"
@@ -98,32 +100,23 @@ export default function Login({
                                     autoComplete="current-password"
                                     placeholder={t('Password')}
                                 />
-                                <InputError message={errors.password} />
-                            </div>
+                            </FormField>
 
-                            <div className="flex items-center gap-3">
-                                <Checkbox
-                                    id="remember"
-                                    name="remember"
-                                    checked={remember}
-                                    onCheckedChange={(checked) =>
-                                        setRemember(checked === true)
-                                    }
-                                />
-                                <Label htmlFor="remember">
-                                    {t('Remember me')}
-                                </Label>
-                            </div>
+                            <CheckboxField
+                                id="remember"
+                                name="remember"
+                                label={t('Remember me')}
+                                checked={remember}
+                                onCheckedChange={setRemember}
+                            />
 
-                            <Button
-                                type="submit"
-                                className="mt-2 w-full"
-                                disabled={processing}
-                                data-test="login-button"
+                            <AuthSubmit
+                                processing={processing}
+                                test="login-button"
+                                className="mt-2"
                             >
-                                {processing && <Spinner />}
                                 {t('Log in')}
-                            </Button>
+                            </AuthSubmit>
 
                             {passkeysSupported && (
                                 <div className="grid gap-2">

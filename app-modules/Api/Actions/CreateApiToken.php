@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Api\Actions;
 
 use App\Models\User;
+use App\Modules\AuditLog;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
 use Laravel\Sanctum\NewAccessToken;
@@ -22,15 +23,16 @@ final readonly class CreateApiToken
         return DB::transaction(function () use ($user, $name, $abilities, $expiresAt): NewAccessToken {
             $token = $user->createToken($name, $abilities, $expiresAt);
 
-            activity('users')
-                ->performedOn($user)
-                ->event('api-token-created')
-                ->withProperties(['attributes' => [
+            AuditLog::record(
+                log: 'users',
+                event: 'api-token-created',
+                subject: $user,
+                properties: ['attributes' => [
                     'name' => $name,
                     'abilities' => $abilities,
                     'expires_at' => $expiresAt->toIso8601String(),
-                ]])
-                ->log('api-token-created');
+                ]],
+            );
 
             return $token;
         });

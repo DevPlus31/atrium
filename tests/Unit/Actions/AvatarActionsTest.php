@@ -5,7 +5,6 @@ declare(strict_types=1);
 use App\Actions\RemoveAvatar;
 use App\Actions\UpdateAvatar;
 use App\Models\User;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Activitylog\Models\Activity;
 
@@ -17,8 +16,8 @@ it('stores the photo and replaces the previous one', function (): void {
     $user = User::factory()->create();
     $action = resolve(UpdateAvatar::class);
 
-    $action->handle($user, UploadedFile::fake()->image('one.png', 200, 200));
-    $action->handle($user, UploadedFile::fake()->image('two.jpg', 200, 200));
+    $action->handle($user, validImage('one.png'));
+    $action->handle($user, validImage('two.jpg'));
 
     $media = $user->refresh()->getMedia(User::AVATAR);
 
@@ -29,7 +28,7 @@ it('stores the photo and replaces the previous one', function (): void {
 
 it('removes the photo', function (): void {
     $user = User::factory()->create();
-    resolve(UpdateAvatar::class)->handle($user, UploadedFile::fake()->image('me.png', 200, 200));
+    resolve(UpdateAvatar::class)->handle($user, validImage('me.png'));
 
     resolve(RemoveAvatar::class)->handle($user);
 

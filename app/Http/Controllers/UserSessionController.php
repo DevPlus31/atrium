@@ -8,6 +8,7 @@ use App\Actions\SignOutOtherSessions;
 use App\Http\Requests\SignOutOtherSessionsRequest;
 use App\Models\User;
 use App\Modules\Data\SessionData;
+use App\Modules\Toast;
 use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -32,7 +33,7 @@ final readonly class UserSessionController
     {
         $action->handle($user, $request->string('password')->value(), $request->session()->getId());
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Signed out of your other sessions.')]);
+        Toast::success(__('Signed out of your other sessions.'));
 
         return to_route('sessions.index');
     }

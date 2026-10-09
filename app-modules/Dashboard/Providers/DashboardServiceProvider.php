@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Dashboard\Providers;
 
 use App\Enums\Area;
+use App\Models\User;
 use App\Modules\ModuleServiceProvider;
 use App\Modules\NavRegistry;
 use App\Modules\PermissionRegistry;
@@ -42,7 +43,7 @@ final class DashboardServiceProvider extends ModuleServiceProvider
 
     protected function permissions(PermissionRegistry $permissions): void
     {
-        $permissions->declare('dashboard.view', roles: ['admin']);
+        $permissions->declare('dashboard.view', roles: [User::PANEL_ROLE]);
     }
 
     protected function widgets(WidgetRegistry $widgets): void

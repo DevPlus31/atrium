@@ -24,8 +24,6 @@ it('hardens every web response', function (string $uri): void {
 ]);
 
 it('sends a nonce-based content security policy for app pages', function (): void {
-    $this->withoutVite();
-
     $response = $this->get(route('login'));
 
     $policy = (string) $response->headers->get('Content-Security-Policy');
@@ -48,6 +46,8 @@ it('leaves the bundled system tool UIs without a content security policy', funct
 })->with(['/pulse', '/horizon', '/log-viewer']);
 
 it('allows the vite dev server while it is running', function (): void {
+    // The real Vite, not the feature-test stand-in: the policy reads its hot file.
+    $this->withVite();
     $hot = tempnam(sys_get_temp_dir(), 'hot');
     file_put_contents($hot, 'http://localhost:5173');
     Vite::useHotFile($hot);
@@ -83,6 +83,7 @@ it('nonces every executable script the page renders', function (): void {
 });
 
 it('keeps the vite dev server out of the policy while it is not running', function (): void {
+    $this->withVite();
     Vite::useHotFile(storage_path('framework/testing/no-vite-hot-file'));
 
     $policy = (string) $this->get(route('login'))->headers->get('Content-Security-Policy');

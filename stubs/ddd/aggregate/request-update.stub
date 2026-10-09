@@ -5,38 +5,14 @@ declare(strict_types=1);
 namespace Modules\{{ module }}\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Modules\{{ module }}\Http\Requests\Concerns\Validates{{ aggregate }}Input;
 
 final class Update{{ aggregate }}Request extends FormRequest
 {
+    use Validates{{ aggregate }}Input;
+
     public function authorize(): bool
     {
         return $this->user()?->can('update', $this->route('{{ variable }}')) ?? false;
-    }
-
-    /**
-     * @return array<string, array<mixed>|string>
-     */
-    public function rules(): array
-    {
-        return [
-            'name' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string', 'max:2000'],
-        ];
-    }
-
-    public function name(): string
-    {
-        /** @var string $name */
-        $name = $this->validated('name');
-
-        return $name;
-    }
-
-    public function description(): ?string
-    {
-        /** @var string|null $description */
-        $description = $this->validated('description');
-
-        return $description;
     }
 }

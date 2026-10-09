@@ -2,7 +2,6 @@ import { Head, usePage } from '@inertiajs/react';
 import { useLaravelReactI18n } from 'laravel-react-i18n';
 import { useBreadcrumbs } from '@/hooks/use-breadcrumbs';
 import { dashboard } from '@/routes/member';
-import type { BreadcrumbItem } from '@/types';
 import { WidgetGrid } from '../components/widget-grid';
 
 type DashboardHomeProps = {
@@ -14,10 +13,7 @@ export default function DashboardHome({ widgets }: DashboardHomeProps) {
     const { auth } = usePage().props;
     const firstName = auth.user?.name.split(' ')[0] ?? '';
 
-    const breadcrumbs: BreadcrumbItem[] = [
-        { title: t('Home'), href: dashboard() },
-    ];
-    useBreadcrumbs(breadcrumbs);
+    useBreadcrumbs({ title: t('Home'), href: dashboard() });
 
     return (
         <>

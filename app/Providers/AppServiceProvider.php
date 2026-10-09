@@ -9,6 +9,7 @@ use App\Modules\ListenerClassResolver;
 use App\Modules\NavRegistry;
 use App\Modules\PermissionRegistry;
 use App\Modules\SearchRegistry;
+use App\Modules\Toast;
 use App\Modules\WidgetRegistry;
 use App\View\Composers\MailBrandingComposer;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -122,7 +123,7 @@ final class AppServiceProvider extends ServiceProvider
         }
 
         if ($status === 419) {
-            Inertia::flash('toast', ['type' => 'error', 'message' => __('The page expired. Please try again.')]);
+            Toast::error(__('The page expired. Please try again.'));
 
             return back();
         }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Roles\Providers;
 
+use App\Models\User;
 use App\Modules\ModuleServiceProvider;
 use App\Modules\NavRegistry;
 use App\Modules\PermissionRegistry;
@@ -44,10 +45,10 @@ final class RolesServiceProvider extends ModuleServiceProvider
 
     protected function permissions(PermissionRegistry $permissions): void
     {
-        $permissions->declare('roles.view', roles: ['admin']);
-        $permissions->declare('roles.create', roles: ['admin']);
-        $permissions->declare('roles.update', roles: ['admin']);
-        $permissions->declare('roles.delete', roles: ['admin']);
+        $permissions->declare('roles.view', roles: [User::PANEL_ROLE]);
+        $permissions->declare('roles.create', roles: [User::PANEL_ROLE]);
+        $permissions->declare('roles.update', roles: [User::PANEL_ROLE]);
+        $permissions->declare('roles.delete', roles: [User::PANEL_ROLE]);
     }
 
     protected function search(SearchRegistry $search): void

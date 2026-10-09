@@ -1,7 +1,9 @@
-import { Link } from '@inertiajs/react';
 import {
-    DataTableColumnHeader,
-    DataTableRowActions,
+    actionsColumn,
+    dateColumn,
+    sortableColumn,
+    DeleteMenuItem,
+    EditMenuItem,
     type DataTableColumn,
 } from '@/components/data-table';
 import { Badge } from '@/components/ui/badge';
@@ -49,133 +51,78 @@ export function buildOrderColumns(
     onDelete: (order: OrderRow) => void,
 ): DataTableColumn<OrderRow>[] {
     return [
-        {
+        sortableColumn<OrderRow>({
             id: 'number',
-            accessorKey: 'number',
-            enableSorting: true,
-            header: ({ column }) => (
-                <DataTableColumnHeader column={column} title={t('Order')} />
-            ),
-            cell: ({ row }) => (
+            title: t('Order'),
+            cell: (row) => (
                 <span className="font-mono text-xs font-medium">
-                    {row.original.number}
+                    {row.number}
                 </span>
             ),
-        },
-        {
+        }),
+        sortableColumn<OrderRow>({
             id: 'customer_email',
-            accessorKey: 'customer_email',
-            enableSorting: true,
-            header: ({ column }) => (
-                <DataTableColumnHeader column={column} title={t('Customer')} />
-            ),
-        },
-        {
+            title: t('Customer'),
+        }),
+        sortableColumn<OrderRow>({
             id: 'status',
-            accessorKey: 'status',
-            enableSorting: true,
-            header: ({ column }) => (
-                <DataTableColumnHeader column={column} title={t('Status')} />
-            ),
-            cell: ({ row }) => {
-                const status = orderStatuses[row.original.status];
+            title: t('Status'),
+            cell: (row) => {
+                const status = orderStatuses[row.status];
 
                 return (
                     <Badge variant={status.variant}>{t(status.label)}</Badge>
                 );
             },
-        },
-        {
+        }),
+        sortableColumn<OrderRow>({
             id: 'total_cents',
-            accessorKey: 'total_cents',
-            enableSorting: true,
-            header: ({ column }) => (
-                <DataTableColumnHeader column={column} title={t('Total')} />
-            ),
-            cell: ({ row }) => (
+            title: t('Total'),
+            cell: (row) => (
                 <span className="tabular-nums">
-                    {format.money(
-                        row.original.total_cents,
-                        row.original.currency,
-                    )}
+                    {format.money(row.total_cents, row.currency)}
                 </span>
             ),
-        },
-        {
+        }),
+        dateColumn<OrderRow>({
             id: 'created_at',
-            accessorKey: 'created_at',
-            enableSorting: true,
-            header: ({ column }) => (
-                <DataTableColumnHeader column={column} title={t('Placed')} />
-            ),
-            cell: ({ row }) => (
-                <span className="text-muted-foreground">
-                    {format.date(row.original.created_at)}
-                </span>
-            ),
-        },
-        {
-            id: 'actions',
-            enableSorting: false,
-            header: () => <span className="sr-only">{t('Actions')}</span>,
-            cell: ({ row }) => {
-                const order = row.original;
-
-                if (
-                    !order.can.update &&
-                    !order.can.delete &&
-                    order.transitions.length === 0
-                ) {
-                    return null;
-                }
-
-                return (
-                    <div className="flex justify-end">
-                        <DataTableRowActions row={row}>
-                            {() => (
-                                <>
-                                    {order.can.update && (
-                                        <DropdownMenuItem asChild>
-                                            <Link href={edit(order.id)}>
-                                                {t('Edit')}
-                                            </Link>
-                                        </DropdownMenuItem>
-                                    )}
-                                    {order.transitions.map((status) => (
-                                        <DropdownMenuItem
-                                            key={status}
-                                            variant={
-                                                status === 'cancelled'
-                                                    ? 'destructive'
-                                                    : 'default'
-                                            }
-                                            onSelect={() =>
-                                                onTransition(order, status)
-                                            }
-                                        >
-                                            {t(
-                                                orderStatuses[status].action ??
-                                                    orderStatuses[status].label,
-                                            )}
-                                        </DropdownMenuItem>
-                                    ))}
-                                    {order.can.delete && (
-                                        <>
-                                            <DropdownMenuSeparator />
-                                            <DropdownMenuItem
-                                                variant="destructive"
-                                                onSelect={() => onDelete(order)}
-                                            >
-                                                {t('Delete')}
-                                            </DropdownMenuItem>
-                                        </>
-                                    )}
-                                </>
+            title: t('Placed'),
+            value: (order) => order.created_at,
+            format: format.date,
+        }),
+        actionsColumn<OrderRow>({
+            label: t('Actions'),
+            visible: (order) =>
+                order.can.update ||
+                order.can.delete ||
+                order.transitions.length > 0,
+            items: (order) => (
+                <>
+                    {order.can.update && <EditMenuItem href={edit(order.id)} />}
+                    {order.transitions.map((status) => (
+                        <DropdownMenuItem
+                            key={status}
+                            variant={
+                                status === 'cancelled'
+                                    ? 'destructive'
+                                    : 'default'
+                            }
+                            onSelect={() => onTransition(order, status)}
+                        >
+                            {t(
+                                orderStatuses[status].action ??
+                                    orderStatuses[status].label,
                             )}
-                        </DataTableRowActions>
-                    </div>
-                );
-            },
-        },
+                        </DropdownMenuItem>
+                    ))}
+                    {order.can.delete && (
+                        <>
+                            <DropdownMenuSeparator />
+                            <DeleteMenuItem onSelect={() => onDelete(order)} />
+                        </>
+                    )}
+                </>
+            ),
+        }),
     ];
 }

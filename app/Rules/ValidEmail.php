@@ -18,6 +18,17 @@ final readonly class ValidEmail implements ValidationRule
     private const string REGEX = '/^[a-z0-9!#$%&*+\/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&*+\/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}$/D';
 
     /**
+     * Every rule an email field needs besides required/nullable and
+     * uniqueness: one list, so all email fields accept the same addresses.
+     *
+     * @return list<mixed>
+     */
+    public static function rules(): array
+    {
+        return ['string', 'lowercase', 'max:255', 'email', new self];
+    }
+
+    /**
      * Run the validation rule.
      *
      * @param  Closure(string, ?string=): PotentiallyTranslatedString  $fail

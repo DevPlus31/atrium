@@ -1,21 +1,19 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { useLaravelReactI18n } from 'laravel-react-i18n';
-import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import {
     DataTable,
-    DataTableBulkActions,
+    DataTableBulkDelete,
+    DataTableCreateButton,
+    DataTableDeleteDialog,
     DataTableFacetedFilter,
     DataTableToolbar,
 } from '@/components/data-table';
-import { Button } from '@/components/ui/button';
 import { useBreadcrumbs } from '@/hooks/use-breadcrumbs';
-import { useBulkDelete } from '@/hooks/use-bulk-delete';
-import { useDeleteDialog } from '@/hooks/use-delete-dialog';
+import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { useFormatters } from '@/hooks/use-formatters';
-import { useRowSelection } from '@/hooks/use-row-selection';
-import { useTableState } from '@/hooks/use-table-state';
+import { useResourceTable } from '@/hooks/use-resource-table';
 import {
     bulkDestroy,
     create,
@@ -23,7 +21,6 @@ import {
     index,
     transition,
 } from '@/routes/admin/orders';
-import type { BreadcrumbItem } from '@/types';
 import type { Paginated } from '@/types/admin';
 import type { OrderRow, OrderStatus } from '../components/order-columns';
 import { buildOrderColumns, orderStatuses } from '../components/order-columns';
@@ -41,73 +38,45 @@ export default function OrdersIndex({
 }: OrdersIndexProps) {
     const { t, tChoice } = useLaravelReactI18n();
     const format = useFormatters();
-    const tableState = useTableState('orders');
-    const deleteDialog = useDeleteDialog<OrderRow>((row) =>
-        destroy.url(row.id),
+    const { tableState, deleteDialog, selection, bulkDelete } =
+        useResourceTable({
+            key: 'orders',
+            rows: orders.data,
+            destroyUrl: (row) => destroy.url(row.id),
+            bulkDestroyUrl: bulkDestroy.url(),
+        });
+    // Cancelling is irreversible, so it asks first; other moves apply at once.
+    const cancelDialog = useConfirmDialog<OrderRow>((order, options) =>
+        router.post(transition.url(order.id), { status: 'cancelled' }, options),
     );
-    const selection = useRowSelection(
-        orders.data,
-        (row) => row.id,
-        (row) => row.can.delete,
-    );
-    const bulkDelete = useBulkDelete(bulkDestroy.url(), selection);
-    const [pendingCancel, setPendingCancel] = useState<OrderRow | null>(null);
-    const [cancelling, setCancelling] = useState(false);
 
-    const breadcrumbs: BreadcrumbItem[] = [
-        { title: t('Orders'), href: index() },
-    ];
-    useBreadcrumbs(breadcrumbs);
+    useBreadcrumbs({ title: t('Orders'), href: index() });
 
     // Clicks are discrete events: React commits this before the next click.
     const [moving, setMoving] = useState(false);
 
-    const moveOrder = (
-        order: OrderRow,
-        status: OrderStatus,
-        onFinish?: () => void,
-    ) => {
+    const moveOrder = (order: OrderRow, status: OrderStatus) => {
         if (moving) {
             return;
         }
 
         setMoving(true);
-
         router.post(
             transition.url(order.id),
             { status },
-            {
-                preserveScroll: true,
-                onFinish: () => {
-                    setMoving(false);
-                    onFinish?.();
-                },
-            },
+            { preserveScroll: true, onFinish: () => setMoving(false) },
         );
     };
 
-    // Cancelling is irreversible, so it asks first; other moves apply at once.
     const columns = buildOrderColumns(
         t,
         format,
         (order, status) =>
             status === 'cancelled'
-                ? setPendingCancel(order)
+                ? cancelDialog.request(order)
                 : moveOrder(order, status),
         deleteDialog.request,
     );
-
-    const confirmCancel = () => {
-        if (pendingCancel === null || cancelling) {
-            return;
-        }
-
-        setCancelling(true);
-        moveOrder(pendingCancel, 'cancelled', () => {
-            setCancelling(false);
-            setPendingCancel(null);
-        });
-    };
 
     return (
         <>
@@ -117,12 +86,10 @@ export default function OrdersIndex({
                 searchPlaceholder={t('Search by number or email...')}
                 actions={
                     can.create && (
-                        <Button size="sm" asChild>
-                            <Link href={create()}>
-                                <Plus className="size-4" />
-                                {t('Create order')}
-                            </Link>
-                        </Button>
+                        <DataTableCreateButton
+                            href={create()}
+                            label={t('Create order')}
+                        />
                     )
                 }
             >
@@ -136,16 +103,17 @@ export default function OrdersIndex({
                     }))}
                 />
             </DataTableToolbar>
-            <DataTableBulkActions selection={selection}>
-                <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={bulkDelete.request}
-                    data-test="bulk-delete"
-                >
-                    {t('Delete selected')}
-                </Button>
-            </DataTableBulkActions>
+            <DataTableBulkDelete
+                selection={selection}
+                bulkDelete={bulkDelete}
+                title={t('Delete selected orders')}
+                description={(count) =>
+                    tChoice(
+                        'This will permanently delete :count order and cannot be undone.|This will permanently delete :count orders and cannot be undone.',
+                        count,
+                    )
+                }
+            />
             <DataTable
                 selection={selection}
                 columns={columns}
@@ -153,40 +121,21 @@ export default function OrdersIndex({
                 tableState={tableState}
                 emptyMessage={t('No orders found.')}
             />
-            <ConfirmDialog
-                {...bulkDelete.dialogProps}
-                title={t('Delete selected orders')}
-                description={tChoice(
-                    'This will permanently delete :count order and cannot be undone.|This will permanently delete :count orders and cannot be undone.',
-                    selection.selectedIds.length,
-                )}
-                confirmLabel={t('Delete')}
-            />
-            <ConfirmDialog
-                {...deleteDialog.dialogProps}
+            <DataTableDeleteDialog
+                dialog={deleteDialog}
                 title={t('Delete order')}
-                description={t(
-                    'This will permanently delete :name and cannot be undone.',
-                    { name: deleteDialog.pending?.number ?? t('this order') },
-                )}
-                confirmLabel={t('Delete')}
+                name={(order) => order.number}
+                fallbackName={t('this order')}
             />
             <ConfirmDialog
-                open={pendingCancel !== null}
-                onOpenChange={(open) => {
-                    if (!open && !cancelling) {
-                        setPendingCancel(null);
-                    }
-                }}
+                {...cancelDialog.dialogProps}
                 title={t('Cancel order')}
                 description={t(
                     'Cancel :number? Cancelled orders cannot be reopened.',
-                    { number: pendingCancel?.number ?? '' },
+                    { number: cancelDialog.pending?.number ?? '' },
                 )}
                 confirmLabel={t('Cancel order')}
                 cancelLabel={t('Keep order')}
-                processing={cancelling}
-                onConfirm={confirmCancel}
             />
         </>
     );

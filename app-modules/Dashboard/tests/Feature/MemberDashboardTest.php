@@ -10,8 +10,6 @@ use Laravel\Pennant\Feature;
 use Spatie\Permission\Models\Permission;
 
 beforeEach(function (): void {
-    $this->withoutVite();
-
     $this->artisan('admin:sync-permissions')->assertSuccessful();
 });
 

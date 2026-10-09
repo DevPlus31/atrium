@@ -69,7 +69,8 @@ Eloquent model, migration, factory, and repository implementation; Create /
 Update / Delete actions; an index Query; a scalar DTO; the controller, form
 requests, and policy; the `routes/admin.php` resource route; React index /
 create / edit pages + columns; a controller feature test and unit tests for the
-three actions, together covering 100% of the generated backend; and the
+three actions, the policy and the index query, together covering 100% of the
+generated backend; and the
 module's `lang/en.json` plus one catalogue per other locale (`fr.json`, in
 English until translated — the command says how many strings). It also wires
 the module provider (repository binding, nav item, and
@@ -87,7 +88,7 @@ docker compose run --rm --no-deps app php artisan migrate
 docker compose run --rm --no-deps app php artisan admin:sync-permissions
 docker compose run --rm --no-deps app php artisan typescript:transform
 docker compose run --rm --no-deps app php artisan wayfinder:generate --with-form
-composer lint && bun run lint
+composer lint
 ```
 
 You now have a working, authorized, fully-tested admin screen with no
@@ -123,7 +124,7 @@ shell or in another module is edited:
 | Let a model own files (photos, attachments) | `implements HasMedia` + `use InteractsWithMedia` and declare collections/conversions on the model (see `User`); the `ImageInput` component uploads, `File::image()` validates |
 | Add a page for people without an account (signed link, public form) | Put it under `resources/js/pages/public/` and route it from `routes/web.php`: it renders without the admin shell and wraps itself in `AuthLayout` (see Users' `public/accept-invitation`) |
 | Expose a module over the API | `routes/api.php` in the module (served under `/api/v1`, token-authenticated) with controllers in `Http/Controllers/Api/V1` and Eloquent resources in `Http/Resources/V1`; authorize with `#[Authorize]` as usual — tokens narrow permissions (see Shop's orders API) |
-| Let admins act on many rows at once | `useRowSelection` + `<DataTableBulkActions>` on the index page; a `ValidatesBulkSelection` request, an invokable controller and an action composing the single-row one (see Catalog's `DeleteProductsController`) |
+| Let admins act on many rows at once | `useRowSelection` + `<DataTableBulkActions>` on the index page; a `ValidatesBulkSelection` request, an invokable controller that hands the permitted rows and the single-row delete action to `App\Actions\DeleteEach` and toasts `$request->deletedMessage(...)`, and `<DataTableBulkDelete>` on the page (see Catalog's `DeleteProductsController`) |
 | Make a module's records findable from the command palette | `search()`: `$search->add(module: $this->name(), label: '…', searcher: <Name>Search::class, permission: '…')` with an invokable `Search/<Name>Search` returning `SearchResultData` (see Shop's `OrdersSearch`) |
 | Tell a user something happened (bell + email) | A `Notifications/<Name>Notification` extending `AppNotification` with `message()`, sent from a listener in `Listeners/` (see Shop's `NotifyCustomerOfOrderStatus`) |
 | Give admins editable settings | A `Settings/<Name>Settings` class (spatie/laravel-settings), a `SettingsMigration` in `Database/Migrations` with the defaults, a page, and a menu item in the `Settings` group (see Shop's default currency) |
@@ -133,15 +134,9 @@ must share a concept, put it in the shared kernel (`app/Domain`) upstream.
 
 ## 6. Verify — the gates are the acceptance bar
 
-```bash
-docker compose run --rm --no-deps app vendor/bin/pint --dirty --format agent
-docker compose run --rm --no-deps app vendor/bin/rector
-docker compose run --rm --no-deps app vendor/bin/phpstan
-bun run test:types && bun run test:lint
-bun run build        # browser tests run against the production build (stop `bun run dev` first)
-docker compose run --rm app sh -c 'XDEBUG_MODE=coverage vendor/bin/pest --parallel --coverage --exactly=100.0'
-docker compose run --rm app vendor/bin/pest --type-coverage --min=100
-```
+`composer test` runs every gate CI runs; the commands, one by one, are in the
+README's "Testing and quality gates" section. Without a local PHP, prefix the
+PHP ones with `docker compose run --rm app`.
 
 ## 7. Pull upstream improvements
 

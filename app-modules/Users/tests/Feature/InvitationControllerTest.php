@@ -13,22 +13,19 @@ use Spatie\Activitylog\Models\Activity;
 use Spatie\Permission\Models\Role;
 
 beforeEach(function (): void {
-    $this->withoutVite();
-
     $this->artisan('admin:sync-permissions')->assertSuccessful();
 });
 
-it('redirects guests to the login page', function (string $method, string $uri): void {
-    $this->{$method}($uri)->assertRedirectToRoute('login');
+it('keeps guests and non-admins out', function (string $method, Closure $url): void {
+    assertAdminOnly($method, $url());
 })->with([
-    'index' => ['get', '/admin/users/invitations'],
-    'store' => ['post', '/admin/users/invitations'],
+    'index' => ['get', fn (): string => route('admin.users.invitations.index')],
+    'store' => ['post', fn (): string => route('admin.users.invitations.store')],
 ]);
 
 it('needs the users.create permission', function (): void {
-    Role::findByName('admin')->revokePermissionTo('users.create');
     $invitation = Invitation::factory()->create();
-    $admin = adminUser();
+    $admin = adminWithout('users.create');
 
     $this->actingAs($admin)->get(route('admin.users.invitations.index'))->assertForbidden();
     $this->actingAs($admin)->post(route('admin.users.invitations.store'), ['email' => 'new@example.com'])->assertForbidden();
@@ -62,7 +59,7 @@ it('invites someone and emails them the link', function (): void {
     $this->actingAs($admin)
         ->post(route('admin.users.invitations.store'), ['email' => 'new@example.com', 'roles' => ['admin']])
         ->assertRedirectToRoute('admin.users.invitations.index')
-        ->assertInertiaFlash('toast', ['type' => 'success', 'message' => 'Invitation sent.']);
+        ->assertToast('Invitation sent.');
 
     $invitation = Invitation::query()->sole();
 
@@ -120,7 +117,7 @@ it('sends an invitation again with a fresh expiry', function (): void {
     $this->actingAs(adminUser())
         ->post(route('admin.users.invitations.resend', $invitation))
         ->assertRedirectToRoute('admin.users.invitations.index')
-        ->assertInertiaFlash('toast', ['type' => 'success', 'message' => 'Invitation sent again to new@example.com.']);
+        ->assertToast('Invitation sent again to new@example.com.');
 
     expect($invitation->refresh()->expires_at->toIso8601String())->toBe(now()->addDays(Invitation::LIFETIME_DAYS)->toIso8601String())
         ->and(Activity::query()->where('event', 'invitation-resent')->exists())->toBeTrue();
@@ -159,7 +156,7 @@ it('revokes an invitation', function (): void {
     $this->actingAs(adminUser())
         ->delete(route('admin.users.invitations.destroy', $invitation))
         ->assertRedirectToRoute('admin.users.invitations.index')
-        ->assertInertiaFlash('toast', ['type' => 'success', 'message' => 'Invitation revoked.']);
+        ->assertToast('Invitation revoked.');
 
     expect(Invitation::query()->exists())->toBeFalse()
         ->and(Activity::query()->where('event', 'invitation-revoked')->exists())->toBeTrue();

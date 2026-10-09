@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Modules\Catalog\Http\Controllers;
 
+use App\Modules\Toast;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\Attributes\Controllers\Authorize;
-use Inertia\Inertia;
 use Modules\Catalog\Actions\PublishProduct;
 use Modules\Catalog\Infrastructure\Models\Product;
 
@@ -17,7 +17,7 @@ final readonly class PublishProductController
     {
         $action->handle($product);
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Product published.')]);
+        Toast::success(__('Product published.'));
 
         return to_route('admin.products.index');
     }

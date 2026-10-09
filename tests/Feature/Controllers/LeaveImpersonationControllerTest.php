@@ -12,9 +12,7 @@ beforeEach(function (): void {
 });
 
 it('redirects guests to the login page', function (): void {
-    $response = $this->post('/impersonation/leave');
-
-    $response->assertRedirectToRoute('login');
+    $this->post(route('impersonation.leave'))->assertRedirectToRoute('login');
 });
 
 it('forbids leaving when not impersonating', function (): void {
@@ -35,7 +33,7 @@ it('restores the impersonator and sends them home', function (): void {
     $response = $this->post(route('impersonation.leave'));
 
     $response->assertRedirectToRoute('dashboard')
-        ->assertInertiaFlash('toast', ['type' => 'success', 'message' => 'Stopped impersonating Jane Doe.'])
+        ->assertToast('Stopped impersonating Jane Doe.')
         ->assertSessionHas(SessionKey::CLEAR_HISTORY, true);
 
     $this->assertAuthenticatedAs($admin);

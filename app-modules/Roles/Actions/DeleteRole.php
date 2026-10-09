@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Roles\Actions;
 
+use App\Modules\AuditLog;
 use Illuminate\Support\Facades\DB;
 use Modules\Roles\Domain\Exceptions\SystemRoleProtected;
 use Modules\Roles\Domain\Repositories\RoleRepository;
@@ -32,13 +33,14 @@ final readonly class DeleteRole
 
             $this->roles->delete($role);
 
-            activity('roles')
-                ->performedOn($role)
-                ->event('deleted')
-                ->withProperties([
+            AuditLog::record(
+                log: 'roles',
+                event: 'deleted',
+                subject: $role,
+                properties: [
                     'attributes' => ['name' => $role->name, 'permissions' => $permissions],
-                ])
-                ->log('deleted');
+                ],
+            );
         });
     }
 }

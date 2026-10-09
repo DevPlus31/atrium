@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Modules\Users\Http\Controllers;
 
 use App\Models\User;
+use App\Modules\RoleOptions;
+use App\Modules\Toast;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\Attributes\Controllers\Authorize;
 use Illuminate\Support\Facades\Gate;
@@ -18,7 +20,6 @@ use Modules\Users\Http\Requests\StoreUserRequest;
 use Modules\Users\Http\Requests\UpdateUserRequest;
 use Modules\Users\Queries\UsersIndexQuery;
 use Spatie\LaravelData\PaginatedDataCollection;
-use Spatie\Permission\Models\Role;
 
 final readonly class UserController
 {
@@ -27,7 +28,7 @@ final readonly class UserController
     {
         return Inertia::render('users::index', [
             'users' => UserData::collect($query->paginate(), PaginatedDataCollection::class),
-            'roles' => $this->roleNames(),
+            'roles' => RoleOptions::roleNames(),
             'can' => ['create' => Gate::allows('create', User::class), 'export' => Gate::allows('export', User::class)],
         ]);
     }
@@ -36,7 +37,7 @@ final readonly class UserController
     public function create(): Response
     {
         return Inertia::render('users::create', [
-            'roles' => $this->roleNames(),
+            'roles' => RoleOptions::roleNames(),
         ]);
     }
 
@@ -50,7 +51,7 @@ final readonly class UserController
             roles: $request->roles(),
         );
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('User created.')]);
+        Toast::success(__('User created.'));
 
         return to_route('admin.users.index');
     }
@@ -60,7 +61,7 @@ final readonly class UserController
     {
         return Inertia::render('users::edit', [
             'user' => UserData::from($user->load('roles')),
-            'roles' => $this->roleNames(),
+            'roles' => RoleOptions::roleNames(),
         ]);
     }
 
@@ -74,7 +75,7 @@ final readonly class UserController
             roles: $request->roles(),
         );
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('User updated.')]);
+        Toast::success(__('User updated.'));
 
         return to_route('admin.users.index');
     }
@@ -84,19 +85,8 @@ final readonly class UserController
     {
         $action->handle($user);
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('User deleted.')]);
+        Toast::success(__('User deleted.'));
 
         return to_route('admin.users.index');
-    }
-
-    /**
-     * @return list<string>
-     */
-    private function roleNames(): array
-    {
-        /** @var list<string> $names */
-        $names = Role::query()->orderBy('name')->pluck('name')->all();
-
-        return $names;
     }
 }

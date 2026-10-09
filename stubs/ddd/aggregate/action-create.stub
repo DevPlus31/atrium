@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\{{ module }}\Actions;
 
+use App\Modules\AuditLog;
 use Illuminate\Support\Facades\DB;
 use Modules\{{ module }}\Domain\Repositories\{{ aggregate }}Repository;
 use Modules\{{ module }}\Infrastructure\Models\{{ aggregate }};
@@ -25,13 +26,14 @@ final readonly class Create{{ aggregate }}
 
             $this->{{ variablePlural }}->save(${{ variable }});
 
-            activity('{{ slug }}')
-                ->performedOn(${{ variable }})
-                ->event('created')
-                ->withProperties([
+            AuditLog::record(
+                log: '{{ slug }}',
+                event: 'created',
+                subject: ${{ variable }},
+                properties: [
                     'attributes' => ['name' => $name],
-                ])
-                ->log('created');
+                ],
+            );
 
             return ${{ variable }};
         });

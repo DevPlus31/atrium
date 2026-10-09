@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Settings\Http\Controllers;
 
+use App\Modules\Toast;
 use App\Settings\GeneralSettings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\Attributes\Controllers\Authorize;
@@ -27,7 +28,7 @@ final readonly class GeneralSettingsController
     {
         $action->handle($settings, $request->supportEmail(), $request->registrationOpen());
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Settings saved.')]);
+        Toast::success(__('Settings saved.'));
 
         return to_route('admin.settings.general.edit');
     }

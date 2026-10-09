@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -83,6 +84,22 @@ abstract readonly class IndexQuery
         }
 
         return $values;
+    }
+
+    /**
+     * Keep rows where any of the columns contains the search text. The query
+     * builder splits filter values on commas; they are joined back here so
+     * "Smith, Ada" is searched as typed.
+     *
+     * @template TSearched of Model
+     *
+     * @param  Builder<TSearched>  $query
+     * @param  non-empty-list<string>  $columns
+     * @return Builder<TSearched>
+     */
+    protected function whereLikeAny(Builder $query, array $columns, mixed $value): Builder
+    {
+        return TextSearch::whereLikeAny($query, $columns, implode(',', $this->stringValues($value)));
     }
 
     private function perPage(): int

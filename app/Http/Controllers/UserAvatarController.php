@@ -8,9 +8,9 @@ use App\Actions\RemoveAvatar;
 use App\Actions\UpdateAvatar;
 use App\Http\Requests\UpdateAvatarRequest;
 use App\Models\User;
+use App\Modules\Toast;
 use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Http\RedirectResponse;
-use Inertia\Inertia;
 
 final readonly class UserAvatarController
 {
@@ -18,7 +18,7 @@ final readonly class UserAvatarController
     {
         $action->handle($user, $request->photo());
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Photo updated.')]);
+        Toast::success(__('Photo updated.'));
 
         return to_route('user-profile.edit');
     }
@@ -27,7 +27,7 @@ final readonly class UserAvatarController
     {
         $action->handle($user);
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Photo removed.')]);
+        Toast::success(__('Photo removed.'));
 
         return to_route('user-profile.edit');
     }

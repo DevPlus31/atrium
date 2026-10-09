@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Shop\Actions;
 
+use App\Modules\AuditLog;
 use Illuminate\Support\Facades\DB;
 use Modules\Shop\Domain\Enums\OrderStatus;
 use Modules\Shop\Domain\Repositories\OrderRepository;
@@ -26,13 +27,14 @@ final readonly class TransitionOrder
 
             $this->orders->save($order);
 
-            activity('shop')
-                ->performedOn($order)
-                ->event('status-changed')
-                ->withProperties([
+            AuditLog::record(
+                log: 'shop',
+                event: 'status-changed',
+                subject: $order,
+                properties: [
                     'attributes' => ['from' => $from->value, 'to' => $status->value],
-                ])
-                ->log('status-changed');
+                ],
+            );
 
             return $order;
         });

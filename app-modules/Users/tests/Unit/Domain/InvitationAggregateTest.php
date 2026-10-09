@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
+use App\Domain\ValueObjects\Email;
 use App\Models\User;
 use Modules\Users\Domain\Events\InvitationAccepted;
 use Modules\Users\Domain\Events\InvitationSent;
 use Modules\Users\Domain\Exceptions\InvitationAlreadyAccepted;
 use Modules\Users\Domain\Exceptions\InvitationNotPending;
-use Modules\Users\Domain\ValueObjects\Email;
 use Modules\Users\Infrastructure\Models\Invitation;
 
 it('issues a pending invitation and records that it was sent', function (): void {

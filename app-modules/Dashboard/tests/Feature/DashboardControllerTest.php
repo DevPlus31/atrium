@@ -6,32 +6,17 @@ use App\Models\User;
 use App\Modules\NavRegistry;
 use Illuminate\Support\Collection;
 use Inertia\Testing\AssertableInertia;
-use Spatie\Permission\Models\Role;
 
 beforeEach(function (): void {
-    $this->withoutVite();
-
     $this->artisan('admin:sync-permissions')->assertSuccessful();
 });
 
-it('redirects guests to the login page', function (): void {
-    $response = $this->get('/admin/dashboard');
-
-    $response->assertRedirectToRoute('login');
-});
-
-it('forbids authenticated users without the admin role', function (): void {
-    $user = User::factory()->create();
-
-    $response = $this->actingAs($user)->get('/admin/dashboard');
-
-    $response->assertForbidden();
+it('keeps guests and non-admins out', function (): void {
+    assertAdminOnly('get', route('admin.dashboard.index'));
 });
 
 it('forbids admins without the dashboard.view permission', function (): void {
-    Role::findByName('admin')->revokePermissionTo('dashboard.view');
-
-    $response = $this->actingAs(adminUser())->get(route('admin.dashboard.index'));
+    $response = $this->actingAs(adminWithout('dashboard.view'))->get(route('admin.dashboard.index'));
 
     $response->assertForbidden();
 });
@@ -95,7 +80,6 @@ it('sends each deferred widget under its flat descriptor prop name', function ()
 });
 
 it('resolves the deferred widget props to their data objects', function (): void {
-
     $admin = adminUser();
     User::factory()->create([
         'name' => 'Jane Doe',
@@ -135,9 +119,7 @@ it('resolves the deferred widget props to their data objects', function (): void
 });
 
 it('omits the users widgets without the users.view permission', function (): void {
-    Role::findByName('admin')->revokePermissionTo('users.view');
-
-    $response = $this->actingAs(adminUser())->get(route('admin.dashboard.index'));
+    $response = $this->actingAs(adminWithout('users.view'))->get(route('admin.dashboard.index'));
 
     $response->assertOk()->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
         ->component('dashboard::index')

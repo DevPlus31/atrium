@@ -9,6 +9,8 @@ use Modules\Users\Data\RecentUsersWidgetData;
 
 final readonly class RecentUsersWidget
 {
+    private const int LIMIT = 5;
+
     public function __invoke(): RecentUsersWidgetData
     {
         $users = User::query()
@@ -16,7 +18,7 @@ final readonly class RecentUsersWidget
             ->with('media')
             ->latest()
             ->orderByDesc('id')
-            ->limit(5)
+            ->limit(self::LIMIT)
             ->get();
 
         return new RecentUsersWidgetData(

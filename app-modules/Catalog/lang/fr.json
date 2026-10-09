@@ -23,5 +23,6 @@
     "Delete selected products": "Supprimer les produits sélectionnés",
     "This will permanently delete :count product and cannot be undone.|This will permanently delete :count products and cannot be undone.": "Cela supprimera définitivement :count produit, sans retour possible.|Cela supprimera définitivement :count produits, sans retour possible.",
     ":count product deleted.|:count products deleted.": ":count produit supprimé.|:count produits supprimés.",
-    "published": "Publié"
+    "published": "Publié",
+    "Catalog": "Catalogue"
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Catalog\Http\Requests\Concerns;
 
 use App\Domain\ValueObjects\Money;
+use App\Modules\Concerns\ReadsValidatedInput;
 use Illuminate\Validation\Rule;
 use Modules\Catalog\Domain\ValueObjects\Sku;
 use Modules\Catalog\Infrastructure\Models\Product;
@@ -16,6 +17,8 @@ use Modules\Catalog\Infrastructure\Models\Product;
  */
 trait ValidatesProductInput
 {
+    use ReadsValidatedInput;
+
     /**
      * @return array<string, array<mixed>>
      */
@@ -27,25 +30,19 @@ trait ValidatesProductInput
             'name' => ['required', 'string', 'max:255'],
             'sku' => ['required', 'string', 'regex:'.Sku::PATTERN, Rule::unique(Product::class, 'sku')->ignore($product instanceof Product ? $product : null)],
             'price_cents' => ['required', 'integer', 'min:0'],
-            'currency' => ['required', 'string', 'regex:'.Money::CURRENCY_PATTERN],
+            'currency' => ['required', ...Money::currencyRules()],
             'description' => ['nullable', 'string', 'max:2000'],
         ];
     }
 
     public function name(): string
     {
-        /** @var string $name */
-        $name = $this->validated('name');
-
-        return $name;
+        return $this->validatedString('name');
     }
 
     public function sku(): string
     {
-        /** @var string $sku */
-        $sku = $this->validated('sku');
-
-        return $sku;
+        return $this->validatedString('sku');
     }
 
     public function priceCents(): int
@@ -55,18 +52,12 @@ trait ValidatesProductInput
 
     public function currency(): string
     {
-        /** @var string $currency */
-        $currency = $this->validated('currency');
-
-        return $currency;
+        return $this->validatedString('currency');
     }
 
     public function description(): ?string
     {
-        /** @var string|null $description */
-        $description = $this->validated('description');
-
-        return $description;
+        return $this->validatedNullableString('description');
     }
 
     /**
@@ -75,12 +66,7 @@ trait ValidatesProductInput
      */
     protected function prepareForValidation(): void
     {
-        foreach (['sku', 'currency'] as $field) {
-            $value = $this->input($field);
-
-            if (is_string($value)) {
-                $this->merge([$field => mb_strtoupper(mb_trim($value))]);
-            }
-        }
+        $this->normalizeInput('sku', Sku::normalize(...));
+        $this->normalizeInput('currency', Money::normalizeCurrency(...));
     }
 }

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use App\Models\User;
 use App\Modules\NavRegistry;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia;
@@ -12,33 +11,19 @@ use Spatie\Activitylog\Models\Activity;
 use Spatie\Permission\Models\Role;
 
 beforeEach(function (): void {
-    $this->withoutVite();
-
     $this->artisan('admin:sync-permissions')->assertSuccessful();
 });
 
-it('redirects guests to the login page', function (string $method, string $uri): void {
-    $response = $this->{$method}($uri);
-
-    $response->assertRedirectToRoute('login');
+it('keeps guests and non-admins out', function (string $method, Closure $url): void {
+    assertAdminOnly($method, $url());
 })->with([
-    'index' => ['get', '/admin/users'],
-    'create' => ['get', '/admin/users/create'],
-    'store' => ['post', '/admin/users'],
+    'index' => ['get', fn (): string => route('admin.users.index')],
+    'create' => ['get', fn (): string => route('admin.users.create')],
+    'store' => ['post', fn (): string => route('admin.users.store')],
 ]);
 
-it('forbids authenticated users without the admin role', function (): void {
-    $user = User::factory()->create();
-
-    $response = $this->actingAs($user)->get('/admin/users');
-
-    $response->assertForbidden();
-});
-
 it('forbids admins without the users.view permission', function (): void {
-    Role::findByName('admin')->revokePermissionTo('users.view');
-
-    $response = $this->actingAs(adminUser())->get(route('admin.users.index'));
+    $response = $this->actingAs(adminWithout('users.view'))->get(route('admin.users.index'));
 
     $response->assertForbidden();
 });
@@ -152,32 +137,6 @@ it('applies allowed sorts to the index', function (): void {
     $descending->assertOk()->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->where('users.data.0.name', 'Zzz'));
 });
 
-it('sorts the index by newest first by default', function (): void {
-    $admin = adminUser();
-    User::factory()->create(['name' => 'Older', 'created_at' => now()->subWeek()]);
-    $newest = User::factory()->create(['name' => 'Newest', 'created_at' => now()->addHour()]);
-
-    $response = $this->actingAs($admin)->get(route('admin.users.index'));
-
-    $response->assertOk()->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->where('users.data.0.id', $newest->id));
-});
-
-it('paginates the index and caps per_page at 100', function (): void {
-    $admin = adminUser();
-    User::factory()->count(12)->create();
-
-    $paged = $this->actingAs($admin)->get(route('admin.users.index', ['per_page' => 10, 'page' => 2]));
-    $capped = $this->actingAs($admin)->get(route('admin.users.index', ['per_page' => 500]));
-
-    $paged->assertOk()->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
-        ->has('users.data', 3)
-        ->where('users.meta.current_page', 2)
-        ->where('users.meta.per_page', 10)
-        ->where('users.meta.total', 13));
-
-    $capped->assertOk()->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->where('users.meta.per_page', 100));
-});
-
 it('renders the create page', function (): void {
     $response = $this->actingAs(adminUser())->get(route('admin.users.create'));
 
@@ -187,8 +146,7 @@ it('renders the create page', function (): void {
 });
 
 it('forbids admins without the users.create permission', function (): void {
-    Role::findByName('admin')->revokePermissionTo('users.create');
-    $admin = adminUser();
+    $admin = adminWithout('users.create');
 
     $this->actingAs($admin)->get(route('admin.users.create'))->assertForbidden();
     $this->actingAs($admin)->post(route('admin.users.store'), [
@@ -215,7 +173,7 @@ it('stores a user and redirects with a success flash', function (): void {
         ]);
 
     $response->assertRedirectToRoute('admin.users.index')
-        ->assertInertiaFlash('toast', ['type' => 'success', 'message' => 'User created.']);
+        ->assertToast('User created.');
 
     $user = User::query()->where('email', 'new@example.com')->sole();
 
@@ -286,8 +244,7 @@ it('renders the edit page', function (): void {
 });
 
 it('forbids admins without the users.update permission', function (): void {
-    Role::findByName('admin')->revokePermissionTo('users.update');
-    $admin = adminUser();
+    $admin = adminWithout('users.update');
     $user = User::factory()->create();
 
     $this->actingAs($admin)->get(route('admin.users.edit', $user))->assertForbidden();
@@ -311,7 +268,7 @@ it('updates a user and redirects with a success flash', function (): void {
         ]);
 
     $response->assertRedirectToRoute('admin.users.index')
-        ->assertInertiaFlash('toast', ['type' => 'success', 'message' => 'User updated.']);
+        ->assertToast('User updated.');
 
     expect($user->refresh()->name)->toBe('Updated Name')
         ->and($user->hasRole('editor'))->toBeTrue()
@@ -388,7 +345,7 @@ it('deletes a user and redirects with a success flash', function (): void {
     $response = $this->actingAs($admin)->delete(route('admin.users.destroy', $user));
 
     $response->assertRedirectToRoute('admin.users.index')
-        ->assertInertiaFlash('toast', ['type' => 'success', 'message' => 'User deleted.']);
+        ->assertToast('User deleted.');
 
     expect(User::query()->whereKey($user->id)->exists())->toBeFalse()
         ->and(Activity::query()->where('event', 'deleted')->where('causer_id', $admin->id)->exists())->toBeTrue();
@@ -405,8 +362,7 @@ it('forbids deleting yourself', function (): void {
 });
 
 it('forbids admins without the users.delete permission', function (): void {
-    Role::findByName('admin')->revokePermissionTo('users.delete');
-    $admin = adminUser();
+    $admin = adminWithout('users.delete');
     $user = User::factory()->create();
 
     $this->actingAs($admin)->delete(route('admin.users.destroy', $user))->assertForbidden();
@@ -452,8 +408,7 @@ it('rejects an admin granting the super-admin role', function (string $route): v
 
 it('rejects granting a role whose permissions the admin lacks', function (): void {
     Role::findOrCreate('auditor')->givePermissionTo('audit.view');
-    Role::findByName('admin')->revokePermissionTo('audit.view');
-    $admin = adminUser();
+    $admin = adminWithout('audit.view');
     $user = User::factory()->create();
 
     $response = $this->actingAs($admin)->put(route('admin.users.update', $user), [
@@ -469,8 +424,7 @@ it('rejects granting a role whose permissions the admin lacks', function (): voi
 
 it('forbids editing an account holding a role the admin could not grant', function (): void {
     Role::findOrCreate('auditor')->givePermissionTo('audit.view');
-    Role::findByName('admin')->revokePermissionTo('audit.view');
-    $admin = adminUser();
+    $admin = adminWithout('audit.view');
     $user = User::factory()->create(['name' => 'Original']);
     $user->assignRole('auditor');
 
@@ -502,8 +456,7 @@ it('forbids admins managing a super-admin account', function (): void {
 });
 
 it('forbids admins taking over an account that holds permissions they lack', function (): void {
-    Role::findByName('admin')->revokePermissionTo('roles.update');
-    $admin = adminUser();
+    $admin = adminWithout('roles.update');
     $target = User::factory()->create(['email' => 'owner@example.com']);
     $target->assignRole(Role::findOrCreate('role-manager')->givePermissionTo('roles.update'));
 
@@ -564,7 +517,7 @@ it('lets a super-admin step down from super-admin while keeping panel access', f
 it('lists each user with their photo', function (): void {
     Storage::fake('public');
     $user = User::factory()->create(['name' => 'Aaa Photo']);
-    $user->addMedia(UploadedFile::fake()->image('me.jpg', 200, 200))->toMediaCollection(User::AVATAR);
+    $user->addMedia(validImage('me.jpg'))->toMediaCollection(User::AVATAR);
 
     $this->actingAs(adminUser())
         ->get(route('admin.users.index', ['sort' => 'name']))

@@ -9,7 +9,6 @@ import { useBreadcrumbs } from '@/hooks/use-breadcrumbs';
 import { useFormatters } from '@/hooks/use-formatters';
 import { useTableState } from '@/hooks/use-table-state';
 import { index } from '@/routes/admin/audit';
-import type { BreadcrumbItem } from '@/types';
 import type { Paginated } from '@/types/admin';
 import type { ActivityRow } from '../components/activity-columns';
 import { buildActivityColumns } from '../components/activity-columns';
@@ -29,10 +28,7 @@ export default function AuditIndex({
     const format = useFormatters();
     const tableState = useTableState('activities');
 
-    const breadcrumbs: BreadcrumbItem[] = [
-        { title: t('Audit log'), href: index() },
-    ];
-    useBreadcrumbs(breadcrumbs);
+    useBreadcrumbs({ title: t('Audit log'), href: index() });
 
     const columns = buildActivityColumns(t, format);
 

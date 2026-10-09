@@ -7,11 +7,8 @@ use App\Models\User;
 use App\Settings\AnnouncementSettings;
 use Inertia\Testing\AssertableInertia;
 use Spatie\Activitylog\Models\Activity;
-use Spatie\Permission\Models\Role;
 
 beforeEach(function (): void {
-    $this->withoutVite();
-
     $this->artisan('admin:sync-permissions')->assertSuccessful();
 });
 
@@ -20,11 +17,11 @@ it('keeps the page from guests, members and admins without the permission', func
 
     $this->actingAs(User::factory()->create())->get(route('admin.settings.announcement.edit'))->assertForbidden();
 
-    Role::findByName('admin')->revokePermissionTo('settings.update');
+    $admin = adminWithout('settings.update');
 
-    $this->actingAs(adminUser())->get(route('admin.settings.announcement.edit'))->assertForbidden();
-    $this->actingAs(adminUser())->put(route('admin.settings.announcement.update'), ['message' => 'Hi', 'level' => 'info'])->assertForbidden();
-    $this->actingAs(adminUser())->delete(route('admin.settings.announcement.destroy'))->assertForbidden();
+    $this->actingAs($admin)->get(route('admin.settings.announcement.edit'))->assertForbidden();
+    $this->actingAs($admin)->put(route('admin.settings.announcement.update'), ['message' => 'Hi', 'level' => 'info'])->assertForbidden();
+    $this->actingAs($admin)->delete(route('admin.settings.announcement.destroy'))->assertForbidden();
 });
 
 it('shows the current announcement', function (): void {
@@ -53,7 +50,7 @@ it('publishes an announcement, storing its end in UTC', function (): void {
             'ends_at' => now()->addDay()->setTimezone('Europe/Paris')->toIso8601String(),
         ])
         ->assertRedirectToRoute('admin.settings.announcement.edit')
-        ->assertInertiaFlash('toast', ['type' => 'success', 'message' => 'Announcement published.']);
+        ->assertToast('Announcement published.');
 
     $settings = resolve(AnnouncementSettings::class)->refresh();
 
@@ -92,7 +89,7 @@ it('removes the announcement', function (): void {
     $this->actingAs(adminUser())
         ->delete(route('admin.settings.announcement.destroy'))
         ->assertRedirectToRoute('admin.settings.announcement.edit')
-        ->assertInertiaFlash('toast', ['type' => 'success', 'message' => 'Announcement removed.']);
+        ->assertToast('Announcement removed.');
 
     expect(resolve(AnnouncementSettings::class)->refresh()->message)->toBeNull();
 });

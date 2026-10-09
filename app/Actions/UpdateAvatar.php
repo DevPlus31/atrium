@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\Models\User;
+use App\Modules\AuditLog;
 use Illuminate\Http\UploadedFile;
 
 final readonly class UpdateAvatar
@@ -23,9 +24,10 @@ final readonly class UpdateAvatar
             ->usingFileName('avatar.'.$photo->extension())
             ->toMediaCollection(User::AVATAR);
 
-        activity('users')
-            ->performedOn($user)
-            ->event('avatar-updated')
-            ->log('avatar-updated');
+        AuditLog::record(
+            log: 'users',
+            event: 'avatar-updated',
+            subject: $user,
+        );
     }
 }

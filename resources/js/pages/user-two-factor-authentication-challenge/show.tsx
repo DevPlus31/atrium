@@ -2,8 +2,8 @@ import { Form, Head } from '@inertiajs/react';
 import { REGEXP_ONLY_DIGITS } from 'input-otp';
 import { useLaravelReactI18n } from 'laravel-react-i18n';
 import { useMemo, useState } from 'react';
+import { AuthSubmit } from '@/components/auth/auth-submit';
 import InputError from '@/components/input-error';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
     InputOTP,
@@ -106,13 +106,9 @@ export default function Show() {
                                 </div>
                             )}
 
-                            <Button
-                                type="submit"
-                                className="w-full"
-                                disabled={processing}
-                            >
+                            <AuthSubmit processing={processing}>
                                 {t('Continue')}
-                            </Button>
+                            </AuthSubmit>
 
                             <div className="text-sm text-muted-foreground">
                                 <span>{t('or you can')} </span>

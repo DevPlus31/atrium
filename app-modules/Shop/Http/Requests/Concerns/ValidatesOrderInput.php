@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Modules\Shop\Http\Requests\Concerns;
 
+use App\Domain\ValueObjects\Email;
 use App\Domain\ValueObjects\Money;
+use App\Modules\Concerns\ReadsValidatedInput;
 use App\Rules\ValidEmail;
 
 /**
@@ -13,24 +15,23 @@ use App\Rules\ValidEmail;
  */
 trait ValidatesOrderInput
 {
+    use ReadsValidatedInput;
+
     /**
      * @return array<string, array<mixed>>
      */
     public function rules(): array
     {
         return [
-            'customer_email' => ['required', 'string', 'max:255', 'email', new ValidEmail],
+            'customer_email' => ['required', ...ValidEmail::rules()],
             'total_cents' => ['required', 'integer', 'min:0'],
-            'currency' => ['required', 'string', 'regex:'.Money::CURRENCY_PATTERN],
+            'currency' => ['required', ...Money::currencyRules()],
         ];
     }
 
     public function customerEmail(): string
     {
-        /** @var string $email */
-        $email = $this->validated('customer_email');
-
-        return $email;
+        return $this->validatedString('customer_email');
     }
 
     public function totalCents(): int
@@ -40,20 +41,12 @@ trait ValidatesOrderInput
 
     public function currency(): string
     {
-        /** @var string $currency */
-        $currency = $this->validated('currency');
-
-        return $currency;
+        return $this->validatedString('currency');
     }
 
     protected function prepareForValidation(): void
     {
-        $email = $this->input('customer_email');
-        $currency = $this->input('currency');
-
-        $this->merge(array_filter([
-            'customer_email' => is_string($email) ? mb_strtolower(mb_trim($email)) : null,
-            'currency' => is_string($currency) ? mb_strtoupper(mb_trim($currency)) : null,
-        ], is_string(...)));
+        $this->normalizeInput('customer_email', Email::normalize(...));
+        $this->normalizeInput('currency', Money::normalizeCurrency(...));
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Roles\Actions;
 
+use App\Modules\AuditLog;
 use Illuminate\Support\Facades\DB;
 use Modules\Roles\Domain\Exceptions\SystemRoleProtected;
 use Modules\Roles\Domain\Repositories\RoleRepository;
@@ -42,14 +43,15 @@ final readonly class UpdateRole
             $this->roles->rename($role, (string) $name);
             $this->roles->syncPermissions($role, $permissions);
 
-            activity('roles')
-                ->performedOn($role)
-                ->event('updated')
-                ->withProperties([
+            AuditLog::record(
+                log: 'roles',
+                event: 'updated',
+                subject: $role,
+                properties: [
                     'old' => $old,
                     'attributes' => ['name' => (string) $name, 'permissions' => $permissions],
-                ])
-                ->log('updated');
+                ],
+            );
 
             return $role->refresh();
         });

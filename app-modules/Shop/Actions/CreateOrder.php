@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Shop\Actions;
 
 use App\Domain\ValueObjects\Money;
+use App\Modules\AuditLog;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Modules\Shop\Domain\Repositories\OrderRepository;
@@ -32,18 +33,19 @@ final readonly class CreateOrder
 
             $this->orders->save($order);
 
-            activity('shop')
-                ->performedOn($order)
-                ->event('created')
-                ->withProperties([
+            AuditLog::record(
+                log: 'shop',
+                event: 'created',
+                subject: $order,
+                properties: [
                     'attributes' => [
                         'number' => $order->number,
                         'customer_email' => $order->customer_email,
                         'total_cents' => $order->total_cents,
                         'currency' => $order->currency,
                     ],
-                ])
-                ->log('created');
+                ],
+            );
 
             return $order;
         }), when: static fn (Throwable $exception): bool => $exception instanceof UniqueConstraintViolationException);

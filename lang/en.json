@@ -276,5 +276,7 @@
     "avatar-removed": "Photo removed",
     "avatar-updated": "Photo updated",
     "impersonation-left": "Stopped acting as another user",
-    "other-sessions-signed-out": "Signed out of other sessions"
+    "other-sessions-signed-out": "Signed out of other sessions",
+    "+:count more|+:count more": "+:count more|+:count more",
+    "Not verified": "Not verified"
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Catalog\Actions;
 
 use App\Domain\ValueObjects\Money;
+use App\Modules\AuditLog;
 use Illuminate\Support\Facades\DB;
 use Modules\Catalog\Domain\Repositories\ProductRepository;
 use Modules\Catalog\Domain\ValueObjects\Sku;
@@ -24,13 +25,14 @@ final readonly class CreateProduct
         return DB::transaction(function () use ($product): Product {
             $this->products->save($product);
 
-            activity('catalog')
-                ->performedOn($product)
-                ->event('created')
-                ->withProperties([
+            AuditLog::record(
+                log: 'catalog',
+                event: 'created',
+                subject: $product,
+                properties: [
                     'attributes' => ['name' => $product->name, 'sku' => $product->sku],
-                ])
-                ->log('created');
+                ],
+            );
 
             return $product;
         });

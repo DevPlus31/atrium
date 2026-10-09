@@ -15,7 +15,7 @@ final class UpdateGeneralSettingsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'support_email' => ['nullable', 'string', 'lowercase', 'max:255', 'email', new ValidEmail],
+            'support_email' => ['nullable', ...ValidEmail::rules()],
             'registration_open' => ['required', 'boolean'],
         ];
     }

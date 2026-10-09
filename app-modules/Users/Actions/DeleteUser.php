@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Users\Actions;
 
 use App\Models\User;
+use App\Modules\AuditLog;
 use Illuminate\Support\Facades\DB;
 use Modules\Users\Domain\Repositories\UserRepository;
 
@@ -20,13 +21,14 @@ final readonly class DeleteUser
         DB::transaction(function () use ($user): void {
             $this->users->delete($user);
 
-            activity('users')
-                ->performedOn($user)
-                ->event('deleted')
-                ->withProperties([
+            AuditLog::record(
+                log: 'users',
+                event: 'deleted',
+                subject: $user,
+                properties: [
                     'attributes' => ['name' => $user->name, 'email' => $user->email],
-                ])
-                ->log('deleted');
+                ],
+            );
         });
     }
 }

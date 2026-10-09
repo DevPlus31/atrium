@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Modules\Settings\Http\Controllers;
 
+use App\Modules\Toast;
 use App\Settings\GeneralSettings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\Attributes\Controllers\Authorize;
-use Inertia\Inertia;
 use Modules\Settings\Actions\RemoveLogo;
 use Modules\Settings\Actions\UpdateLogo;
 use Modules\Settings\Http\Requests\UpdateLogoRequest;
@@ -19,7 +19,7 @@ final readonly class LogoController
     {
         $action->handle($settings, $request->logo());
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Logo updated.')]);
+        Toast::success(__('Logo updated.'));
 
         return to_route('admin.settings.general.edit');
     }
@@ -28,7 +28,7 @@ final readonly class LogoController
     {
         $action->handle($settings);
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Logo removed.')]);
+        Toast::success(__('Logo removed.'));
 
         return to_route('admin.settings.general.edit');
     }

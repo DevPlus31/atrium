@@ -1,22 +1,20 @@
-import { Form, Head, Link, router, usePage } from '@inertiajs/react';
+import { Form, Link, usePage } from '@inertiajs/react';
 import { useLaravelReactI18n } from 'laravel-react-i18n';
 import { useState } from 'react';
 import UserAvatarController from '@/actions/App/Http/Controllers/UserAvatarController';
 import UserProfileController from '@/actions/App/Http/Controllers/UserProfileController';
 import DeleteUser from '@/components/delete-user';
-import Heading from '@/components/heading';
+import { FormField } from '@/components/form-field';
 import { ImageInput } from '@/components/image-input';
-import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
+import { SettingsSection } from '@/components/settings-section';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useBreadcrumbs } from '@/hooks/use-breadcrumbs';
 import { useInitials } from '@/hooks/use-initials';
-import SettingsLayout from '@/layouts/settings/layout';
+import { SettingsPage } from '@/layouts/settings/page';
 import { edit } from '@/routes/user-profile';
 import { send } from '@/routes/verification';
-import type { BreadcrumbItem } from '@/types';
 
 export default function Edit({
     mustVerifyEmail,
@@ -26,33 +24,17 @@ export default function Edit({
     status?: string;
 }) {
     const { t } = useLaravelReactI18n();
-    const { auth, errors } = usePage().props;
+    const { auth } = usePage().props;
     const [emailChanged, setEmailChanged] = useState(false);
-    const [uploading, setUploading] = useState(false);
     const getInitials = useInitials();
-
-    const breadcrumbs: BreadcrumbItem[] = [
-        {
-            title: t('Profile settings'),
-            href: edit(),
-        },
-    ];
-    useBreadcrumbs(breadcrumbs);
 
     return (
         <>
-            <Head title={t('Profile settings')} />
-
-            <h1 className="sr-only">{t('Profile settings')}</h1>
-
-            <SettingsLayout>
-                <div className="space-y-6">
-                    <Heading
-                        variant="small"
-                        title={t('Profile information')}
-                        description={t('Update your name and email address')}
-                    />
-
+            <SettingsPage title={t('Profile settings')} href={edit()}>
+                <SettingsSection
+                    title={t('Profile information')}
+                    description={t('Update your name and email address')}
+                >
                     <div className="grid gap-2">
                         <Label>{t('Photo')}</Label>
                         <ImageInput
@@ -63,26 +45,9 @@ export default function Edit({
                                     {getInitials(auth.user.name)}
                                 </span>
                             }
-                            error={errors.avatar}
-                            processing={uploading}
-                            onSelect={(file) =>
-                                router.post(
-                                    UserAvatarController.update.url(),
-                                    { avatar: file },
-                                    {
-                                        forceFormData: true,
-                                        preserveScroll: true,
-                                        onStart: () => setUploading(true),
-                                        onFinish: () => setUploading(false),
-                                    },
-                                )
-                            }
-                            onRemove={() =>
-                                router.delete(
-                                    UserAvatarController.destroy.url(),
-                                    { preserveScroll: true },
-                                )
-                            }
+                            field="avatar"
+                            uploadUrl={UserAvatarController.update.url()}
+                            removeUrl={UserAvatarController.destroy.url()}
                         />
                     </div>
 
@@ -95,34 +60,29 @@ export default function Edit({
                     >
                         {({ processing, errors }) => (
                             <>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="name">{t('Name')}</Label>
-
+                                <FormField
+                                    id="name"
+                                    label={t('Name')}
+                                    error={errors.name}
+                                >
                                     <Input
                                         id="name"
-                                        className="mt-1 block w-full"
                                         defaultValue={auth.user.name}
                                         name="name"
                                         required
                                         autoComplete="name"
                                         placeholder={t('Full name')}
                                     />
+                                </FormField>
 
-                                    <InputError
-                                        className="mt-2"
-                                        message={errors.name}
-                                    />
-                                </div>
-
-                                <div className="grid gap-2">
-                                    <Label htmlFor="email">
-                                        {t('Email address')}
-                                    </Label>
-
+                                <FormField
+                                    id="email"
+                                    label={t('Email address')}
+                                    error={errors.email}
+                                >
                                     <Input
                                         id="email"
                                         type="email"
-                                        className="mt-1 block w-full"
                                         defaultValue={auth.user.email}
                                         name="email"
                                         required
@@ -135,39 +95,25 @@ export default function Edit({
                                             )
                                         }
                                     />
-
-                                    <InputError
-                                        className="mt-2"
-                                        message={errors.email}
-                                    />
-                                </div>
+                                </FormField>
 
                                 {emailChanged && (
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="current_password">
-                                            {t('Current password')}
-                                        </Label>
-
+                                    <FormField
+                                        id="current_password"
+                                        label={t('Current password')}
+                                        error={errors.current_password}
+                                        hint={t(
+                                            'Confirm your password to change your email address.',
+                                        )}
+                                    >
                                         <PasswordInput
                                             id="current_password"
                                             name="current_password"
-                                            className="mt-1 block w-full"
                                             required
                                             autoComplete="current-password"
                                             placeholder={t('Current password')}
                                         />
-
-                                        <p className="text-sm text-muted-foreground">
-                                            {t(
-                                                'Confirm your password to change your email address.',
-                                            )}
-                                        </p>
-
-                                        <InputError
-                                            className="mt-2"
-                                            message={errors.current_password}
-                                        />
-                                    </div>
+                                    </FormField>
                                 )}
 
                                 {mustVerifyEmail &&
@@ -210,10 +156,10 @@ export default function Edit({
                             </>
                         )}
                     </Form>
-                </div>
+                </SettingsSection>
 
                 <DeleteUser />
-            </SettingsLayout>
+            </SettingsPage>
         </>
     );
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Shop\Actions;
 
 use App\Domain\ValueObjects\Money;
+use App\Modules\AuditLog;
 use Illuminate\Support\Facades\DB;
 use Modules\Shop\Domain\Repositories\OrderRepository;
 use Modules\Shop\Infrastructure\Models\Order;
@@ -27,17 +28,18 @@ final readonly class UpdateOrder
 
             $this->orders->save($order);
 
-            activity('shop')
-                ->performedOn($order)
-                ->event('updated')
-                ->withProperties([
+            AuditLog::record(
+                log: 'shop',
+                event: 'updated',
+                subject: $order,
+                properties: [
                     'attributes' => [
                         'customer_email' => $order->customer_email,
                         'total_cents' => $total->amount,
                         'currency' => $total->currency,
                     ],
-                ])
-                ->log('updated');
+                ],
+            );
 
             return $order->refresh();
         });

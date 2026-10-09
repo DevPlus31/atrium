@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Modules\Users\Actions;
 
+use App\Domain\ValueObjects\Email;
 use App\Models\User;
+use App\Modules\AuditLog;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\DB;
 use Modules\Users\Domain\Repositories\UserRepository;
-use Modules\Users\Domain\ValueObjects\Email;
 use SensitiveParameter;
 
 final readonly class CreateUser
@@ -37,13 +38,14 @@ final readonly class CreateUser
 
             $user->syncRoles($roles);
 
-            activity('users')
-                ->performedOn($user)
-                ->event('created')
-                ->withProperties([
+            AuditLog::record(
+                log: 'users',
+                event: 'created',
+                subject: $user,
+                properties: [
                     'attributes' => ['name' => $name, 'email' => $email, 'roles' => $roles],
-                ])
-                ->log('created');
+                ],
+            );
 
             // Mail goes out only once the account really exists (after the
             // outermost transaction commits, e.g. AcceptInvitation's).

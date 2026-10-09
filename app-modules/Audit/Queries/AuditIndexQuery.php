@@ -42,18 +42,9 @@ final readonly class AuditIndexQuery extends IndexQuery
      */
     private function search(Builder $query, mixed $value): void
     {
-        $search = implode(',', $this->stringValues($value));
-
-        $query->where(function (Builder $query) use ($search): void {
-            $query
-                ->whereLike('description', '%'.$search.'%')
-                ->orWhereLike('log_name', '%'.$search.'%')
-                ->orWhereLike('event', '%'.$search.'%')
-                ->orWhereHasMorph('causer', [User::class], function (Builder $query) use ($search): void {
-                    $query
-                        ->whereLike('name', '%'.$search.'%')
-                        ->orWhereLike('email', '%'.$search.'%');
-                });
+        $query->where(function (Builder $query) use ($value): void {
+            $this->whereLikeAny($query, ['description', 'log_name', 'event'], $value)
+                ->orWhereHasMorph('causer', [User::class], fn (Builder $causer): Builder => $this->whereLikeAny($causer, ['name', 'email'], $value));
         });
     }
 }

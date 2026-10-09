@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Users\Actions;
 
 use App\Models\User;
+use App\Modules\AuditLog;
 
 final readonly class ImpersonateUser
 {
@@ -18,11 +19,12 @@ final readonly class ImpersonateUser
             return false;
         }
 
-        activity('users')
-            ->causedBy($impersonator)
-            ->performedOn($user)
-            ->event('impersonated')
-            ->log('impersonated');
+        AuditLog::record(
+            log: 'users',
+            event: 'impersonated',
+            subject: $user,
+            causer: $impersonator,
+        );
 
         return true;
     }

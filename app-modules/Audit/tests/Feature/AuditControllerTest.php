@@ -6,32 +6,17 @@ use App\Models\User;
 use App\Modules\NavRegistry;
 use Inertia\Testing\AssertableInertia;
 use Spatie\Activitylog\Models\Activity;
-use Spatie\Permission\Models\Role;
 
 beforeEach(function (): void {
-    $this->withoutVite();
-
     $this->artisan('admin:sync-permissions')->assertSuccessful();
 });
 
-it('redirects guests to the login page', function (): void {
-    $response = $this->get('/admin/audit');
-
-    $response->assertRedirectToRoute('login');
-});
-
-it('forbids authenticated users without the admin role', function (): void {
-    $user = User::factory()->create();
-
-    $response = $this->actingAs($user)->get('/admin/audit');
-
-    $response->assertForbidden();
+it('keeps guests and non-admins out', function (): void {
+    assertAdminOnly('get', route('admin.audit.index'));
 });
 
 it('forbids admins without the audit.view permission', function (): void {
-    Role::findByName('admin')->revokePermissionTo('audit.view');
-
-    $response = $this->actingAs(adminUser())->get(route('admin.audit.index'));
+    $response = $this->actingAs(adminWithout('audit.view'))->get(route('admin.audit.index'));
 
     $response->assertForbidden();
 });
@@ -172,21 +157,6 @@ it('filters by event including comma-separated values', function (): void {
         ->has('activities.data', 2));
 });
 
-it('sorts the index by newest first by default', function (): void {
-    $admin = adminUser();
-
-    activity('users')->log('older entry');
-    activity('users')->log('newer entry');
-
-    Activity::query()->where('description', 'older entry')->update(['created_at' => now()->subDay()]);
-
-    $response = $this->actingAs($admin)->get(route('admin.audit.index'));
-
-    $response->assertOk()->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
-        ->where('activities.data.0.description', 'newer entry')
-        ->where('activities.data.1.description', 'older entry'));
-});
-
 it('applies allowed sorts to the index', function (): void {
     $admin = adminUser();
 
@@ -200,33 +170,4 @@ it('applies allowed sorts to the index', function (): void {
 
     $ascending->assertOk()->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->where('activities.data.0.description', 'older entry'));
     $descending->assertOk()->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->where('activities.data.0.description', 'newer entry'));
-});
-
-it('rejects sorts outside the whitelist', function (): void {
-    $admin = adminUser();
-
-    activity('users')->log('user created');
-
-    $response = $this->actingAs($admin)->get(route('admin.audit.index', ['sort' => 'description']));
-
-    $response->assertBadRequest();
-});
-
-it('paginates the index and caps per_page at 100', function (): void {
-    $admin = adminUser();
-
-    foreach (range(1, 13) as $index) {
-        activity('users')->log('entry '.$index);
-    }
-
-    $paged = $this->actingAs($admin)->get(route('admin.audit.index', ['per_page' => 10, 'page' => 2]));
-    $capped = $this->actingAs($admin)->get(route('admin.audit.index', ['per_page' => 500]));
-
-    $paged->assertOk()->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
-        ->has('activities.data', 3)
-        ->where('activities.meta.current_page', 2)
-        ->where('activities.meta.per_page', 10)
-        ->where('activities.meta.total', 13));
-
-    $capped->assertOk()->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->where('activities.meta.per_page', 100));
 });

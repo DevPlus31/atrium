@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Settings\Http\Controllers;
 
+use App\Modules\Toast;
 use App\Settings\AnnouncementSettings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\Attributes\Controllers\Authorize;
@@ -29,7 +30,7 @@ final readonly class AnnouncementController
     {
         $action->handle($settings, $request->message(), $request->level(), $request->endsAt());
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Announcement published.')]);
+        Toast::success(__('Announcement published.'));
 
         return to_route('admin.settings.announcement.edit');
     }
@@ -38,7 +39,7 @@ final readonly class AnnouncementController
     {
         $action->handle($settings);
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Announcement removed.')]);
+        Toast::success(__('Announcement removed.'));
 
         return to_route('admin.settings.announcement.edit');
     }

@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Modules\Users\Actions;
 
+use App\Domain\ValueObjects\Email;
 use App\Models\User;
+use App\Modules\AuditLog;
 use Illuminate\Support\Facades\DB;
 use Modules\Users\Domain\Repositories\UserRepository;
-use Modules\Users\Domain\ValueObjects\Email;
 
 final readonly class UpdateUser
 {
@@ -30,32 +31,22 @@ final readonly class UpdateUser
                 'roles' => $user->roles()->pluck('name')->sort()->values()->all(),
             ];
 
-            $emailChanged = $user->email !== $email;
-
-            $user->fill([
-                'name' => $name,
-                'email' => $email,
-                ...($emailChanged ? ['email_verified_at' => null] : []),
-            ]);
+            $user->fill(['name' => $name]);
+            $user->changeEmail($email);
 
             $this->users->save($user);
 
             $user->syncRoles($roles);
 
-            activity('users')
-                ->performedOn($user)
-                ->event('updated')
-                ->withProperties([
+            AuditLog::record(
+                log: 'users',
+                event: 'updated',
+                subject: $user,
+                properties: [
                     'old' => $old,
                     'attributes' => ['name' => $name, 'email' => $email, 'roles' => $roles],
-                ])
-                ->log('updated');
-
-            if ($emailChanged) {
-                DB::afterCommit(static function () use ($user): void {
-                    $user->sendEmailVerificationNotification();
-                });
-            }
+                ],
+            );
 
             return $user->refresh();
         });

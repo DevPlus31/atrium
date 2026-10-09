@@ -64,13 +64,15 @@ final class MakeAggregateCommand extends Command
             '{{ plural }}' => $plural,
             '{{ variable }}' => Str::camel($aggregate),
             '{{ variablePlural }}' => Str::camel($plural),
+            '{{ aggregateKebab }}' => Str::kebab($aggregate),
             '{{ table }}' => Str::snake($plural),
             '{{ slug }}' => $slug,
             '{{ label }}' => Str::headline($plural),
         ];
 
-        $this->writeAggregateFiles($files, $modulePath, $aggregate, $plural, $slug, $replacements);
+        $written = $this->writeAggregateFiles($files, $modulePath, $aggregate, $plural, $replacements);
         $this->wireProvider($files, $modulePath, $module, $aggregate, $slug, $replacements['{{ label }}']);
+        $this->registerTranslations($files, $modulePath, [...$written, $modulePath.'/Providers/'.$module.'ServiceProvider.php']);
 
         $this->components->info(sprintf('Aggregate [%s] scaffolded in module [%s].', $aggregate, $module));
         $this->components->bulletList([
@@ -78,7 +80,7 @@ final class MakeAggregateCommand extends Command
             'php artisan admin:sync-permissions',
             'php artisan typescript:transform',
             'php artisan wayfinder:generate --with-form',
-            'composer lint && bun run lint',
+            'composer lint',
         ]);
 
         return self::SUCCESS;
@@ -86,8 +88,9 @@ final class MakeAggregateCommand extends Command
 
     /**
      * @param  array<string, string>  $replacements
+     * @return list<string> the files written
      */
-    private function writeAggregateFiles(Filesystem $files, string $modulePath, string $aggregate, string $plural, string $slug, array $replacements): void
+    private function writeAggregateFiles(Filesystem $files, string $modulePath, string $aggregate, string $plural, array $replacements): array
     {
         $timestamp = now()->format('Y_m_d_His');
 
@@ -103,6 +106,7 @@ final class MakeAggregateCommand extends Command
             'aggregate/query' => $modulePath.'/Queries/'.$plural.'IndexQuery.php',
             'aggregate/data' => $modulePath.'/Data/'.$aggregate.'Data.php',
             'aggregate/controller' => $modulePath.'/Http/Controllers/'.$aggregate.'Controller.php',
+            'aggregate/request-concern' => $modulePath.'/Http/Requests/Concerns/Validates'.$aggregate.'Input.php',
             'aggregate/request-store' => $modulePath.'/Http/Requests/Store'.$aggregate.'Request.php',
             'aggregate/request-update' => $modulePath.'/Http/Requests/Update'.$aggregate.'Request.php',
             'aggregate/policy' => $modulePath.'/Policies/'.$aggregate.'Policy.php',
@@ -110,8 +114,8 @@ final class MakeAggregateCommand extends Command
             'aggregate/page-index' => $modulePath.'/resources/js/pages/index.tsx',
             'aggregate/page-create' => $modulePath.'/resources/js/pages/create.tsx',
             'aggregate/page-edit' => $modulePath.'/resources/js/pages/edit.tsx',
-            'aggregate/columns' => $modulePath.'/resources/js/components/'.$slug.'-columns.tsx',
-            'aggregate/form-fields' => $modulePath.'/resources/js/components/'.$slug.'-form-fields.tsx',
+            'aggregate/columns' => $modulePath.'/resources/js/components/'.$replacements['{{ aggregateKebab }}'].'-columns.tsx',
+            'aggregate/form-fields' => $modulePath.'/resources/js/components/'.$replacements['{{ aggregateKebab }}'].'-form-fields.tsx',
             'aggregate/test-controller' => $modulePath.'/tests/Feature/'.$aggregate.'ControllerTest.php',
             'aggregate/test-actions' => $modulePath.'/tests/Unit/Actions/'.$aggregate.'ActionsTest.php',
             'aggregate/test-policy' => $modulePath.'/tests/Unit/Policies/'.$aggregate.'PolicyTest.php',
@@ -123,14 +127,15 @@ final class MakeAggregateCommand extends Command
             $files->put($target, $this->render($files, $stub, $replacements));
         }
 
-        $this->registerTranslations($files, $modulePath, array_values($map));
+        return array_values($map);
     }
 
     /**
      * Add the strings the generated code translates (`t()`, `tChoice()`,
-     * `__()`) to the module's own lang/en.json — unless the shell catalogue
-     * already has them — so translators find them and the module takes them
-     * along wherever it goes.
+     * `__()`, and the provider's menu `label:`/`group:`, which the shell
+     * translates when it renders the menu) to the module's own lang/en.json
+     * — unless the shell catalogue already has them — so translators find
+     * them and the module takes them along wherever it goes.
      *
      * @param  list<string>  $paths
      */
@@ -141,9 +146,11 @@ final class MakeAggregateCommand extends Command
         $module = $this->catalogue($files, $catalogPath);
 
         foreach ($paths as $path) {
-            preg_match_all('/\b(?:t|tChoice|__)\(\s*([\'"])((?:\\\\.|(?!\1).)*)\1/s', $files->get($path), $matches);
+            $contents = $files->get($path);
+            preg_match_all('/\b(?:t|tChoice|__)\(\s*([\'"])((?:\\\\.|(?!\1).)*)\1/s', $contents, $calls);
+            preg_match_all("/\\b(?:label|group):\\s*'([^']+)'/", $contents, $menu);
 
-            foreach ($matches[2] as $key) {
+            foreach ([...$calls[2], ...$menu[1]] as $key) {
                 $key = stripslashes($key);
 
                 if (! array_key_exists($key, $shell)) {
@@ -204,6 +211,7 @@ final class MakeAggregateCommand extends Command
         // The policy needs no registration: Laravel's policy discovery finds
         // Modules\<Module>\Policies\<Aggregate>Policy for the model.
         $imports = implode(PHP_EOL, [
+            'use App\\Models\\User;',
             'use App\\Modules\\PermissionRegistry;',
             sprintf('use Modules\\%s\\Domain\\Repositories\\%sRepository;', $module, $aggregate),
             sprintf('use Modules\\%s\\Infrastructure\\Repositories\\Eloquent%sRepository;', $module, $aggregate),
@@ -224,7 +232,7 @@ final class MakeAggregateCommand extends Command
         ]);
 
         $permissions = implode(PHP_EOL, array_map(
-            static fn (string $ability): string => sprintf("        \$permissions->declare('%s.%s', roles: ['admin']);", $slug, $ability),
+            static fn (string $ability): string => sprintf("        \$permissions->declare('%s.%s', roles: [User::PANEL_ROLE]);", $slug, $ability),
             ['view', 'create', 'update', 'delete'],
         ));
 

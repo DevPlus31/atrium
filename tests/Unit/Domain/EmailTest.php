@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use Modules\Users\Domain\Exceptions\InvalidEmailException;
-use Modules\Users\Domain\ValueObjects\Email;
+use App\Domain\Exceptions\InvalidEmailException;
+use App\Domain\ValueObjects\Email;
 
 it('normalizes the address by trimming and lowercasing', function (): void {
     $email = new Email('  Jane.Doe@Example.COM  ');

@@ -5,13 +5,11 @@ declare(strict_types=1);
 namespace Modules\Users\Console\Commands;
 
 use App\Models\User;
-use App\Rules\ValidEmail;
+use App\Rules\AccountRules;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
-use Illuminate\Validation\Rules\Password;
 use Modules\Users\Actions\CreateUser;
 
 use function Laravel\Prompts\password;
@@ -30,17 +28,9 @@ final class CreateAdminUserCommand extends Command
         $validator = Validator::make(
             ['name' => $name, 'email' => $email, 'password' => $password],
             [
-                'name' => ['required', 'string', 'max:255'],
-                'email' => [
-                    'required',
-                    'string',
-                    'lowercase',
-                    'max:255',
-                    'email',
-                    new ValidEmail,
-                    Rule::unique(User::class),
-                ],
-                'password' => ['required', Password::defaults()],
+                'name' => AccountRules::name(),
+                'email' => AccountRules::email(),
+                'password' => AccountRules::password(confirmed: false),
             ],
         );
 
@@ -58,7 +48,7 @@ final class CreateAdminUserCommand extends Command
             name: $name,
             email: $email,
             password: $password,
-            roles: ['admin'],
+            roles: [User::PANEL_ROLE],
             verified: true,
         );
 

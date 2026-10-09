@@ -1,21 +1,9 @@
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 import { useLaravelReactI18n } from 'laravel-react-i18n';
-import type { FormEvent } from 'react';
-import InputError from '@/components/input-error';
-import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Spinner } from '@/components/ui/spinner';
+import { FormCard } from '@/components/form-card';
+import { TextField } from '@/components/text-field';
 import { useBreadcrumbs } from '@/hooks/use-breadcrumbs';
 import { create, index, store } from '@/routes/admin/roles';
-import type { BreadcrumbItem } from '@/types';
 import { RolePermissionsField } from '../components/role-permissions-field';
 
 type RolesCreateProps = {
@@ -25,73 +13,38 @@ type RolesCreateProps = {
 export default function RolesCreate({ permissions }: RolesCreateProps) {
     const { t } = useLaravelReactI18n();
 
-    const breadcrumbs: BreadcrumbItem[] = [
+    useBreadcrumbs(
         { title: t('Roles'), href: index() },
         { title: t('Create'), href: create() },
-    ];
-    useBreadcrumbs(breadcrumbs);
+    );
 
     const form = useForm(store(), {
         name: '',
         permissions: [] as string[],
     });
 
-    const submit = (event: FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        form.submit({ preserveScroll: true });
-    };
-
     return (
         <>
             <Head title={t('Create role')} />
-            <Card className="max-w-2xl">
-                <CardHeader>
-                    <CardTitle>{t('Create role')}</CardTitle>
-                    <CardDescription>
-                        {t('Add a new role and choose its permissions.')}
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <form onSubmit={submit} className="grid gap-6">
-                        <div className="grid gap-2">
-                            <Label htmlFor="name">{t('Name')}</Label>
-                            <Input
-                                id="name"
-                                type="text"
-                                autoFocus
-                                autoComplete="off"
-                                value={form.data.name}
-                                onChange={(event) =>
-                                    form.setData('name', event.target.value)
-                                }
-                                onBlur={() => form.validate('name')}
-                                placeholder={t('Role name')}
-                            />
-                            <InputError message={form.errors.name} />
-                        </div>
+            <FormCard
+                title={t('Create role')}
+                description={t('Add a new role and choose its permissions.')}
+                onSubmit={() => form.submit({ preserveScroll: true })}
+                processing={form.processing}
+                submitLabel={t('Create role')}
+                cancelHref={index()}
+            >
+                <TextField
+                    form={form}
+                    name="name"
+                    label={t('Name')}
+                    autoFocus
+                    autoComplete="off"
+                    placeholder={t('Role name')}
+                />
 
-                        <RolePermissionsField
-                            permissions={permissions}
-                            selected={form.data.permissions}
-                            onChange={(next) => {
-                                form.setData('permissions', next);
-                                form.validate('permissions');
-                            }}
-                            error={form.errors.permissions}
-                        />
-
-                        <div className="flex items-center gap-2">
-                            <Button type="submit" disabled={form.processing}>
-                                {form.processing && <Spinner />}
-                                {t('Create role')}
-                            </Button>
-                            <Button variant="ghost" asChild>
-                                <Link href={index()}>{t('Cancel')}</Link>
-                            </Button>
-                        </div>
-                    </form>
-                </CardContent>
-            </Card>
+                <RolePermissionsField form={form} permissions={permissions} />
+            </FormCard>
         </>
     );
 }

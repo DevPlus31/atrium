@@ -29,9 +29,9 @@ Defined in `resources/css/app.css` (Tailwind v4 `@theme` + CSS variables on
   `muted(-foreground)`, `accent(-foreground)`, `destructive(-foreground)`,
   `success(-foreground)`, `overlay`, `border`, `input`, `ring`,
   `chart-1`…`chart-5`, and the `sidebar-*` set.
-- **Structural tokens**: `--radius`, font families (`--font-display`,
-  `--font-body`, `--font-mono`), and `--density` (row padding, consumed by
-  the shared data-table).
+- **Structural tokens**: radius, fonts, row density and the shell's
+  dimensions. The full list, with what each one drives, is the README's
+  "Styling and layout" table.
 
 Charts consume `var(--chart-*)` (grid/axes via `border`/`muted-foreground`);
 lucide icons inherit `currentColor`. If a needed role has no token, **add a
@@ -45,18 +45,9 @@ options) are shell-level API changes and are reviewed like one.
   second system).
 - Presets ship as pure token-override blocks in `resources/css/themes/`
   (`ember.css`, `contrast.css`), scoped to `:root[data-theme='<name>']` with
-  a `.dark` companion block, and registered as:
-  1. a `case` in `App\Enums\ThemePreset` (then `php artisan typescript:transform`);
-  2. an `@import` in `resources/css/app.css`;
-  3. an entry in `themePresetOptions`
-     (`resources/js/components/admin/theme-options.ts`) and its label in
-     `lang/*.json`;
-  4. when it changes `--background`, a matching rule in the first-paint
-     style of `resources/views/app.blade.php` (`FirstPaintBackgroundTest`
-     checks it).
-  That is the whole recipe for **adding a preset**: copy an existing block,
-  adjust values (keep WCAG AA on `foreground`/`background` and
-  `primary-foreground`/`primary`), register in those places.
+  a `.dark` companion block. Each keeps WCAG AA on `foreground`/`background`
+  and `primary-foreground`/`primary`. **Adding a preset**: the step-by-step
+  recipe is in the README's "Styling and layout" section.
 - Persistence: cookies (`appearance`, `theme`, `layout`; js-readable,
   unencrypted) for guests and first paint; mirrored to `users.appearance` /
   `users.theme` / `users.layout` when authenticated via

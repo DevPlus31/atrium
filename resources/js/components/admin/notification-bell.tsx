@@ -2,6 +2,8 @@ import { Link, router, usePage } from '@inertiajs/react';
 import { useLaravelReactI18n } from 'laravel-react-i18n';
 import { Bell } from 'lucide-react';
 import { useState } from 'react';
+import { EmptyState } from '@/components/empty-state';
+import { MarkAllReadButton } from '@/components/mark-all-read-button';
 import { NotificationItem } from '@/components/notification-item';
 import { Button } from '@/components/ui/button';
 import {
@@ -10,7 +12,7 @@ import {
     PopoverTrigger,
 } from '@/components/ui/popover';
 import { Skeleton } from '@/components/ui/skeleton';
-import { index, readAll } from '@/routes/notifications';
+import { index } from '@/routes/notifications';
 
 /**
  * The header bell: the unread count comes with every page, the latest
@@ -66,20 +68,11 @@ export function NotificationBell() {
                 <div className="flex items-center justify-between border-b px-3 py-2">
                     <p className="text-sm font-medium">{t('Notifications')}</p>
                     {unreadNotifications > 0 && (
-                        <Button
+                        <MarkAllReadButton
                             variant="link"
                             size="sm"
                             className="h-auto p-0 text-xs"
-                            onClick={() =>
-                                router.patch(
-                                    readAll.url(),
-                                    {},
-                                    { preserveScroll: true },
-                                )
-                            }
-                        >
-                            {t('Mark all as read')}
-                        </Button>
+                        />
                     )}
                 </div>
 
@@ -91,9 +84,9 @@ export function NotificationBell() {
                             <Skeleton className="h-10 w-full" />
                         </div>
                     ) : recentNotifications.length === 0 ? (
-                        <p className="px-3 py-6 text-center text-sm text-muted-foreground">
+                        <EmptyState centered>
                             {t("You're all caught up.")}
-                        </p>
+                        </EmptyState>
                     ) : (
                         recentNotifications.map((notification) => (
                             <NotificationItem

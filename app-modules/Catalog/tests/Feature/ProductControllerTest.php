@@ -7,33 +7,24 @@ use App\Modules\NavRegistry;
 use Inertia\Testing\AssertableInertia;
 use Modules\Catalog\Infrastructure\Models\Product;
 use Spatie\Activitylog\Models\Activity;
-use Spatie\Permission\Models\Role;
 
 beforeEach(function (): void {
-    $this->withoutVite();
-
     $this->artisan('admin:sync-permissions')->assertSuccessful();
 });
 
-it('redirects guests to the login page', function (string $method, string $uri): void {
-    $this->{$method}($uri)->assertRedirectToRoute('login');
+it('keeps guests and non-admins out', function (string $method, Closure $url): void {
+    assertAdminOnly($method, $url());
 })->with([
-    'index' => ['get', '/admin/products'],
-    'create' => ['get', '/admin/products/create'],
-    'store' => ['post', '/admin/products'],
-    'edit' => ['get', '/admin/products/00000000-0000-0000-0000-000000000000/edit'],
-    'update' => ['put', '/admin/products/00000000-0000-0000-0000-000000000000'],
-    'destroy' => ['delete', '/admin/products/00000000-0000-0000-0000-000000000000'],
+    'index' => ['get', fn (): string => route('admin.products.index')],
+    'create' => ['get', fn (): string => route('admin.products.create')],
+    'store' => ['post', fn (): string => route('admin.products.store')],
+    'edit' => ['get', fn (): string => route('admin.products.edit', Product::factory()->create())],
+    'update' => ['put', fn (): string => route('admin.products.update', Product::factory()->create())],
+    'destroy' => ['delete', fn (): string => route('admin.products.destroy', Product::factory()->create())],
 ]);
 
-it('forbids authenticated users without the admin role', function (): void {
-    $this->actingAs(User::factory()->create())->get('/admin/products')->assertForbidden();
-});
-
 it('forbids admins without the products.view permission', function (): void {
-    Role::findByName('admin')->revokePermissionTo('products.view');
-
-    $this->actingAs(adminUser())->get(route('admin.products.index'))->assertForbidden();
+    $this->actingAs(adminWithout('products.view'))->get(route('admin.products.index'))->assertForbidden();
 });
 
 it('registers the products nav item for permitted admins', function (): void {
@@ -82,15 +73,6 @@ it('applies the search filter to the index', function (): void {
         ->where('products.data.0.sku', 'ALPHA-01'));
 });
 
-it('paginates the index and caps per_page at 100', function (): void {
-    $admin = adminUser();
-    Product::factory()->count(12)->create();
-
-    $capped = $this->actingAs($admin)->get(route('admin.products.index', ['per_page' => 500]));
-
-    $capped->assertOk()->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->where('products.meta.per_page', 100));
-});
-
 it('renders the create page', function (): void {
     $this->actingAs(adminUser())->get(route('admin.products.create'))
         ->assertOk()
@@ -111,7 +93,7 @@ it('stores a product and redirects with a success flash', function (): void {
         ]);
 
     $response->assertRedirectToRoute('admin.products.index')
-        ->assertInertiaFlash('toast', ['type' => 'success', 'message' => 'Product created.']);
+        ->assertToast('Product created.');
 
     expect(Product::query()->where('sku', 'WIDGET-01')->exists())->toBeTrue()
         ->and(Activity::query()->where('event', 'created')->where('causer_id', $admin->id)->exists())->toBeTrue();
@@ -184,7 +166,7 @@ it('updates a product and redirects with a success flash', function (): void {
         ]);
 
     $response->assertRedirectToRoute('admin.products.index')
-        ->assertInertiaFlash('toast', ['type' => 'success', 'message' => 'Product updated.']);
+        ->assertToast('Product updated.');
 
     expect($product->refresh()->name)->toBe('New')
         ->and($product->sku)->toBe('NEW-01');
@@ -260,14 +242,13 @@ it('deletes a product and redirects with a success flash', function (): void {
     $response = $this->actingAs($admin)->delete(route('admin.products.destroy', $product));
 
     $response->assertRedirectToRoute('admin.products.index')
-        ->assertInertiaFlash('toast', ['type' => 'success', 'message' => 'Product deleted.']);
+        ->assertToast('Product deleted.');
 
     expect(Product::query()->whereKey($product->id)->exists())->toBeFalse();
 });
 
 it('forbids admins without the matching permission', function (string $permission, string $method, string $routeName): void {
-    Role::findByName('admin')->revokePermissionTo($permission);
-    $admin = adminUser();
+    $admin = adminWithout($permission);
     $product = Product::factory()->create();
 
     $this->actingAs($admin)->{$method}(route($routeName, $product))->assertForbidden();

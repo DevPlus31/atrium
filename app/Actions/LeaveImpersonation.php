@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\Models\User;
+use App\Modules\AuditLog;
 use Lab404\Impersonate\Services\ImpersonateManager;
 
 final readonly class LeaveImpersonation
@@ -24,10 +25,11 @@ final readonly class LeaveImpersonation
 
         $impersonated->leaveImpersonation();
 
-        activity('users')
-            ->causedBy($impersonator instanceof User ? $impersonator : null)
-            ->performedOn($impersonated)
-            ->event('impersonation-left')
-            ->log('impersonation-left');
+        AuditLog::record(
+            log: 'users',
+            event: 'impersonation-left',
+            subject: $impersonated,
+            causer: $impersonator instanceof User ? $impersonator : null,
+        );
     }
 }

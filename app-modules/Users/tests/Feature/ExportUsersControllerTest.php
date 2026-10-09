@@ -10,24 +10,12 @@ beforeEach(function (): void {
     $this->artisan('admin:sync-permissions')->assertSuccessful();
 });
 
-it('redirects guests to the login page', function (): void {
-    $response = $this->get('/admin/users/export');
-
-    $response->assertRedirectToRoute('login');
-});
-
-it('forbids authenticated users without the admin role', function (): void {
-    $user = User::factory()->create();
-
-    $response = $this->actingAs($user)->get(route('admin.users.export'));
-
-    $response->assertForbidden();
+it('keeps guests and non-admins out', function (): void {
+    assertAdminOnly('get', route('admin.users.export'));
 });
 
 it('forbids admins without the users.export permission', function (): void {
-    Role::findByName('admin')->revokePermissionTo('users.export');
-
-    $response = $this->actingAs(adminUser())->get(route('admin.users.export'));
+    $response = $this->actingAs(adminWithout('users.export'))->get(route('admin.users.export'));
 
     $response->assertForbidden();
 });

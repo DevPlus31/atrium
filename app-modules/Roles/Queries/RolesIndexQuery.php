@@ -39,8 +39,6 @@ final readonly class RolesIndexQuery extends IndexQuery
      */
     private function search(Builder $query, mixed $value): void
     {
-        $search = implode(',', $this->stringValues($value));
-
-        $query->whereLike('name', '%'.$search.'%');
+        $this->whereLikeAny($query, ['name'], $value);
     }
 }

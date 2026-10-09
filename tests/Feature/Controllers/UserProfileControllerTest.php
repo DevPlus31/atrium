@@ -111,20 +111,24 @@ it('requires email', function (): void {
         ->assertSessionHasErrors('email');
 });
 
-it('requires valid email', function (): void {
+it('requires valid email', function (string $email): void {
     $user = User::factory()->create();
 
     $response = $this->actingAs($user)
         ->fromRoute('user-profile.edit')
         ->patch(route('user-profile.update'), [
             'name' => 'Test User',
-            'email' => 'not-an-email',
+            'email' => $email,
             'current_password' => 'password',
         ]);
 
     $response->assertRedirectToRoute('user-profile.edit')
         ->assertSessionHasErrors('email');
-});
+})->with([
+    'not an address' => 'not-an-email',
+    // Laravel's `email` rule accepts it; registration's ValidEmail does not.
+    'no top-level domain' => 'user@localhost',
+]);
 
 it('requires unique email except own', function (): void {
     $existingUser = User::factory()->create(['email' => 'existing@example.com']);

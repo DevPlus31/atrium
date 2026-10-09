@@ -5,10 +5,6 @@ declare(strict_types=1);
 use App\Models\User;
 use Inertia\Testing\AssertableInertia;
 
-beforeEach(function (): void {
-    $this->withoutVite();
-});
-
 it('requires a signed-in user', function (): void {
     $this->get(route('notification-preferences.edit'))->assertRedirectToRoute('login');
     $this->put(route('notification-preferences.update'))->assertRedirectToRoute('login');
@@ -29,7 +25,7 @@ it('turns notification emails off and on', function (): void {
     $this->actingAs($user)
         ->put(route('notification-preferences.update'), ['notify_by_email' => false])
         ->assertRedirectToRoute('notification-preferences.edit')
-        ->assertInertiaFlash('toast', ['type' => 'success', 'message' => 'Notification settings saved.']);
+        ->assertToast('Notification settings saved.');
 
     expect($user->refresh()->notify_by_email)->toBeFalse();
 

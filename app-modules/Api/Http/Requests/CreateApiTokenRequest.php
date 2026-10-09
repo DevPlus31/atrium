@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Api\Http\Requests;
 
 use App\Models\User;
+use App\Modules\Concerns\ReadsValidatedInput;
 use App\Modules\PermissionRegistry;
 use Carbon\CarbonInterface;
 use Illuminate\Foundation\Http\FormRequest;
@@ -12,6 +13,8 @@ use Illuminate\Validation\Rule;
 
 final class CreateApiTokenRequest extends FormRequest
 {
+    use ReadsValidatedInput;
+
     /**
      * How long a token may live, in days. Every token expires.
      *
@@ -47,10 +50,7 @@ final class CreateApiTokenRequest extends FormRequest
 
     public function name(): string
     {
-        /** @var string $name */
-        $name = $this->validated('name');
-
-        return $name;
+        return $this->validatedString('name');
     }
 
     /**

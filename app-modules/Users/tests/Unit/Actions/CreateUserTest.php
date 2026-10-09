@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
+use App\Domain\Exceptions\InvalidEmailException;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
 use Modules\Users\Actions\CreateUser;
-use Modules\Users\Domain\Exceptions\InvalidEmailException;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Permission\Exceptions\RoleDoesNotExist;
 use Spatie\Permission\Models\Role;

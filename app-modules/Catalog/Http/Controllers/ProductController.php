@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Catalog\Http\Controllers;
 
+use App\Modules\Toast;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\Attributes\Controllers\Authorize;
 use Illuminate\Support\Facades\Gate;
@@ -47,7 +48,7 @@ final readonly class ProductController
             description: $request->description(),
         );
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Product created.')]);
+        Toast::success(__('Product created.'));
 
         return to_route('admin.products.index');
     }
@@ -72,7 +73,7 @@ final readonly class ProductController
             description: $request->description(),
         );
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Product updated.')]);
+        Toast::success(__('Product updated.'));
 
         return to_route('admin.products.index');
     }
@@ -82,7 +83,7 @@ final readonly class ProductController
     {
         $action->handle($product);
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Product deleted.')]);
+        Toast::success(__('Product deleted.'));
 
         return to_route('admin.products.index');
     }

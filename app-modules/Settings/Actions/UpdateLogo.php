@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Settings\Actions;
 
+use App\Modules\AuditLog;
 use App\Settings\GeneralSettings;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Config;
@@ -27,6 +28,10 @@ final readonly class UpdateLogo
             $disk->delete($previous);
         }
 
-        activity('settings')->event('updated')->log('logo-updated');
+        AuditLog::record(
+            log: 'settings',
+            event: 'updated',
+            description: 'logo-updated',
+        );
     }
 }

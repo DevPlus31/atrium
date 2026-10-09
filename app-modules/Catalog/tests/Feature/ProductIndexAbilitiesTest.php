@@ -2,23 +2,10 @@
 
 declare(strict_types=1);
 
-use Inertia\Testing\AssertableInertia;
-use Spatie\Permission\Models\Role;
-
 beforeEach(function (): void {
-    $this->withoutVite();
-
     $this->artisan('admin:sync-permissions')->assertSuccessful();
 });
 
 it('ships the create ability following the admin permission', function (): void {
-    $admin = adminUser();
-
-    $this->actingAs($admin)->get(route('admin.products.index'))
-        ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->where('can.create', true));
-
-    Role::findByName('admin')->revokePermissionTo('products.create');
-
-    $this->actingAs($admin->refresh())->get(route('admin.products.index'))
-        ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->where('can.create', false));
+    assertPageAbilityFollowsPermission('admin.products.index', 'create', 'products.create');
 });

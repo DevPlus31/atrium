@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use Modules\Catalog\Infrastructure\Models\Product;
-use Spatie\Permission\Models\Role;
 
 beforeEach(function (): void {
     $this->artisan('admin:sync-permissions')->assertSuccessful();
@@ -24,10 +23,9 @@ it('finds products by name or SKU', function (string $term): void {
 })->with(['brass', 'LMP-0001']);
 
 it('opens the filtered list without products.update', function (): void {
-    Role::findByName('admin')->revokePermissionTo('products.update');
     Product::factory()->create(['name' => 'Brass lamp', 'sku' => 'LMP-0001']);
 
-    $this->actingAs(adminUser())
+    $this->actingAs(adminWithout('products.update'))
         ->getJson(route('search', ['q' => 'brass']))
         ->assertJsonPath('groups.0.results.0.url', route('admin.products.index', ['filter' => ['search' => 'LMP-0001']]));
 });

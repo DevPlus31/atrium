@@ -1,11 +1,17 @@
 import { UserAvatar } from '@/components/user-avatar';
-import type { User } from '@/types';
 
+export type UserInfoUser = {
+    name: string;
+    email: string;
+    avatar: string | null;
+};
+
+/** A user's avatar beside their name (and email), for menus, rows and cards. */
 export function UserInfo({
     user,
     showEmail = false,
 }: {
-    user: User;
+    user: UserInfoUser;
     showEmail?: boolean;
 }) {
     return (

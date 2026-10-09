@@ -95,7 +95,6 @@ it('addresses module pages by the lowercased module folder, like the frontend re
 
 it("lets a module add a page to every user's account settings", function (): void {
     $this->app->register(TestModuleServiceProvider::class);
-    $this->withoutVite();
 
     $this->actingAs(User::factory()->create())
         ->get(route('user-profile.edit'))

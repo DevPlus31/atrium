@@ -1,59 +1,29 @@
 import { useLaravelReactI18n } from 'laravel-react-i18n';
-import InputError from '@/components/input-error';
-import { Checkbox } from '@/components/ui/checkbox';
+import { CheckboxGroupField, CheckboxList } from '@/components/checkbox-group';
+import type { FormFieldsProps } from '@/types';
 
-type UserRolesFieldProps = {
-    roles: string[];
-    selected: string[];
-    onChange: (roles: string[]) => void;
-    error?: string;
-};
-
+/** The roles to grant, bound to the form's `roles` field. */
 export function UserRolesField({
+    form,
     roles,
-    selected,
-    onChange,
-    error,
-}: UserRolesFieldProps) {
+}: FormFieldsProps<{ roles: string[] }> & { roles: string[] }) {
     const { t } = useLaravelReactI18n();
 
-    const toggle = (role: string, checked: boolean) => {
-        onChange(
-            checked
-                ? [...selected, role]
-                : selected.filter((value) => value !== role),
-        );
-    };
-
     return (
-        // A group of checkboxes: the legend names the group for screen readers.
-        <fieldset className="grid gap-2">
-            <legend className="mb-2 text-sm leading-none font-medium">
-                {t('Roles')}
-            </legend>
-            {roles.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                    {t('No roles available.')}
-                </p>
-            ) : (
-                <div className="grid gap-2">
-                    {roles.map((role) => (
-                        <label
-                            key={role}
-                            className="flex items-center gap-2 text-sm"
-                        >
-                            <Checkbox
-                                checked={selected.includes(role)}
-                                onCheckedChange={(checked) =>
-                                    toggle(role, checked === true)
-                                }
-                            />
-                            {role}
-                        </label>
-                    ))}
-                </div>
-            )}
-            <InputError message={error} />
-        </fieldset>
+        <CheckboxGroupField
+            legend={t('Roles')}
+            isEmpty={roles.length === 0}
+            emptyMessage={t('No roles available.')}
+            error={form.errors.roles}
+        >
+            <CheckboxList
+                options={roles}
+                selected={form.data.roles}
+                onChange={(next) => {
+                    form.setData('roles', next);
+                    form.validate?.('roles');
+                }}
+            />
+        </CheckboxGroupField>
     );
 }

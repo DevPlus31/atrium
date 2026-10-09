@@ -8,8 +8,6 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Testing\AssertableInertia;
 
 beforeEach(function (): void {
-    $this->withoutVite();
-
     Route::middleware('web')->group(function (): void {
         Route::get('_test/abort/{status}', fn (int $status) => abort($status));
         Route::get('_test/broken', fn () => throw new RuntimeException('Boom.'));
@@ -67,7 +65,7 @@ it('sends an expired page back with a toast instead of an error page', function 
     $this->from('/settings/profile')
         ->post('_test/expired')
         ->assertRedirect('/settings/profile')
-        ->assertInertiaFlash('toast', ['type' => 'error', 'message' => 'The page expired. Please try again.']);
+        ->assertToast('The page expired. Please try again.', 'error');
 });
 
 it('answers JSON clients with JSON, not the error page', function (): void {

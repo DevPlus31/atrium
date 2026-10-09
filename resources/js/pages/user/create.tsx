@@ -1,12 +1,10 @@
 import { Form, Head } from '@inertiajs/react';
 import { useLaravelReactI18n } from 'laravel-react-i18n';
-import InputError from '@/components/input-error';
+import { AuthSubmit } from '@/components/auth/auth-submit';
+import { FormField } from '@/components/form-field';
 import PasswordInput from '@/components/password-input';
 import TextLink from '@/components/text-link';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Spinner } from '@/components/ui/spinner';
 import AuthLayout from '@/layouts/auth-layout';
 import { login } from '@/routes';
 import { store } from '@/routes/register';
@@ -31,8 +29,11 @@ export default function Register() {
                 {({ processing, errors }) => (
                     <>
                         <div className="grid gap-6">
-                            <div className="grid gap-2">
-                                <Label htmlFor="name">{t('Name')}</Label>
+                            <FormField
+                                id="name"
+                                label={t('Name')}
+                                error={errors.name}
+                            >
                                 <Input
                                     id="name"
                                     type="text"
@@ -42,13 +43,13 @@ export default function Register() {
                                     name="name"
                                     placeholder={t('Full name')}
                                 />
-                                <InputError message={errors.name} />
-                            </div>
+                            </FormField>
 
-                            <div className="grid gap-2">
-                                <Label htmlFor="email">
-                                    {t('Email address')}
-                                </Label>
+                            <FormField
+                                id="email"
+                                label={t('Email address')}
+                                error={errors.email}
+                            >
                                 <Input
                                     id="email"
                                     type="email"
@@ -57,13 +58,13 @@ export default function Register() {
                                     name="email"
                                     placeholder={t('email@example.com')}
                                 />
-                                <InputError message={errors.email} />
-                            </div>
+                            </FormField>
 
-                            <div className="grid gap-2">
-                                <Label htmlFor="password">
-                                    {t('Password')}
-                                </Label>
+                            <FormField
+                                id="password"
+                                label={t('Password')}
+                                error={errors.password}
+                            >
                                 <PasswordInput
                                     id="password"
                                     required
@@ -71,13 +72,13 @@ export default function Register() {
                                     name="password"
                                     placeholder={t('Password')}
                                 />
-                                <InputError message={errors.password} />
-                            </div>
+                            </FormField>
 
-                            <div className="grid gap-2">
-                                <Label htmlFor="password_confirmation">
-                                    {t('Confirm password')}
-                                </Label>
+                            <FormField
+                                id="password_confirmation"
+                                label={t('Confirm password')}
+                                error={errors.password_confirmation}
+                            >
                                 <PasswordInput
                                     id="password_confirmation"
                                     required
@@ -85,20 +86,15 @@ export default function Register() {
                                     name="password_confirmation"
                                     placeholder={t('Confirm password')}
                                 />
-                                <InputError
-                                    message={errors.password_confirmation}
-                                />
-                            </div>
+                            </FormField>
 
-                            <Button
-                                type="submit"
-                                className="mt-2 w-full"
-                                disabled={processing}
-                                data-test="register-user-button"
+                            <AuthSubmit
+                                processing={processing}
+                                test="register-user-button"
+                                className="mt-2"
                             >
-                                {processing && <Spinner />}
                                 {t('Create account')}
-                            </Button>
+                            </AuthSubmit>
                         </div>
 
                         <p className="text-sm text-muted-foreground">

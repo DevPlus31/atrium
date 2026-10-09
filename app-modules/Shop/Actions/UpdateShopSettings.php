@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Shop\Actions;
 
+use App\Modules\AuditLog;
 use Modules\Shop\Settings\ShopSettings;
 
 final readonly class UpdateShopSettings
@@ -15,12 +16,14 @@ final readonly class UpdateShopSettings
         $settings->default_currency = $defaultCurrency;
         $settings->save();
 
-        activity('shop')
-            ->event('updated')
-            ->withProperties([
+        AuditLog::record(
+            log: 'shop',
+            event: 'updated',
+            properties: [
                 'old' => ['default_currency' => $old],
                 'attributes' => ['default_currency' => $defaultCurrency],
-            ])
-            ->log('settings-updated');
+            ],
+            description: 'settings-updated',
+        );
     }
 }

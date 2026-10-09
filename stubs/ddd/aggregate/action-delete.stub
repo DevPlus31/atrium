@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\{{ module }}\Actions;
 
+use App\Modules\AuditLog;
 use Illuminate\Support\Facades\DB;
 use Modules\{{ module }}\Domain\Repositories\{{ aggregate }}Repository;
 use Modules\{{ module }}\Infrastructure\Models\{{ aggregate }};
@@ -21,13 +22,14 @@ final readonly class Delete{{ aggregate }}
             ${{ variable }} = $this->{{ variablePlural }}->lockForUpdate(${{ variable }});
             $this->{{ variablePlural }}->delete(${{ variable }});
 
-            activity('{{ slug }}')
-                ->performedOn(${{ variable }})
-                ->event('deleted')
-                ->withProperties([
+            AuditLog::record(
+                log: '{{ slug }}',
+                event: 'deleted',
+                subject: ${{ variable }},
+                properties: [
                     'attributes' => ['name' => ${{ variable }}->name],
-                ])
-                ->log('deleted');
+                ],
+            );
         });
     }
 }

@@ -6,7 +6,7 @@ namespace Modules\Users\Search;
 
 use App\Models\User;
 use App\Modules\Data\SearchResultData;
-use Illuminate\Database\Eloquent\Builder;
+use App\Modules\TextSearch;
 
 /**
  * Finds users by name or email for the command palette.
@@ -18,20 +18,18 @@ final readonly class UsersSearch
      */
     public function __invoke(string $term, User $user, int $limit): array
     {
-        $found = User::query()
-            ->where(fn (Builder $query): Builder => $query
-                ->whereLike('name', '%'.$term.'%')
-                ->orWhereLike('email', '%'.$term.'%'))
+        $found = TextSearch::whereLikeAny(User::query(), ['name', 'email'], $term)
             ->orderBy('name')
             ->limit($limit)
             ->get();
 
-        return array_values($found->map(fn (User $match): SearchResultData => new SearchResultData(
+        return array_values($found->map(fn (User $match): SearchResultData => SearchResultData::forRecord(
+            viewer: $user,
+            record: $match,
+            routes: 'admin.users',
             title: $match->name,
             description: $match->email,
-            url: $user->can('update', $match)
-                ? route('admin.users.edit', $match)
-                : route('admin.users.index', ['filter' => ['search' => $match->email]]),
+            filter: $match->email,
         ))->all());
     }
 }

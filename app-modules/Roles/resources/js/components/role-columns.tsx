@@ -1,12 +1,13 @@
-import { Link } from '@inertiajs/react';
-import { useLaravelReactI18n } from 'laravel-react-i18n';
+import { BadgeList } from '@/components/badge-list';
 import {
-    DataTableColumnHeader,
-    DataTableRowActions,
+    actionsColumn,
+    dateColumn,
+    sortableColumn,
+    DeleteMenuItem,
+    EditMenuItem,
     type DataTableColumn,
 } from '@/components/data-table';
 import { Badge } from '@/components/ui/badge';
-import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import type { Formatters } from '@/lib/format';
 import { edit } from '@/routes/admin/roles';
 import type { Translator } from '@/types/ui';
@@ -15,64 +16,34 @@ export type RoleRow = Modules.Roles.Data.RoleData;
 
 const VISIBLE_PERMISSIONS = 3;
 
-/** "+3 more": a plural, so it needs the hook's tChoice. */
-function MorePermissions({ count }: { count: number }) {
-    const { tChoice } = useLaravelReactI18n();
-
-    return <>{tChoice('+:count more|+:count more', count)}</>;
-}
-
 export function buildRoleColumns(
     t: Translator,
     format: Formatters,
     onDelete: (role: RoleRow) => void,
 ): DataTableColumn<RoleRow>[] {
     return [
-        {
+        sortableColumn<RoleRow>({
             id: 'name',
-            accessorKey: 'name',
-            enableSorting: true,
-            header: ({ column }) => (
-                <DataTableColumnHeader column={column} title={t('Name')} />
-            ),
-            cell: ({ row }) => (
+            title: t('Name'),
+            cell: (row) => (
                 <span className="flex items-center gap-2">
-                    <span className="font-medium">{row.original.name}</span>
-                    {row.original.is_system && (
+                    <span className="font-medium">{row.name}</span>
+                    {row.is_system && (
                         <Badge variant="outline">{t('System')}</Badge>
                     )}
                 </span>
             ),
-        },
+        }),
         {
             id: 'permissions',
             enableSorting: false,
             header: t('Permissions'),
-            cell: ({ row }) => {
-                const permissions = row.original.permissions;
-
-                if (permissions.length === 0) {
-                    return <span className="text-muted-foreground">—</span>;
-                }
-
-                const visible = permissions.slice(0, VISIBLE_PERMISSIONS);
-                const remaining = permissions.length - visible.length;
-
-                return (
-                    <div className="flex flex-wrap items-center gap-1">
-                        {visible.map((permission) => (
-                            <Badge key={permission} variant="secondary">
-                                {permission}
-                            </Badge>
-                        ))}
-                        {remaining > 0 && (
-                            <span className="text-xs text-muted-foreground">
-                                <MorePermissions count={remaining} />
-                            </span>
-                        )}
-                    </div>
-                );
-            },
+            cell: ({ row }) => (
+                <BadgeList
+                    items={row.original.permissions}
+                    max={VISIBLE_PERMISSIONS}
+                />
+            ),
         },
         {
             id: 'users_count',
@@ -80,56 +51,25 @@ export function buildRoleColumns(
             header: t('Users'),
             cell: ({ row }) => <span>{row.original.users_count}</span>,
         },
-        {
+        dateColumn<RoleRow>({
             id: 'created_at',
-            accessorKey: 'created_at',
-            enableSorting: true,
-            header: ({ column }) => (
-                <DataTableColumnHeader column={column} title={t('Created')} />
+            title: t('Created'),
+            value: (role) => role.created_at,
+            format: format.date,
+        }),
+        actionsColumn<RoleRow>({
+            label: t('Actions'),
+            visible: (role) => role.can.update || role.can.delete,
+            items: (role) => (
+                <>
+                    {role.can.update && (
+                        <EditMenuItem href={edit(Number(role.id))} />
+                    )}
+                    {role.can.delete && (
+                        <DeleteMenuItem onSelect={() => onDelete(role)} />
+                    )}
+                </>
             ),
-            cell: ({ row }) => (
-                <span className="text-muted-foreground">
-                    {format.date(row.original.created_at)}
-                </span>
-            ),
-        },
-        {
-            id: 'actions',
-            enableSorting: false,
-            header: () => <span className="sr-only">{t('Actions')}</span>,
-            cell: ({ row }) => {
-                const role = row.original;
-
-                if (!role.can.update && !role.can.delete) {
-                    return null;
-                }
-
-                return (
-                    <div className="flex justify-end">
-                        <DataTableRowActions row={row}>
-                            {() => (
-                                <>
-                                    {role.can.update && (
-                                        <DropdownMenuItem asChild>
-                                            <Link href={edit(Number(role.id))}>
-                                                {t('Edit')}
-                                            </Link>
-                                        </DropdownMenuItem>
-                                    )}
-                                    {role.can.delete && (
-                                        <DropdownMenuItem
-                                            variant="destructive"
-                                            onSelect={() => onDelete(role)}
-                                        >
-                                            {t('Delete')}
-                                        </DropdownMenuItem>
-                                    )}
-                                </>
-                            )}
-                        </DataTableRowActions>
-                    </div>
-                );
-            },
-        },
+        }),
     ];
 }

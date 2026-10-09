@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Settings\Actions;
 
+use App\Modules\AuditLog;
 use App\Settings\AnnouncementSettings;
 
 final readonly class RemoveAnnouncement
@@ -18,6 +19,10 @@ final readonly class RemoveAnnouncement
         $settings->ends_at = null;
         $settings->save();
 
-        activity('settings')->event('updated')->log('announcement-removed');
+        AuditLog::record(
+            log: 'settings',
+            event: 'updated',
+            description: 'announcement-removed',
+        );
     }
 }

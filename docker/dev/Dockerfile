@@ -9,7 +9,8 @@ RUN apt-get update \
     && echo "memory_limit=1G" > /usr/local/etc/php/conf.d/memory-limit.ini
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-COPY --from=oven/bun:1 /usr/local/bin/bun /usr/local/bin/bun
+# Keep in step with "packageManager" in package.json.
+COPY --from=oven/bun:1.4.2 /usr/local/bin/bun /usr/local/bin/bun
 
 RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
     && apt-get install -y --no-install-recommends nodejs \

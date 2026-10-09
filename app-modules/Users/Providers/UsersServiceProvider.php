@@ -53,12 +53,12 @@ final class UsersServiceProvider extends ModuleServiceProvider
 
     protected function permissions(PermissionRegistry $permissions): void
     {
-        $permissions->declare('users.view', roles: ['admin']);
-        $permissions->declare('users.create', roles: ['admin']);
-        $permissions->declare('users.update', roles: ['admin']);
-        $permissions->declare('users.delete', roles: ['admin']);
-        $permissions->declare('users.export', roles: ['admin']);
-        $permissions->declare('users.impersonate', roles: ['admin']);
+        $permissions->declare('users.view', roles: [User::PANEL_ROLE]);
+        $permissions->declare('users.create', roles: [User::PANEL_ROLE]);
+        $permissions->declare('users.update', roles: [User::PANEL_ROLE]);
+        $permissions->declare('users.delete', roles: [User::PANEL_ROLE]);
+        $permissions->declare('users.export', roles: [User::PANEL_ROLE]);
+        $permissions->declare('users.impersonate', roles: [User::PANEL_ROLE]);
     }
 
     protected function widgets(WidgetRegistry $widgets): void

@@ -6,6 +6,7 @@ namespace Modules\Users\Infrastructure\Models;
 
 use App\Domain\Concerns\InteractsWithDomainEvents;
 use App\Domain\Contracts\RecordsDomainEvents;
+use App\Domain\ValueObjects\Email;
 use App\Models\User;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
@@ -19,7 +20,6 @@ use Modules\Users\Domain\Events\InvitationAccepted;
 use Modules\Users\Domain\Events\InvitationSent;
 use Modules\Users\Domain\Exceptions\InvitationAlreadyAccepted;
 use Modules\Users\Domain\Exceptions\InvitationNotPending;
-use Modules\Users\Domain\ValueObjects\Email;
 
 /**
  * An invitation to create an account with the given roles. The link in the

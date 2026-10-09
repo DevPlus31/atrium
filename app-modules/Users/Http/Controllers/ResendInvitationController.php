@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Modules\Users\Http\Controllers;
 
 use App\Models\User;
+use App\Modules\Toast;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\Attributes\Controllers\Authorize;
-use Inertia\Inertia;
 use Modules\Users\Actions\ResendInvitation;
 use Modules\Users\Infrastructure\Models\Invitation;
 
@@ -18,7 +18,7 @@ final readonly class ResendInvitationController
     {
         $action->handle($invitation);
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Invitation sent again to :email.', ['email' => $invitation->email])]);
+        Toast::success(__('Invitation sent again to :email.', ['email' => $invitation->email]));
 
         return to_route('admin.users.invitations.index');
     }

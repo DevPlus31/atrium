@@ -1,16 +1,13 @@
 import { router } from '@inertiajs/react';
-import { useState } from 'react';
-import type { ConfirmDialogProps } from '@/components/confirm-dialog';
+import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
+import type { UseConfirmDialogReturn } from '@/hooks/use-confirm-dialog';
 import type { RowSelection } from '@/hooks/use-row-selection';
 
 export type UseBulkDeleteReturn = {
     /** Open the confirmation for the selected rows. */
     request: () => void;
     /** Spread onto ConfirmDialog. */
-    dialogProps: Pick<
-        ConfirmDialogProps,
-        'open' | 'onOpenChange' | 'processing' | 'onConfirm'
-    >;
+    dialogProps: UseConfirmDialogReturn<string[]>['dialogProps'];
 };
 
 /**
@@ -21,37 +18,16 @@ export function useBulkDelete<TData>(
     url: string,
     selection: RowSelection<TData>,
 ): UseBulkDeleteReturn {
-    const [open, setOpen] = useState(false);
-    const [processing, setProcessing] = useState(false);
-
-    const confirm = () => {
-        if (processing) {
-            return;
-        }
-
-        setProcessing(true);
+    const dialog = useConfirmDialog<string[]>((ids, options) =>
         router.delete(url, {
-            data: { ids: selection.selectedIds },
-            preserveScroll: true,
+            data: { ids },
             onSuccess: () => selection.clear(),
-            onFinish: () => {
-                setProcessing(false);
-                setOpen(false);
-            },
-        });
-    };
+            ...options,
+        }),
+    );
 
     return {
-        request: () => setOpen(true),
-        dialogProps: {
-            open,
-            onOpenChange: (next: boolean) => {
-                if (!processing) {
-                    setOpen(next);
-                }
-            },
-            processing,
-            onConfirm: confirm,
-        },
+        request: () => dialog.request(selection.selectedIds),
+        dialogProps: dialog.dialogProps,
     };
 }

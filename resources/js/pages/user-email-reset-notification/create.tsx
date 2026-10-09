@@ -1,13 +1,10 @@
 import { Form, Head } from '@inertiajs/react';
 import { useLaravelReactI18n } from 'laravel-react-i18n';
-import { LoaderCircle } from 'lucide-react';
 import { AuthStatus } from '@/components/auth/auth-status';
-// Components
-import InputError from '@/components/input-error';
+import { AuthSubmit } from '@/components/auth/auth-submit';
+import { FormField } from '@/components/form-field';
 import TextLink from '@/components/text-link';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/auth-layout';
 import { login } from '@/routes';
 import { email } from '@/routes/password';
@@ -28,10 +25,11 @@ export default function ForgotPassword({ status }: { status?: string }) {
                 <Form {...email.form()}>
                     {({ processing, errors }) => (
                         <>
-                            <div className="grid gap-2">
-                                <Label htmlFor="email">
-                                    {t('Email address')}
-                                </Label>
+                            <FormField
+                                id="email"
+                                label={t('Email address')}
+                                error={errors.email}
+                            >
                                 <Input
                                     id="email"
                                     type="email"
@@ -40,21 +38,15 @@ export default function ForgotPassword({ status }: { status?: string }) {
                                     autoFocus
                                     placeholder={t('email@example.com')}
                                 />
-
-                                <InputError message={errors.email} />
-                            </div>
+                            </FormField>
 
                             <div className="my-6 flex items-center justify-start">
-                                <Button
-                                    className="w-full"
-                                    disabled={processing}
-                                    data-test="email-password-reset-link-button"
+                                <AuthSubmit
+                                    processing={processing}
+                                    test="email-password-reset-link-button"
                                 >
-                                    {processing && (
-                                        <LoaderCircle className="h-4 w-4 animate-spin" />
-                                    )}
                                     {t('Email password reset link')}
-                                </Button>
+                                </AuthSubmit>
                             </div>
                         </>
                     )}

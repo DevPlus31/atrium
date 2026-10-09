@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Settings\Actions;
 
+use App\Modules\AuditLog;
 use App\Settings\GeneralSettings;
 
 final readonly class UpdateGeneralSettings
@@ -19,12 +20,14 @@ final readonly class UpdateGeneralSettings
         $settings->registration_open = $registrationOpen;
         $settings->save();
 
-        activity('settings')
-            ->event('updated')
-            ->withProperties([
+        AuditLog::record(
+            log: 'settings',
+            event: 'updated',
+            properties: [
                 'old' => $old,
                 'attributes' => ['support_email' => $supportEmail, 'registration_open' => $registrationOpen],
-            ])
-            ->log('general-updated');
+            ],
+            description: 'general-updated',
+        );
     }
 }

@@ -2,9 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Users\Domain\Exceptions;
-
-use App\Domain\Exceptions\DomainException;
+namespace App\Domain\Exceptions;
 
 final class InvalidEmailException extends DomainException
 {

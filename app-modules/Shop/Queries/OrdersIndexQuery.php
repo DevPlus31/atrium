@@ -34,13 +34,7 @@ final readonly class OrdersIndexQuery extends IndexQuery
      */
     private function search(Builder $query, mixed $value): void
     {
-        $search = implode(',', $this->stringValues($value));
-
-        $query->where(function (Builder $query) use ($search): void {
-            $query
-                ->whereLike('number', '%'.$search.'%')
-                ->orWhereLike('customer_email', '%'.$search.'%');
-        });
+        $this->whereLikeAny($query, ['number', 'customer_email'], $value);
     }
 
     /**
@@ -48,6 +42,6 @@ final readonly class OrdersIndexQuery extends IndexQuery
      */
     private function status(Builder $query, mixed $value): void
     {
-        $query->whereIn('status', $this->stringValues(explode(',', implode(',', $this->stringValues($value)))));
+        $query->whereIn('status', $this->stringValues($value));
     }
 }

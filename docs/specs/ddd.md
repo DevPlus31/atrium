@@ -12,7 +12,7 @@ Use it for **anything with business rules**: invariants ("a system role keeps it
 Two shapes, depending on who owns the model:
 
 - **Our model → full aggregate.** Behaviour lives on the model (`Order::place()`, `->transitionTo()`, `Invitation::issue()`, `->accept()`, `->renew()`): it checks its invariants, throws a module `DomainException`, and records domain events. Actions load or create it, call the behaviour, save through the repository inside `DB::transaction`, then `flushDomainEvents()`. Side effects (emails, notifications) are listeners on those events. Examples: **Shop** (orders), **Catalog** (products), **Users** (invitations).
-- **A vendor or shell model (Spatie `Role`, `App\Models\User`) → lightweight.** The rules go into a value object and the actions: `RoleName::isSystem()` decides what is protected, `UpdateRole`/`DeleteRole` throw `SystemRoleProtected`, and a repository owns the writes. Policies, FormRequests and DTOs ask the same value object, so the rule exists once. Examples: **Roles**, **Users** (`Email`, `UserRepository`).
+- **A vendor or shell model (Spatie `Role`, `App\Models\User`) → lightweight.** The rules go into a value object and the actions: `RoleName::isSystem()` decides what is protected, `UpdateRole`/`DeleteRole` throw `SystemRoleProtected`, and a repository owns the writes. Policies, FormRequests and DTOs ask the same value object, so the rule exists once. Examples: **Roles**, **Users** (the kernel's `Email`, `UserRepository`).
 
 Rules that depend on *who acts* (you may only grant roles you hold; you cannot remove your own admin role; a token carries only your permissions) are authorization, not domain: they stay in policies and FormRequests.
 
@@ -24,10 +24,10 @@ A module (`app-modules/<Name>/`) is organised into four layers. Existing folders
 |---|---|---|
 | **Domain** | `Domain/` | `ValueObjects/`, `Events/`, `Exceptions/`, `Repositories/` (interfaces). Framework-light, no HTTP/Inertia/DTO deps. |
 | **Infrastructure** | `Infrastructure/` | `Models/` (Eloquent aggregates), `Repositories/` (`Eloquent*` implementations). |
-| **Application** | `Actions/`, `Queries/`, `Data/` | Actions = command use-cases (own `DB::transaction`, activity log, event flush). Queries = read use-cases (spatie/query-builder). Data = Inertia DTOs. |
+| **Application** | `Actions/`, `Queries/`, `Data/` | Actions = command use-cases (own `DB::transaction`, `AuditLog::record()`, event flush). Queries = read use-cases (spatie/query-builder). Data = Inertia DTOs. |
 | **Presentation** | `Http/`, `Policies/`, `routes/`, `resources/js/` | Controllers (7 CRUD verbs; non-CRUD ⇒ invokable), FormRequests, Policies, React pages. |
 
-Shared kernel lives in `app/Domain/`: `Contracts/{DomainEvent,RecordsDomainEvents,ValueObject,Repository}`, `Concerns/InteractsWithDomainEvents`, `Exceptions/{DomainException,InvalidMoneyException,LastAdministrator}`, integration events in `Events/` (create it with the first one), and the cross-context value object `ValueObjects/Money` (used by Catalog and Shop). Put a value object in the kernel only when more than one bounded context needs it; modules still never import each other.
+Shared kernel lives in `app/Domain/`: `Contracts/{DomainEvent,RecordsDomainEvents,ValueObject,Repository}`, `Concerns/InteractsWithDomainEvents`, `Exceptions/{DomainException,InvalidEmailException,InvalidMoneyException,LastAdministrator}`, integration events in `Events/` (create it with the first one), and the cross-context value objects `ValueObjects/Money` (Catalog, Shop) and `ValueObjects/Email` (the shell's accounts, Users, Shop). Put a value object in the kernel only when more than one bounded context needs it; modules still never import each other.
 
 ## Dependency rules (enforced by `tests/Unit/Architecture/ModuleBoundariesTest.php`)
 
@@ -40,7 +40,7 @@ These tests iterate `app-modules/*`, so every present and future module is cover
 
 ## Value Objects
 
-Immutable, `final readonly`, validate in the constructor, throw a module `DomainException` on invalid input. Examples: `Modules\Catalog\Domain\ValueObjects\Sku`, `Modules\Shop\Domain\ValueObjects\OrderNumber`, `Modules\Users\Domain\ValueObjects\Email`, `Modules\Roles\Domain\ValueObjects\RoleName`, and `App\Domain\ValueObjects\Money` (shared kernel).
+Immutable, `final readonly`, validate in the constructor, throw a module `DomainException` on invalid input. Examples: `Modules\Catalog\Domain\ValueObjects\Sku`, `Modules\Shop\Domain\ValueObjects\OrderNumber`, `Modules\Roles\Domain\ValueObjects\RoleName`, and the shared kernel's `App\Domain\ValueObjects\Money` and `App\Domain\ValueObjects\Email`.
 
 **Scalar-DTO rule (critical):** Value Objects must **never** appear as properties on a `spatie/laravel-data` DTO. The TypeScript transformer only understands scalars; a VO property yields `any` or breaks `tsc`. DTOs expose scalars (`price_cents: int`, `currency: string`), and Actions construct VOs internally for validation/normalisation.
 
@@ -82,13 +82,13 @@ php artisan typescript:transform
 php artisan wayfinder:generate --with-form
 ```
 
-`make:module` appends the provider to `bootstrap/providers.php` (it refuses to run when the module folder already exists); `tests/Unit/ArchTest.php` reads the module providers from that file, so nothing else needs editing. Generated tests go to the module's `tests/` folder. `make:aggregate` adds the strings its pages and controller translate to the module's `lang/en.json` (skipping those the shell catalogue already has) and copies them, still in English, into every other locale's catalogue (it prints how many to translate); `tests/Unit/TranslationKeysTest.php` fails when any translated string is missing. `module:remove` undoes `make:module`. Generated code and its tests pass every gate once the formatters have run (`composer lint && bun run lint`, as the generator prints): line wrapping depends on the names you choose.
+`make:module` appends the provider to `bootstrap/providers.php` (it refuses to run when the module folder already exists); `tests/Unit/ArchTest.php` reads the module providers from that file, so nothing else needs editing. Generated tests go to the module's `tests/` folder. `make:aggregate` adds the strings its pages and controller translate to the module's `lang/en.json` (skipping those the shell catalogue already has) and copies them, still in English, into every other locale's catalogue (it prints how many to translate); `tests/Unit/TranslationKeysTest.php` fails when any translated string is missing. `module:remove` undoes `make:module`. Generated code and its tests pass every gate once the formatters have run (`composer lint`, as the generator prints): line wrapping depends on the names you choose.
 
 Domain-specific pieces the generator cannot infer — Value Objects, Domain Events, and invariants like `publish()` — are added by hand, following the Catalog module and this guide.
 
 ## Definition of done
 
-PHPStan max · Rector · Pint · Pest 100% line **and** type coverage · `tsc --noEmit` · OxLint/Oxfmt · `theme-lint` · arch tests (module contract + boundaries) · browser smoke test. Migrations are **up-only** (module migrations are measured for coverage; an un-exercised `down()` fails the gate).
+PHPStan max · Rector · Pint · Pest 100% line **and** type coverage · `tsc --noEmit` · OxLint/Oxfmt · `theme-lint` · arch tests (module contract + boundaries) · browser smoke test (`composer test` runs them; commands in the README's "Testing and quality gates"). Migrations are **up-only** (module migrations are measured for coverage; an un-exercised `down()` fails the gate).
 
 ## Downstream continuation
 

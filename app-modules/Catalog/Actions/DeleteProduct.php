@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Catalog\Actions;
 
+use App\Modules\AuditLog;
 use Illuminate\Support\Facades\DB;
 use Modules\Catalog\Domain\Repositories\ProductRepository;
 use Modules\Catalog\Infrastructure\Models\Product;
@@ -21,13 +22,14 @@ final readonly class DeleteProduct
             $product = $this->products->lockForUpdate($product);
             $this->products->delete($product);
 
-            activity('catalog')
-                ->performedOn($product)
-                ->event('deleted')
-                ->withProperties([
+            AuditLog::record(
+                log: 'catalog',
+                event: 'deleted',
+                subject: $product,
+                properties: [
                     'attributes' => ['name' => $product->name, 'sku' => $product->sku],
-                ])
-                ->log('deleted');
+                ],
+            );
         });
     }
 }

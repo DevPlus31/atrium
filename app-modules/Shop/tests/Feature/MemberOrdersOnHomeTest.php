@@ -9,8 +9,6 @@ use Laravel\Pennant\Feature;
 use Modules\Shop\Infrastructure\Models\Order;
 
 beforeEach(function (): void {
-    $this->withoutVite();
-
     $this->artisan('admin:sync-permissions')->assertSuccessful();
 });
 

@@ -4,11 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
-use App\Models\User;
-use App\Rules\ValidEmail;
+use App\Rules\AccountRules;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
-use Illuminate\Validation\Rules\Password;
 
 final class RegisterUserRequest extends FormRequest
 {
@@ -18,21 +15,9 @@ final class RegisterUserRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
-            'email' => [
-                'required',
-                'string',
-                'lowercase',
-                'max:255',
-                'email',
-                new ValidEmail,
-                Rule::unique(User::class),
-            ],
-            'password' => [
-                'required',
-                'confirmed',
-                Password::defaults(),
-            ],
+            'name' => AccountRules::name(),
+            'email' => AccountRules::email(),
+            'password' => AccountRules::password(),
         ];
     }
 }

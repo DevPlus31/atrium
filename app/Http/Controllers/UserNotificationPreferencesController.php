@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Actions\UpdateNotificationPreferences;
 use App\Http\Requests\UpdateNotificationPreferencesRequest;
 use App\Models\User;
+use App\Modules\Toast;
 use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -25,7 +26,7 @@ final readonly class UserNotificationPreferencesController
     {
         $action->handle($user, $request->notifyByEmail());
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Notification settings saved.')]);
+        Toast::success(__('Notification settings saved.'));
 
         return to_route('notification-preferences.edit');
     }

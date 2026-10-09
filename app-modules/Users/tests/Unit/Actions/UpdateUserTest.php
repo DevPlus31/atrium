@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
+use App\Domain\Exceptions\InvalidEmailException;
 use App\Models\User;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Support\Facades\Notification;
 use Modules\Users\Actions\UpdateUser;
-use Modules\Users\Domain\Exceptions\InvalidEmailException;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Permission\Exceptions\RoleDoesNotExist;
 use Spatie\Permission\Models\Role;

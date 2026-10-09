@@ -71,8 +71,8 @@ it('scaffolds an aggregate and wires the module provider', function (): void {
     expect(File::exists(base_path('app-modules/Zzdemo/Infrastructure/Models/Widget.php')))->toBeTrue()
         ->and(File::exists(base_path('app-modules/Zzdemo/Domain/Repositories/WidgetRepository.php')))->toBeTrue()
         ->and(File::exists(base_path('app-modules/Zzdemo/Http/Controllers/WidgetController.php')))->toBeTrue()
-        ->and(File::exists(base_path('app-modules/Zzdemo/resources/js/components/widgets-columns.tsx')))->toBeTrue()
-        ->and(File::exists(base_path('app-modules/Zzdemo/resources/js/components/widgets-form-fields.tsx')))->toBeTrue()
+        ->and(File::exists(base_path('app-modules/Zzdemo/resources/js/components/widget-columns.tsx')))->toBeTrue()
+        ->and(File::exists(base_path('app-modules/Zzdemo/resources/js/components/widget-form-fields.tsx')))->toBeTrue()
         ->and(File::exists(base_path('app-modules/Zzdemo/tests/Feature/WidgetControllerTest.php')))->toBeTrue()
         ->and(File::exists(base_path('app-modules/Zzdemo/tests/Unit/Actions/WidgetActionsTest.php')))->toBeTrue()
         ->and(File::exists(base_path('app-modules/Zzdemo/tests/Unit/Policies/WidgetPolicyTest.php')))->toBeTrue()
@@ -85,6 +85,7 @@ it('scaffolds an aggregate and wires the module provider', function (): void {
     expect($module)->toHaveKey('Create widget')
         ->toHaveKey('Widgets')
         ->toHaveKey('Widget created.')
+        ->toHaveKey('Zzdemo') // the menu group, translated when the menu renders
         ->not->toHaveKey('Cancel')
         ->and(File::get(base_path('lang/en.json')))->toBe(File::get($this->realBasePath.'/lang/en.json'));
 

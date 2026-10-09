@@ -6,6 +6,8 @@ namespace Modules\Shop\Infrastructure\Models;
 
 use App\Domain\Concerns\InteractsWithDomainEvents;
 use App\Domain\Contracts\RecordsDomainEvents;
+use App\Domain\Exceptions\InvalidEmailException;
+use App\Domain\ValueObjects\Email;
 use App\Domain\ValueObjects\Money;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -155,12 +157,10 @@ final class Order extends Model implements RecordsDomainEvents
      */
     private static function normalizeEmail(string $email): string
     {
-        $normalized = mb_strtolower(mb_trim($email));
-
-        if (filter_var($normalized, FILTER_VALIDATE_EMAIL) === false) {
+        try {
+            return (string) new Email($email);
+        } catch (InvalidEmailException) {
             throw InvalidCustomerEmail::forValue($email);
         }
-
-        return $normalized;
     }
 }

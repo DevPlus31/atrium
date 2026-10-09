@@ -3,10 +3,11 @@ import { useLayoutEffect } from 'react';
 import type { BreadcrumbItem } from '@/types';
 
 /**
- * Hand the page's breadcrumbs to the persistent AdminLayout. Keyed on the
- * breadcrumb content, so a fresh array on every render never loops.
+ * Hand the page's breadcrumbs to the persistent AdminLayout. Pass the trail
+ * inline; it is keyed on its content, so a fresh array on every render never
+ * loops.
  */
-export function useBreadcrumbs(breadcrumbs: BreadcrumbItem[]): void {
+export function useBreadcrumbs(...breadcrumbs: BreadcrumbItem[]): void {
     const key = JSON.stringify(breadcrumbs);
 
     useLayoutEffect(() => {

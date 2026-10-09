@@ -142,8 +142,6 @@ it('rejects unknown timezones', function (): void {
 });
 
 it('shares the chosen timezone with every page', function (): void {
-    $this->withoutVite();
-
     $this->actingAs(User::factory()->create(['timezone' => 'Asia/Tokyo']))
         ->get(route('user-profile.edit'))
         ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->where('timezone', 'Asia/Tokyo'));

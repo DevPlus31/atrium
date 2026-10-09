@@ -3,14 +3,8 @@ import { useLaravelReactI18n } from 'laravel-react-i18n';
 import { Eye, EyeOff, LockKeyhole, RefreshCw } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import AlertError from '@/components/alert-error';
+import { SectionCard } from '@/components/section-card';
 import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { regenerateRecoveryCodes } from '@/routes/two-factor';
 
@@ -57,126 +51,119 @@ export default function TwoFactorRecoveryCodes({
     const RecoveryCodeIconComponent = codesAreVisible ? EyeOff : Eye;
 
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle className="flex gap-3">
+        <SectionCard
+            title={
+                <span className="flex gap-3">
                     <LockKeyhole className="size-4" aria-hidden="true" />
                     {t('2FA recovery codes')}
-                </CardTitle>
-                <CardDescription>
-                    {t(
-                        'Recovery codes let you regain access if you lose your 2FA device. Store them in a secure password manager.',
-                    )}
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <div className="flex flex-col gap-3 select-none sm:flex-row sm:items-center sm:justify-between">
-                    <Button
-                        onClick={toggleCodesVisibility}
-                        className="w-fit"
-                        aria-expanded={codesAreVisible}
-                        aria-controls="recovery-codes-section"
-                    >
-                        <RecoveryCodeIconComponent
-                            className="size-4"
-                            aria-hidden="true"
-                        />
-                        {codesAreVisible
-                            ? t('Hide recovery codes')
-                            : t('View recovery codes')}
-                    </Button>
-
-                    {canRegenerateCodes && (
-                        <Form
-                            {...regenerateRecoveryCodes.form()}
-                            options={{ preserveScroll: true }}
-                            onSuccess={fetchRecoveryCodes}
-                        >
-                            {({ processing }) => (
-                                <Button
-                                    variant="secondary"
-                                    type="submit"
-                                    disabled={processing}
-                                    aria-describedby="regenerate-warning"
-                                >
-                                    <RefreshCw /> {t('Regenerate codes')}
-                                </Button>
-                            )}
-                        </Form>
-                    )}
-                </div>
-                <div
-                    id="recovery-codes-section"
-                    className={cn(
-                        'relative overflow-hidden transition-all duration-300',
-                        codesAreVisible
-                            ? 'h-auto opacity-100'
-                            : 'h-0 opacity-0',
-                    )}
-                    aria-hidden={!codesAreVisible}
-                    // Collapsed content must not take keyboard focus either.
-                    inert={!codesAreVisible}
+                </span>
+            }
+            description={t(
+                'Recovery codes let you regain access if you lose your 2FA device. Store them in a secure password manager.',
+            )}
+        >
+            <div className="flex flex-col gap-3 select-none sm:flex-row sm:items-center sm:justify-between">
+                <Button
+                    onClick={toggleCodesVisibility}
+                    className="w-fit"
+                    aria-expanded={codesAreVisible}
+                    aria-controls="recovery-codes-section"
                 >
-                    <div className="mt-3 space-y-3">
-                        {errors?.length ? (
-                            <AlertError errors={errors} />
-                        ) : (
-                            <>
-                                <div
-                                    ref={codesSectionRef}
-                                    className="grid gap-1 rounded-lg bg-muted p-4 font-mono text-sm"
-                                    role="list"
-                                    aria-label={t('Recovery codes')}
-                                >
-                                    {recoveryCodesList.length ? (
-                                        recoveryCodesList.map((code) => (
-                                            <div
-                                                key={code}
-                                                role="listitem"
-                                                className="select-text"
-                                            >
-                                                {code}
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <div
-                                            className="space-y-2"
-                                            aria-label={t(
-                                                'Loading recovery codes',
-                                            )}
-                                        >
-                                            {Array.from(
-                                                { length: 8 },
-                                                (_, index) => (
-                                                    <div
-                                                        key={index}
-                                                        className="h-4 animate-pulse rounded bg-muted-foreground/20"
-                                                        aria-hidden="true"
-                                                    />
-                                                ),
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
+                    <RecoveryCodeIconComponent
+                        className="size-4"
+                        aria-hidden="true"
+                    />
+                    {codesAreVisible
+                        ? t('Hide recovery codes')
+                        : t('View recovery codes')}
+                </Button>
 
-                                <div className="text-xs text-muted-foreground select-none">
-                                    <p id="regenerate-warning">
-                                        {t(
-                                            'Each recovery code can be used once to access your account and will be removed after use.',
-                                        )}{' '}
-                                        {t(
-                                            'If you need more, click :action above.',
-                                            {
-                                                action: t('Regenerate codes'),
-                                            },
-                                        )}
-                                    </p>
-                                </div>
-                            </>
+                {canRegenerateCodes && (
+                    <Form
+                        {...regenerateRecoveryCodes.form()}
+                        options={{ preserveScroll: true }}
+                        onSuccess={fetchRecoveryCodes}
+                    >
+                        {({ processing }) => (
+                            <Button
+                                variant="secondary"
+                                type="submit"
+                                disabled={processing}
+                                aria-describedby="regenerate-warning"
+                            >
+                                <RefreshCw /> {t('Regenerate codes')}
+                            </Button>
                         )}
-                    </div>
+                    </Form>
+                )}
+            </div>
+            <div
+                id="recovery-codes-section"
+                className={cn(
+                    'relative overflow-hidden transition-all duration-300',
+                    codesAreVisible ? 'h-auto opacity-100' : 'h-0 opacity-0',
+                )}
+                aria-hidden={!codesAreVisible}
+                // Collapsed content must not take keyboard focus either.
+                inert={!codesAreVisible}
+            >
+                <div className="mt-3 space-y-3">
+                    {errors?.length ? (
+                        <AlertError errors={errors} />
+                    ) : (
+                        <>
+                            <div
+                                ref={codesSectionRef}
+                                className="grid gap-1 rounded-lg bg-muted p-4 font-mono text-sm"
+                                role="list"
+                                aria-label={t('Recovery codes')}
+                            >
+                                {recoveryCodesList.length ? (
+                                    recoveryCodesList.map((code) => (
+                                        <div
+                                            key={code}
+                                            role="listitem"
+                                            className="select-text"
+                                        >
+                                            {code}
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div
+                                        className="space-y-2"
+                                        aria-label={t('Loading recovery codes')}
+                                    >
+                                        {Array.from(
+                                            { length: 8 },
+                                            (_, index) => (
+                                                <div
+                                                    key={index}
+                                                    className="h-4 animate-pulse rounded bg-muted-foreground/20"
+                                                    aria-hidden="true"
+                                                />
+                                            ),
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="text-xs text-muted-foreground select-none">
+                                <p id="regenerate-warning">
+                                    {t(
+                                        'Each recovery code can be used once to access your account and will be removed after use.',
+                                    )}{' '}
+                                    {t(
+                                        'If you need more, click :action above.',
+                                        {
+                                            action: t('Regenerate codes'),
+                                        },
+                                    )}
+                                </p>
+                            </div>
+                        </>
+                    )}
                 </div>
-            </CardContent>
-        </Card>
+            </div>
+        </SectionCard>
     );
 }

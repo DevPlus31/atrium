@@ -16,7 +16,7 @@ final readonly class Sku implements Stringable, ValueObject
 
     public function __construct(string $value)
     {
-        $normalized = mb_strtoupper(mb_trim($value));
+        $normalized = self::normalize($value);
 
         if (in_array(preg_match(self::PATTERN, $normalized), [0, false], true)) {
             throw InvalidSkuException::forValue($value);
@@ -28,6 +28,15 @@ final readonly class Sku implements Stringable, ValueObject
     public function __toString(): string
     {
         return $this->value;
+    }
+
+    /**
+     * The stored form of a SKU: trimmed and uppercased. Request classes use
+     * it to clean input before validating it.
+     */
+    public static function normalize(string $value): string
+    {
+        return mb_strtoupper(mb_trim($value));
     }
 
     public function equals(ValueObject $other): bool

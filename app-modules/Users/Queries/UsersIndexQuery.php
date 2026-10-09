@@ -50,13 +50,7 @@ final readonly class UsersIndexQuery extends IndexQuery
      */
     private function search(Builder $query, mixed $value): void
     {
-        $search = implode(',', $this->stringValues($value));
-
-        $query->where(function (Builder $query) use ($search): void {
-            $query
-                ->whereLike('name', '%'.$search.'%')
-                ->orWhereLike('email', '%'.$search.'%');
-        });
+        $this->whereLikeAny($query, ['name', 'email'], $value);
     }
 
     /**

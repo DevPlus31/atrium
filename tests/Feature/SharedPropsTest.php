@@ -7,8 +7,6 @@ use Inertia\Testing\AssertableInertia;
 use Tests\Fixtures\Notifications\GreetingNotification;
 
 beforeEach(function (): void {
-    $this->withoutVite();
-
     $this->artisan('admin:sync-permissions')->assertSuccessful();
 });
 

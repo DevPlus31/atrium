@@ -1,10 +1,8 @@
 import { Form, Head } from '@inertiajs/react';
 import { useLaravelReactI18n } from 'laravel-react-i18n';
-import InputError from '@/components/input-error';
+import { AuthSubmit } from '@/components/auth/auth-submit';
+import { FormField } from '@/components/form-field';
 import PasswordInput from '@/components/password-input';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Spinner } from '@/components/ui/spinner';
 import AuthLayout from '@/layouts/auth-layout';
 import { store } from '@/routes/password/confirm';
 
@@ -23,8 +21,11 @@ export default function Create() {
             <Form {...store.form()} resetOnSuccess={['password']}>
                 {({ processing, errors }) => (
                     <div className="space-y-6">
-                        <div className="grid gap-2">
-                            <Label htmlFor="password">{t('Password')}</Label>
+                        <FormField
+                            id="password"
+                            label={t('Password')}
+                            error={errors.password}
+                        >
                             <PasswordInput
                                 id="password"
                                 name="password"
@@ -32,19 +33,15 @@ export default function Create() {
                                 autoComplete="current-password"
                                 autoFocus
                             />
-
-                            <InputError message={errors.password} />
-                        </div>
+                        </FormField>
 
                         <div className="flex items-center">
-                            <Button
-                                className="w-full"
-                                disabled={processing}
-                                data-test="confirm-password-button"
+                            <AuthSubmit
+                                processing={processing}
+                                test="confirm-password-button"
                             >
-                                {processing && <Spinner />}
                                 {t('Confirm password')}
-                            </Button>
+                            </AuthSubmit>
                         </div>
                     </div>
                 )}

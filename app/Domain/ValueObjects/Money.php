@@ -19,13 +19,33 @@ final readonly class Money implements ValueObject
             throw InvalidMoneyException::negativeAmount($amount);
         }
 
-        $normalized = mb_strtoupper(mb_trim($currency));
+        $normalized = self::normalizeCurrency($currency);
 
         if (in_array(preg_match(self::CURRENCY_PATTERN, $normalized), [0, false], true)) {
             throw InvalidMoneyException::invalidCurrency($currency);
         }
 
         $this->currency = $normalized;
+    }
+
+    /**
+     * The stored form of a currency code: trimmed and uppercased. Request
+     * classes use it to clean input before validating it.
+     */
+    public static function normalizeCurrency(string $currency): string
+    {
+        return mb_strtoupper(mb_trim($currency));
+    }
+
+    /**
+     * The validation rules of a currency-code field (after normalisation),
+     * besides required/nullable: every form checks the same code shape.
+     *
+     * @return list<string>
+     */
+    public static function currencyRules(): array
+    {
+        return ['string', 'regex:'.self::CURRENCY_PATTERN];
     }
 
     public function equals(ValueObject $other): bool

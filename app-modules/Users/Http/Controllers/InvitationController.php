@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Modules\Users\Http\Controllers;
 
 use App\Models\User;
+use App\Modules\RoleOptions;
+use App\Modules\Toast;
 use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\Attributes\Controllers\Authorize;
@@ -15,7 +17,6 @@ use Modules\Users\Actions\RevokeInvitation;
 use Modules\Users\Data\InvitationData;
 use Modules\Users\Http\Requests\StoreInvitationRequest;
 use Modules\Users\Infrastructure\Models\Invitation;
-use Spatie\Permission\Models\Role;
 
 #[Authorize('create', User::class)]
 final readonly class InvitationController
@@ -30,7 +31,7 @@ final readonly class InvitationController
                 ->latest()
                 ->paginate(self::PER_PAGE)
                 ->through(InvitationData::fromModel(...))),
-            'roles' => Role::query()->orderBy('name')->pluck('name')->values()->all(),
+            'roles' => RoleOptions::roleNames(),
             'lifetimeDays' => Invitation::LIFETIME_DAYS,
         ]);
     }
@@ -39,7 +40,7 @@ final readonly class InvitationController
     {
         $action->handle($user, $request->email(), $request->roles());
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Invitation sent.')]);
+        Toast::success(__('Invitation sent.'));
 
         return to_route('admin.users.invitations.index');
     }
@@ -48,7 +49,7 @@ final readonly class InvitationController
     {
         $action->handle($invitation);
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Invitation revoked.')]);
+        Toast::success(__('Invitation revoked.'));
 
         return to_route('admin.users.invitations.index');
     }

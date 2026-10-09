@@ -71,8 +71,8 @@ final class SystemServiceProvider extends ModuleServiceProvider
 
     protected function permissions(PermissionRegistry $permissions): void
     {
-        $permissions->declare('system.pulse.view', roles: ['admin']);
-        $permissions->declare('system.horizon.view', roles: ['admin']);
-        $permissions->declare('system.logs.view', roles: ['admin']);
+        $permissions->declare('system.pulse.view', roles: [User::PANEL_ROLE]);
+        $permissions->declare('system.horizon.view', roles: [User::PANEL_ROLE]);
+        $permissions->declare('system.logs.view', roles: [User::PANEL_ROLE]);
     }
 }

@@ -13,7 +13,7 @@ it('sends people back with a toast when a business rule breaks', function (): vo
     $this->from('/settings/profile')
         ->post('/_test/broken-rule')
         ->assertRedirect('/settings/profile')
-        ->assertInertiaFlash('toast', ['type' => 'error', 'message' => 'That can’t be done any more: something changed in the meantime. Check and try again.']);
+        ->assertToast('That can’t be done any more: something changed in the meantime. Check and try again.', 'error');
 });
 
 it('answers API clients with a conflict and the rule', function (): void {

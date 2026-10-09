@@ -8,13 +8,7 @@ import {
     XAxis,
 } from 'recharts';
 import type { TooltipContentProps } from 'recharts';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
+import { WidgetCard } from '@/components/widget-card';
 import { useFormatters } from '@/hooks/use-formatters';
 
 type UsersTotalWidgetProps = {
@@ -50,60 +44,56 @@ export default function UsersTotalWidget({ data }: UsersTotalWidgetProps) {
     const format = useFormatters();
 
     return (
-        <Card>
-            <CardHeader>
-                <CardDescription>{t('Total users')}</CardDescription>
-                <CardTitle className="text-3xl tabular-nums">
-                    {format.number(data.total)}
-                </CardTitle>
-            </CardHeader>
-            <CardContent>
-                <div className="h-32 w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart
-                            data={data.series}
-                            margin={{ top: 4, right: 4, bottom: 0, left: 4 }}
-                        >
-                            <CartesianGrid
-                                stroke="var(--border)"
-                                strokeDasharray="3 3"
-                                vertical={false}
-                            />
-                            <XAxis
-                                dataKey="date"
-                                tickFormatter={(date: string) =>
-                                    format.shortDate(`${date}T00:00:00`)
-                                }
-                                tick={{
-                                    fill: 'var(--muted-foreground)',
-                                    fontSize: 11,
-                                }}
-                                tickLine={false}
-                                axisLine={{ stroke: 'var(--border)' }}
-                                interval="preserveStartEnd"
-                                minTickGap={32}
-                            />
-                            <Tooltip
-                                content={SeriesTooltip}
-                                cursor={{ stroke: 'var(--border)' }}
-                                isAnimationActive={false}
-                            />
-                            <Area
-                                type="monotone"
-                                dataKey="count"
-                                stroke="var(--chart-1)"
-                                strokeWidth={2}
-                                fill="var(--chart-1)"
-                                fillOpacity={0.15}
-                                isAnimationActive={false}
-                            />
-                        </AreaChart>
-                    </ResponsiveContainer>
-                </div>
-                <p className="mt-2 text-xs text-muted-foreground">
-                    {t('New users over the last 14 days')}
-                </p>
-            </CardContent>
-        </Card>
+        <WidgetCard
+            kicker={t('Total users')}
+            title={format.number(data.total)}
+            stat
+        >
+            <div className="h-32 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart
+                        data={data.series}
+                        margin={{ top: 4, right: 4, bottom: 0, left: 4 }}
+                    >
+                        <CartesianGrid
+                            stroke="var(--border)"
+                            strokeDasharray="3 3"
+                            vertical={false}
+                        />
+                        <XAxis
+                            dataKey="date"
+                            tickFormatter={(date: string) =>
+                                format.shortDate(`${date}T00:00:00`)
+                            }
+                            tick={{
+                                fill: 'var(--muted-foreground)',
+                                fontSize: 11,
+                            }}
+                            tickLine={false}
+                            axisLine={{ stroke: 'var(--border)' }}
+                            interval="preserveStartEnd"
+                            minTickGap={32}
+                        />
+                        <Tooltip
+                            content={SeriesTooltip}
+                            cursor={{ stroke: 'var(--border)' }}
+                            isAnimationActive={false}
+                        />
+                        <Area
+                            type="monotone"
+                            dataKey="count"
+                            stroke="var(--chart-1)"
+                            strokeWidth={2}
+                            fill="var(--chart-1)"
+                            fillOpacity={0.15}
+                            isAnimationActive={false}
+                        />
+                    </AreaChart>
+                </ResponsiveContainer>
+            </div>
+            <p className="mt-2 text-xs text-muted-foreground">
+                {t('New users over the last 14 days')}
+            </p>
+        </WidgetCard>
     );
 }

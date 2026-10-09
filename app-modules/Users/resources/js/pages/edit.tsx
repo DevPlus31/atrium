@@ -1,21 +1,9 @@
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 import { useLaravelReactI18n } from 'laravel-react-i18n';
-import type { FormEvent } from 'react';
-import InputError from '@/components/input-error';
-import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Spinner } from '@/components/ui/spinner';
+import { FormCard } from '@/components/form-card';
 import { useBreadcrumbs } from '@/hooks/use-breadcrumbs';
 import { edit, index, update } from '@/routes/admin/users';
-import type { BreadcrumbItem } from '@/types';
+import { UserAccountFields } from '../components/user-account-fields';
 import type { UserRow } from '../components/user-columns';
 import { UserRolesField } from '../components/user-roles-field';
 
@@ -27,11 +15,10 @@ type UsersEditProps = {
 export default function UsersEdit({ user, roles }: UsersEditProps) {
     const { t } = useLaravelReactI18n();
 
-    const breadcrumbs: BreadcrumbItem[] = [
+    useBreadcrumbs(
         { title: t('Users'), href: index() },
         { title: user.name, href: edit(user.id) },
-    ];
-    useBreadcrumbs(breadcrumbs);
+    );
 
     const form = useForm(update(user.id), {
         name: user.name,
@@ -39,79 +26,23 @@ export default function UsersEdit({ user, roles }: UsersEditProps) {
         roles: user.roles,
     });
 
-    const submit = (event: FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        form.submit({ preserveScroll: true });
-    };
-
     return (
         <>
             <Head title={t('Edit :name', { name: user.name })} />
-            <Card className="max-w-2xl">
-                <CardHeader>
-                    <CardTitle>{t('Edit user')}</CardTitle>
-                    <CardDescription>
-                        {t(
-                            "Update the user's details and roles. Changing the email address resets its verification.",
-                        )}
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <form onSubmit={submit} className="grid gap-6">
-                        <div className="grid gap-2">
-                            <Label htmlFor="name">{t('Name')}</Label>
-                            <Input
-                                id="name"
-                                type="text"
-                                autoComplete="off"
-                                value={form.data.name}
-                                onChange={(event) =>
-                                    form.setData('name', event.target.value)
-                                }
-                                onBlur={() => form.validate('name')}
-                                placeholder={t('Full name')}
-                            />
-                            <InputError message={form.errors.name} />
-                        </div>
+            <FormCard
+                title={t('Edit user')}
+                description={t(
+                    "Update the user's details and roles. Changing the email address resets its verification.",
+                )}
+                onSubmit={() => form.submit({ preserveScroll: true })}
+                processing={form.processing}
+                submitLabel={t('Save changes')}
+                cancelHref={index()}
+            >
+                <UserAccountFields form={form} />
 
-                        <div className="grid gap-2">
-                            <Label htmlFor="email">{t('Email address')}</Label>
-                            <Input
-                                id="email"
-                                type="email"
-                                autoComplete="off"
-                                value={form.data.email}
-                                onChange={(event) =>
-                                    form.setData('email', event.target.value)
-                                }
-                                onBlur={() => form.validate('email')}
-                                placeholder={t('email@example.com')}
-                            />
-                            <InputError message={form.errors.email} />
-                        </div>
-
-                        <UserRolesField
-                            roles={roles}
-                            selected={form.data.roles}
-                            onChange={(next) => {
-                                form.setData('roles', next);
-                                form.validate('roles');
-                            }}
-                            error={form.errors.roles}
-                        />
-
-                        <div className="flex items-center gap-2">
-                            <Button type="submit" disabled={form.processing}>
-                                {form.processing && <Spinner />}
-                                {t('Save changes')}
-                            </Button>
-                            <Button variant="ghost" asChild>
-                                <Link href={index()}>{t('Cancel')}</Link>
-                            </Button>
-                        </div>
-                    </form>
-                </CardContent>
-            </Card>
+                <UserRolesField form={form} roles={roles} />
+            </FormCard>
         </>
     );
 }

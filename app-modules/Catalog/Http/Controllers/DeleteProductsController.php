@@ -4,34 +4,30 @@ declare(strict_types=1);
 
 namespace Modules\Catalog\Http\Controllers;
 
+use App\Modules\Concerns\DeletesSelection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\Attributes\Controllers\Authorize;
-use Inertia\Inertia;
-use Modules\Catalog\Actions\DeleteProducts;
+use Modules\Catalog\Actions\DeleteProduct;
 use Modules\Catalog\Http\Requests\DeleteProductsRequest;
 use Modules\Catalog\Infrastructure\Models\Product;
 
 final readonly class DeleteProductsController
 {
+    use DeletesSelection;
+
     /**
      * Delete the products selected in the table; rows the user may not delete
      * are left alone and counted in the message.
      */
     #[Authorize('viewAny', Product::class)]
-    public function __invoke(DeleteProductsRequest $request, DeleteProducts $action): RedirectResponse
+    public function __invoke(DeleteProductsRequest $request, DeleteProduct $deleteProduct): RedirectResponse
     {
-        $products = $request->products();
-
-        abort_if($products->isEmpty(), 403);
-
-        $action->handle($products);
-
-        $skipped = $request->skipped($products->count());
-        $message = trans_choice(':count product deleted.|:count products deleted.', $products->count());
-
-        Inertia::flash('toast', ['type' => 'success', 'message' => $skipped === 0
-            ? $message
-            : $message.' '.trans_choice(':count could not be deleted.|:count could not be deleted.', $skipped)]);
+        $this->deleteSelection(
+            $request,
+            $request->products(),
+            $deleteProduct->handle(...),
+            static fn (int $count): string => trans_choice(':count product deleted.|:count products deleted.', $count),
+        );
 
         return to_route('admin.products.index');
     }

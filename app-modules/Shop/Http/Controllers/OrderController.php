@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Shop\Http\Controllers;
 
+use App\Modules\Toast;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\Attributes\Controllers\Authorize;
 use Illuminate\Support\Facades\Gate;
@@ -50,7 +51,7 @@ final readonly class OrderController
             currency: $request->currency(),
         );
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Order created.')]);
+        Toast::success(__('Order created.'));
 
         return to_route('admin.orders.index');
     }
@@ -73,7 +74,7 @@ final readonly class OrderController
             currency: $request->currency(),
         );
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Order updated.')]);
+        Toast::success(__('Order updated.'));
 
         return to_route('admin.orders.index');
     }
@@ -83,7 +84,7 @@ final readonly class OrderController
     {
         $action->handle($order);
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Order deleted.')]);
+        Toast::success(__('Order deleted.'));
 
         return to_route('admin.orders.index');
     }

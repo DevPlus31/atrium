@@ -1,8 +1,6 @@
 import { useLaravelReactI18n } from 'laravel-react-i18n';
-import InputError from '@/components/input-error';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { TextField } from '@/components/text-field';
+import type { FormFieldsProps } from '@/types';
 
 /**
  * The editable fields, taken from the generated DTO type. The form holds an
@@ -13,65 +11,29 @@ export type {{ aggregate }}FormData = Pick<
     'name'
 > & { description: string };
 
-type {{ aggregate }}Field = keyof {{ aggregate }}FormData;
-
-type {{ aggregate }}FormFieldsProps = {
-    data: {{ aggregate }}FormData;
-    errors: Partial<Record<{{ aggregate }}Field, string>>;
-    setData: <K extends {{ aggregate }}Field>(
-        field: K,
-        value: {{ aggregate }}FormData[K],
-    ) => void;
-    validate: (field: {{ aggregate }}Field) => void;
-    autoFocus?: boolean;
-};
-
 /** The {{ variable }} fields shared by the create and edit forms. */
 export function {{ aggregate }}FormFields({
-    data,
-    errors,
-    setData,
-    validate,
+    form,
     autoFocus = false,
-}: {{ aggregate }}FormFieldsProps) {
+}: FormFieldsProps<{{ aggregate }}FormData> & { autoFocus?: boolean }) {
     const { t } = useLaravelReactI18n();
 
     return (
         <>
-            <div className="grid gap-2">
-                <Label htmlFor="name">{t('Name')}</Label>
-                <Input
-                    id="name"
-                    type="text"
-                    autoFocus={autoFocus}
-                    autoComplete="off"
-                    value={data.name}
-                    onChange={(event) =>
-                        setData('name', event.target.value)
-                    }
-                    onBlur={() => validate('name')}
-                />
-                <InputError message={errors.name} />
-            </div>
+            <TextField
+                form={form}
+                name="name"
+                label={t('Name')}
+                autoFocus={autoFocus}
+                autoComplete="off"
+            />
 
-            <div className="grid gap-2">
-                <Label htmlFor="description">
-                    {t('Description')}
-                </Label>
-                <Textarea
-                    id="description"
-                    rows={4}
-                    value={data.description}
-                    onChange={(event) =>
-                        setData(
-                            'description',
-                            event.target.value,
-                        )
-                    }
-                    onBlur={() => validate('description')}
-                />
-                <InputError message={errors.description} />
-            </div>
+            <TextField
+                form={form}
+                name="description"
+                rows={4}
+                label={t('Description')}
+            />
         </>
     );
 }

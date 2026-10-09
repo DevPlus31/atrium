@@ -1,6 +1,7 @@
 import { useLaravelReactI18n } from 'laravel-react-i18n';
 import {
-    DataTableColumnHeader,
+    dateColumn,
+    EmptyValue,
     type DataTableColumn,
 } from '@/components/data-table';
 import { Badge } from '@/components/ui/badge';
@@ -13,10 +14,6 @@ import type { Formatters } from '@/lib/format';
 import type { Translator } from '@/types/ui';
 
 export type ActivityRow = Modules.Audit.Data.ActivityData;
-
-function EmptyValue() {
-    return <span className="text-muted-foreground">—</span>;
-}
 
 function ChangesCell({ changes }: { changes: Record<string, unknown> }) {
     const { tChoice } = useLaravelReactI18n();
@@ -47,19 +44,12 @@ export function buildActivityColumns(
     format: Formatters,
 ): DataTableColumn<ActivityRow>[] {
     return [
-        {
+        dateColumn<ActivityRow>({
             id: 'created_at',
-            accessorKey: 'created_at',
-            enableSorting: true,
-            header: ({ column }) => (
-                <DataTableColumnHeader column={column} title={t('Date')} />
-            ),
-            cell: ({ row }) => (
-                <span className="whitespace-nowrap text-muted-foreground">
-                    {format.dateTime(row.original.created_at)}
-                </span>
-            ),
-        },
+            title: t('Date'),
+            value: (activity) => activity.created_at,
+            format: format.dateTime,
+        }),
         {
             id: 'log_name',
             enableSorting: false,

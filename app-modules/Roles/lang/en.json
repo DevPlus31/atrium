@@ -14,6 +14,5 @@
     "System role names cannot be changed.": "System role names cannot be changed.",
     "System roles cannot be renamed.": "System roles cannot be renamed.",
     "this role": "this role",
-    "Update the role's name and permissions.": "Update the role's name and permissions.",
-    "+:count more|+:count more": "+:count more|+:count more"
+    "Update the role's name and permissions.": "Update the role's name and permissions."
 }
