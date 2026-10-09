@@ -40,7 +40,7 @@ These tests iterate `app-modules/*`, so every present and future module is cover
 
 ## Value Objects
 
-Immutable, `final readonly`, validate in the constructor, throw a module `DomainException` on invalid input. Examples: `Modules\Catalog\Domain\ValueObjects\Sku`, `App\Domain\ValueObjects\Money` (shared kernel), `Modules\Users\Domain\ValueObjects\Email`.
+Immutable, `final readonly`, validate in the constructor, throw a module `DomainException` on invalid input. Examples: `Modules\Catalog\Domain\ValueObjects\Sku`, `Modules\Shop\Domain\ValueObjects\OrderNumber`, `Modules\Users\Domain\ValueObjects\Email`, `Modules\Roles\Domain\ValueObjects\RoleName`, and `App\Domain\ValueObjects\Money` (shared kernel).
 
 **Scalar-DTO rule (critical):** Value Objects must **never** appear as properties on a `spatie/laravel-data` DTO. The TypeScript transformer only understands scalars; a VO property yields `any` or breaks `tsc`. DTOs expose scalars (`price_cents: int`, `currency: string`), and Actions construct VOs internally for validation/normalisation.
 
@@ -49,6 +49,7 @@ Immutable, `final readonly`, validate in the constructor, throw a module `Domain
 1. The aggregate (Eloquent model) uses `App\Domain\Concerns\InteractsWithDomainEvents` and implements `App\Domain\Contracts\RecordsDomainEvents`.
 2. Domain behaviour records events: `$this->recordThat(new ProductPublished($this->id, $this->sku))`.
 3. The Action persists inside `DB::transaction`, then calls `$aggregate->flushDomainEvents()` **after the transaction returns** (i.e. after commit), so events never fire for rolled-back work.
+4. Laravel's own events and mails sent from inside an action (`Registered`, a verification email) go through `DB::afterCommit(...)`: it waits for the *outermost* transaction, so they also hold when the action runs inside another one (e.g. `AcceptInvitation` → `CreateUser`).
 
 Events implement `App\Domain\Contracts\DomainEvent` and carry scalars only. See `Modules\Catalog\Actions\PublishProduct` and `Modules\Catalog\Infrastructure\Models\Product::publish()`.
 
@@ -63,7 +64,11 @@ public function register(): void
 }
 ```
 
-Repositories own **writes** (`save`, `delete`). Reads stay in Query classes and route-model binding (CQRS-lite) — do not add find/list methods to repositories unless a write-side consumer needs them.
+Repositories own **writes** (`save`, `delete`). Reads stay in Query classes and route-model binding (CQRS-lite) — do not add find/list methods to repositories unless a write-side consumer needs them. The one write-side read every changing aggregate gets is `lockForUpdate($aggregate)`: the action calls it first inside the transaction and checks the rule on the fresh, locked row, so two simultaneous requests cannot both pass it (`UpdateOrder`, `PublishProduct`, `AcceptInvitation`, `UpdateRole`).
+
+## Domain exceptions at the edge
+
+A broken rule throws a module `DomainException`. Policies and FormRequests normally stop the request before that (and give a friendly message); the exception is the guarantee when they could not — a stale page, a race, a console or queue caller. Nothing catches it in controllers: the shell's exception handler (`bootstrap/app.php`) sends people back with an error toast and API clients a 409 with the message, and does not report it as an error.
 
 ## Adding a module / aggregate
 

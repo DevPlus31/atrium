@@ -165,9 +165,10 @@ Already in the shell:
 
 ```bash
 vendor/bin/pint --dirty --format agent && vendor/bin/rector && vendor/bin/phpstan
+bun run test:types && bun run test:lint
+bun run build                                                                # browser tests need the production build
 XDEBUG_MODE=coverage vendor/bin/pest --parallel --coverage --exactly=100.0   # incl. browser tests
 vendor/bin/pest --type-coverage --min=100
-bun run build && bun run test:types && bun run test:lint
 ```
 
 - **Where tests live:** module tests sit in `app-modules/<Name>/tests/{Feature,Unit,Browser}`.

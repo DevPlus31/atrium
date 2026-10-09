@@ -68,9 +68,12 @@ docker compose run --rm --no-deps app php artisan make:aggregate Shop Order
 Eloquent model, migration, factory, and repository implementation; Create /
 Update / Delete actions; an index Query; a scalar DTO; the controller, form
 requests, and policy; the `routes/admin.php` resource route; React index /
-create / edit pages + columns; and a controller feature test that covers 100%
-of the generated backend. It also wires the module provider (repository
-binding, nav item, and `view/create/update/delete` permissions).
+create / edit pages + columns; a controller feature test and unit tests for the
+three actions, together covering 100% of the generated backend; and the
+module's `lang/en.json` plus one catalogue per other locale (`fr.json`, in
+English until translated — the command says how many strings). It also wires
+the module provider (repository binding, nav item, and
+`view/create/update/delete` permissions).
 
 It scaffolds **one aggregate per module**: the routes file, the pages and the
 provider wiring markers are per module, so a second `make:aggregate` on the
@@ -100,7 +103,7 @@ The generator cannot infer your invariants — follow the **Catalog** module
 |---|---|---|
 | A validated value (money, SKU, email) | `Domain/ValueObjects/` (e.g. Catalog's `Sku`; shared ones such as `Money` live in `app/Domain/ValueObjects`) | `final readonly`, validate in the constructor, throw a module `DomainException`. **Never put a value object in a Data DTO** — DTOs stay scalar (keeps TypeScript generation working). |
 | A "something happened" event | `Domain/Events/ProductPublished` + `Product::publish()` | The model records via `recordThat(...)`; the Action calls `flushDomainEvents()` after commit. |
-| An invariant (can't publish twice) | `ProductAlreadyPublished` + `PublishProduct` | Throw a `DomainException`; catch it at the controller boundary for a user-facing flash. |
+| An invariant (can't publish twice) | `Product::publish()` throwing `ProductAlreadyPublished`, called by `PublishProduct` | The rule lives on the model: it throws a module `DomainException`. The action locks the row first (`$repository->lockForUpdate()`) so two requests can't both pass the check. Policies keep the UI from offering the action; if a stale page still triggers it, the shell turns the exception into an error toast (a 409 for API clients) — no try/catch in controllers. |
 | A non-CRUD action (publish, export) | `PublishProductController` (invokable) | Controllers keep only the seven CRUD verbs; everything else is its own invokable controller. |
 
 ## 5. Hook into the rest of the app
@@ -134,9 +137,10 @@ must share a concept, put it in the shared kernel (`app/Domain`) upstream.
 docker compose run --rm --no-deps app vendor/bin/pint --dirty --format agent
 docker compose run --rm --no-deps app vendor/bin/rector
 docker compose run --rm --no-deps app vendor/bin/phpstan
+bun run test:types && bun run test:lint
+bun run build        # browser tests run against the production build (stop `bun run dev` first)
 docker compose run --rm app sh -c 'XDEBUG_MODE=coverage vendor/bin/pest --parallel --coverage --exactly=100.0'
 docker compose run --rm app vendor/bin/pest --type-coverage --min=100
-bun run build && bun run test:types && bun run test:lint
 ```
 
 ## 7. Pull upstream improvements
@@ -152,9 +156,10 @@ git fetch atrium && git merge atrium/main
 
 **Build only under `app-modules/<Yours>/`. Never edit shell code** — `app/`,
 `app/Domain/`, `resources/js/components/data-table/`, `resources/js/layouts/`,
-the theming CSS, or the generic modules. The `ModuleBoundariesTest` enforces
-this: modules cannot import one another, so contexts stay isolated and merges
-stay clean. Extension points never require editing a generic module (see
+the theming CSS, or the generic modules. That part is a convention; what the
+`ModuleBoundariesTest` enforces is that modules never import one another (and
+the shell never imports a module), so contexts stay isolated and merges stay
+clean. Extension points never require editing a generic module (see
 §5): menus, settings tabs, permissions, widgets, listeners and translations are
 all declared or shipped by your module. Improve the shell *upstream* in Atrium, then merge it down —
 never the other way around.

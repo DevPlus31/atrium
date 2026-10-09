@@ -39,12 +39,13 @@ Structure — every module lives in `app-modules/<Name>/` (composer PSR-4) and c
 
 Contract pieces (small; roughly this and no more):
 
-1. **`ModuleServiceProvider` (abstract base).** Each module extends it. On boot: loads the module's migrations; registers the module's `routes/admin.php` inside the shared admin route group (prefix `admin`, name prefix `admin.`, middleware: auth, verified, admin gate); calls hooks: `navigation(NavRegistry $nav)`, `permissions(PermissionRegistry $perms)`, `widgets(WidgetRegistry $widgets)`. Listeners (event discovery over `app-modules/*/Listeners`) and policies (policy discovery) use Laravel's own mechanisms. Also loads the module's `lang/` JSON and registers its pages with Inertia's page finder. Module providers listed explicitly in `bootstrap/providers.php`; a module is one folder (code, pages, translations, tests), removable with `module:remove`.
-2. **`NavRegistry`.** Sidebar items: label, route name, lucide icon name (string), required permission, group/section, sort order. Serialized into Inertia shared props by `HandleInertiaRequests`, filtered by the current user's permissions server-side. Sidebar and cmdk palette both render purely from this shared prop.
+1. **`ModuleServiceProvider` (abstract base).** Each module extends it. On boot (`final`): loads the module's migrations; registers the module's `routes/admin.php` inside the shared admin route group (prefix `admin`, name prefix `admin.`, middleware: auth, verified, the `access-panel` gate and the module switch), an optional `routes/web.php` (member or guest pages; the module applies its own middleware) and an optional `routes/api.php` (prefix `api/v1`, name prefix `api.v1.`, `auth:sanctum`, the module switch); calls hooks: `navigation(NavRegistry $nav)`, `permissions(PermissionRegistry $perms)`, `widgets(WidgetRegistry $widgets)`, `search(SearchRegistry $search)`. Listeners (event discovery over `app-modules/*/Listeners`) and policies (policy discovery) use Laravel's own mechanisms. Also loads the module's `lang/` JSON and registers its pages with Inertia's page finder. Module providers listed explicitly in `bootstrap/providers.php`; a module is one folder (code, pages, translations, tests), removable with `module:remove`.
+2. **`NavRegistry`.** Sidebar items: label, route name, lucide icon name (string), required permission, group/section, sort order, area (admin menu, member menu, or an account-settings tab). Serialized into Inertia shared props by `HandleInertiaRequests`, filtered by the current user's permissions server-side. Sidebar and cmdk palette both render purely from this shared prop.
 3. **`PermissionRegistry`.** Modules declare permission names (and default role assignments). `admin:sync-permissions` Artisan command syncs to spatie tables (idempotent; used in deploy and test setup).
-4. **`WidgetRegistry`.** Dashboard widgets: key, permission, sort order, server-side resolver returning a DTO. Dashboard controller passes permitted widgets as Inertia deferred props; React maps widget keys to registered components (unknown keys render nothing).
-5. **Frontend page discovery.** Inertia page resolver uses `import.meta.glob` over `resources/js/pages/**` and `app-modules/*/resources/js/pages/**`. Names namespaced: `<module>::<path>` (e.g. `users::index`). Vite config includes module directories.
-6. **Feature-flag gating.** Every module has a Pennant feature (`module:<name>`), checked before exposing nav/routes/widgets, so a module can be dark-launched per role/user without code changes; `MODULES_DISABLED` (config/modules.php) switches a module off for everyone.
+4. **`WidgetRegistry`.** Dashboard widgets: key, permission, sort order, area (admin dashboard or member home), server-side resolver returning a DTO. Dashboard controller passes permitted widgets as Inertia deferred props; React maps widget keys to registered components (unknown keys render nothing).
+5. **`SearchRegistry`.** Global search for the cmdk palette: each module adds an invokable searcher (term, user, limit → `SearchResultData`) with a label, icon and permission; `GET /search` asks every searcher the user may use.
+6. **Frontend page discovery.** Inertia page resolver uses `import.meta.glob` over `resources/js/pages/**` and `app-modules/*/resources/js/pages/**`. Names namespaced: `<module>::<path>` (e.g. `users::index`). Vite config includes module directories.
+7. **Feature-flag gating.** Every module has a Pennant feature (`module:<name>`), checked before exposing nav/routes/widgets, so a module can be dark-launched per role/user without code changes; `MODULES_DISABLED` (config/modules.php) switches a module off for everyone.
 
 Explicit non-goals: no runtime plugin install/uninstall, no module dependency resolver, no config merging framework, no event-bus abstraction. Modules interact through ordinary Laravel events/contracts.
 
@@ -54,19 +55,19 @@ Explicit non-goals: no runtime plugin install/uninstall, no module dependency re
 - All writes go through `final readonly` Action classes with fully typed `handle()` signatures; Actions own transactions, activity logging, and event dispatch. Nothing else writes to the database.
 - Every index page has a dedicated Query class wrapping `QueryBuilder::for(...)` with explicitly allowed filters/sorts, default sort, and a capped `per_page` (max 100). URL contract: `filter[search]`, `filter[<field>]` (CSV for multi), `sort` / `-sort`, `page`, `per_page`.
 - Every resource has: Model, Policy, `StoreXRequest`/`UpdateXRequest` (Precognition-enabled, `authorize()` via Policy), `XData` DTO with a `can` ability map per row, controller methods ≤ ~5 lines each (authorize → query/action → render/redirect with flash).
-- Flash messages (`success`/`error`) and the nav registry are shared via `HandleInertiaRequests`.
+- One-time messages go through `Inertia::flash('toast', ['type' => 'success'|'error', 'message' => …])` (never session `->with()` or a shared prop); the nav registry, the current user and preferences are shared via `HandleInertiaRequests`.
 
 ## Frontend conventions
 
 - One `AdminLayout` (persistent layout pattern) with sidebar (from nav prop), breadcrumbs, `<Toaster/>` fed by Inertia flash data (`Inertia::flash('toast', ...)`), and cmdk palette.
 - One generic data-table composition: `DataTable`, `DataTableToolbar` (debounced search, faceted filters via Popover+Command, actions slot), `DataTableColumnHeader`, `DataTablePagination`, `DataTableRowActions` — all consuming a Laravel paginator DTO and a URL-state hook issuing Inertia partial reloads (`preserveState`, `preserveScroll`, `only: [prop]`, `replace`). New resources provide only a columns file and facet config.
-- Forms use Inertia `useForm` via the Precognition wrapper + shadcn form primitives. Destructive actions always go through the shared AlertDialog confirm component.
+- Forms use Inertia v3's `useForm(route, data)` or `<Form>` with their built-in Precognition (no wrapper package) + shadcn form primitives. Destructive actions always go through the shared AlertDialog confirm component.
 - All routes referenced through Wayfinder-generated helpers; no hardcoded URL strings.
 
 ## Reference implementation & build order
 
 1. Admin gate middleware, roles seeding, permission sync command.
-2. Module contract (base provider + three registries + page discovery + Pennant gating) with ArchTest asserting every module provider extends the base and every Action is `final`.
+2. Module contract (base provider + registries + page discovery + Pennant gating) with ArchTest asserting every module provider extends the base and every Action is `final`.
 3. `AdminLayout` + nav rendering + cmdk + flash toasts.
 4. Shared data-table composition + URL-state hook.
 5. **Users module end-to-end as the first reference**: full CRUD, Precognition forms, faceted index, per-row `can`, activity logging, export, tests. (Since the DDD toolkit, the canonical reference for new modules is Catalog — see `docs/specs/ddd.md`.)
@@ -83,4 +84,4 @@ Work module by module, smallest shippable slice first. Before each slice, state 
 
 ## Deployment
 
-Docker for all deploys (see `docker/` and compose files). Git: commit locally; remote configured later.
+Docker for all deploys (see `docker/` and compose files). Git: `main` on GitHub (`DevPlus31/atrium`) is the upstream that downstream projects merge from; CI (`.github/workflows/tests.yml`) runs the gates on every push and pull request to `main`.

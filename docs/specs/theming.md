@@ -14,7 +14,7 @@ The panel must be fully themable in two composable dimensions: (1) visual themin
 
 Semantic design tokens only. Raw palette utilities are forbidden in all admin and module components.
 
-- Allowed: token-based utilities — background, foreground, primary, primary-foreground, secondary, muted, muted-foreground, accent, destructive, border, input, ring, card, popover, chart-1…chart-5, sidebar and its sub-tokens, radius (e.g. bg-background, text-muted-foreground, border-border, bg-primary, rounded via the standard rounded utilities).
+- Allowed: token-based utilities — background, foreground, primary, primary-foreground, secondary, muted, muted-foreground, accent, destructive, success, success-foreground, overlay, border, input, ring, card, popover, chart-1…chart-5, sidebar and its sub-tokens, radius (e.g. bg-background, text-muted-foreground, border-border, bg-primary, rounded via the standard rounded utilities).
 - Forbidden: any raw Tailwind palette class (bg-white, bg-slate-100, text-blue-600, border-gray-200, hex/rgb/oklch literals in className or inline styles), and any color literal inside module code.
 - If a needed role has no token, add a new semantic token to the theme contract — never inline a color. Adding a token is a shell-level change reviewed like an API change.
 - Enforce mechanically: add an OxLint rule / custom lint check (or a CI grep gate) that fails the build on raw palette classes and color literals under the admin and module frontend directories. Add this check to the Definition of Done.
