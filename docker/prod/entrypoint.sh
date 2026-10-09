@@ -10,6 +10,19 @@ set -e
 
 cd /app
 
+# Secrets the app cannot run safely without. PASSKEYS_USER_HANDLE_SECRET must
+# be set before the first passkey is registered: changing it breaks them all.
+for name in APP_KEY PASSKEYS_USER_HANDLE_SECRET; do
+    if [ -z "$(printenv "$name" || true)" ]; then
+        echo "entrypoint: $name is empty; set it in .env.production (see .env.production.example)." >&2
+        exit 1
+    fi
+done
+
+if [ "${MAIL_MAILER:-log}" = "log" ]; then
+    echo "entrypoint: warning: MAIL_MAILER=log, so verification, password-reset and invitation emails are only logged, never sent." >&2
+fi
+
 # The storage/app tree may be a freshly-created named volume — make sure the
 # directory skeleton Laravel expects is present.
 mkdir -p \
@@ -35,7 +48,8 @@ if [ "${WAIT_FOR_DB:-true}" = "true" ]; then
 fi
 
 if [ "${RUN_MIGRATIONS:-true}" = "true" ]; then
-    php artisan migrate --force
+    # --isolated: with several app replicas, only one migrates (a cache lock).
+    php artisan migrate --force --isolated
     php artisan admin:sync-permissions
 fi
 

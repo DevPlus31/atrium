@@ -13,9 +13,13 @@ use App\Modules\Toast;
 use App\Modules\WidgetRegistry;
 use App\View\Composers\MailBrandingComposer;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Foundation\Events\DiagnosingHealth;
 use Illuminate\Foundation\Events\DiscoverEvents;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\View;
@@ -73,6 +77,14 @@ final class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('api', static fn (Request $request): Limit => Limit::perMinute(self::API_REQUESTS_PER_MINUTE)
             ->by($request->user()?->getAuthIdentifier() ?? $request->ip()));
+
+        // /up, the container health check, fails when the database or the
+        // cache store (Redis in production) does not answer, not only when
+        // PHP is down, so the workers waiting on it see a real outage.
+        Event::listen(DiagnosingHealth::class, static function (): void {
+            DB::connection()->select('select 1');
+            Cache::store()->get('health-check');
+        });
     }
 
     /**

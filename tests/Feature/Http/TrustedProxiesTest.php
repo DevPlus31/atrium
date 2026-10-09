@@ -23,3 +23,15 @@ it('uses the forwarded client address from a configured proxy', function (): voi
         ->get('_test/ip')
         ->assertSee('203.0.113.9');
 });
+
+it('trusts only private-network proxies with the production default', function (string $proxy, string $seenIp): void {
+    config()->set('trustedproxy.proxies', '127.0.0.1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16');
+
+    $this->withServerVariables(['REMOTE_ADDR' => $proxy])
+        ->withHeader('X-Forwarded-For', '203.0.113.9')
+        ->get('_test/ip')
+        ->assertSee($seenIp);
+})->with([
+    'docker bridge' => ['172.18.0.1', '203.0.113.9'],
+    'public address' => ['8.8.8.8', '8.8.8.8'],
+]);

@@ -21,9 +21,6 @@
 		max_size 32MB
 	}
 
-	# Plumbing healthcheck endpoint — answered by Caddy, no PHP involved.
-	respond /healthz 200
-
 	# Vite emits content-hashed filenames under /build — cache forever.
 	@immutable path /build/*
 	header @immutable Cache-Control "public, max-age=31536000, immutable"
