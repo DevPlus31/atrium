@@ -68,7 +68,7 @@ services:
       disable: true
 
   postgres:
-    image: postgres:17-alpine
+    image: postgres:18-alpine
     # POSTGRES_* values live in .env.production and must match DB_* there.
     env_file: .env.production
     volumes:
