@@ -25,7 +25,7 @@ final readonly class ShopSettingsController
 
     public function update(UpdateShopSettingsRequest $request, ShopSettings $settings, UpdateShopSettings $action): RedirectResponse
     {
-        $action->handle($settings, $request->defaultCurrency());
+        $action($settings, $request->defaultCurrency());
 
         Toast::success(__('Settings saved.'));
 

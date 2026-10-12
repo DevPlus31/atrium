@@ -31,7 +31,7 @@ final readonly class UserSessionController
 
     public function destroy(SignOutOtherSessionsRequest $request, #[CurrentUser] User $user, SignOutOtherSessions $action): RedirectResponse
     {
-        $action->handle($user, $request->string('password')->value(), $request->session()->getId());
+        $action($user, $request->string('password')->value(), $request->session()->getId());
 
         Toast::success(__('Signed out of your other sessions.'));
 

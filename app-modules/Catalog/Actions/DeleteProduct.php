@@ -16,7 +16,7 @@ final readonly class DeleteProduct
         //
     }
 
-    public function handle(Product $product): void
+    public function __invoke(Product $product): void
     {
         DB::transaction(function () use ($product): void {
             $product = $this->products->lockForUpdate($product);

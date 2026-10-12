@@ -16,7 +16,7 @@ final readonly class Create{{ aggregate }}
         //
     }
 
-    public function handle(string $name, ?string $description): {{ aggregate }}
+    public function __invoke(string $name, ?string $description): {{ aggregate }}
     {
         return DB::transaction(function () use ($name, $description): {{ aggregate }} {
             ${{ variable }} = new {{ aggregate }}([

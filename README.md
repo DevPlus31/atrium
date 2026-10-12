@@ -81,7 +81,7 @@ It refuses a second aggregate in the same module. Add further aggregates by hand
 |---|---|
 | `Providers/<Name>ServiceProvider.php` | **Required, exactly here**: the base provider finds the module root two levels up |
 | `routes/admin.php` | **Required** (may be empty). `routes/web.php` and `routes/api.php` are optional |
-| `Actions/` | `final readonly` classes with one `handle()`: every write |
+| `Actions/` | `final readonly` invokable classes (one `__invoke()`): every write |
 | `Http/Controllers/`, `Http/Controllers/Api/V1/` | Web and API controllers |
 | `Http/Requests/`, `Http/Requests/Concerns/` | FormRequests; shared rules and typed getters in a trait (`ValidatesProductInput`) |
 | `Http/Resources/V1/` | API resources |
@@ -262,7 +262,7 @@ How access is decided:
 | Menu item, member page, account tab | `navigation()` with `Area::Admin` / `Member` / `Settings` (see "Pages" above) | `Catalog`, `Dashboard`, `Api` providers |
 | Dashboard card | `widgets()` + `Widgets/<Name>Widget.php` + `resources/js/widgets/<key>.tsx` in the module | `Users` widgets |
 | Command-palette search | `search()` + `Search/<Name>Search.php` | `Shop/Search/OrdersSearch` |
-| Table with bulk delete | Server: a request using `ValidatesBulkSelection` (`ids` 1–100) with a getter returning `$this->permitted(Model::query(), 'delete')`; an invokable controller using `DeletesSelection` that calls `$this->deleteSelection($request, $request->products(), $deleteProduct->handle(...), fn (int $count) => trans_choice(...))`, then redirects. Client: `useResourceTable({ key, rows, destroyUrl, bulkDestroyUrl })` + `<DataTableBulkDelete>` | `Catalog` `DeleteProductsController`, `pages/index.tsx` |
+| Table with bulk delete | Server: a request using `ValidatesBulkSelection` (`ids` 1–100) with a getter returning `$this->permitted(Model::query(), 'delete')`; an invokable controller using `DeletesSelection` that calls `$this->deleteSelection($request, $request->products(), $deleteProduct(...), fn (int $count) => trans_choice(...))`, then redirects. Client: `useResourceTable({ key, rows, destroyUrl, bulkDestroyUrl })` + `<DataTableBulkDelete>` | `Catalog` `DeleteProductsController`, `pages/index.tsx` |
 | Delete with confirmation | Index page: `useResourceTable`'s `deleteDialog` + `<DataTableDeleteDialog>`. Other lists: `useDeleteDialog` + `ConfirmDialog`. Any other confirmed visit: `useConfirmDialog` + `ConfirmDialog` | `Catalog/resources/js/pages/index.tsx`, `Api` tokens page, Shop's cancel-order |
 | Notify a user (bell + email) | extend `AppNotification` (queued: needs the queue worker), implement `message(User): NotificationMessage`, send from a listener. Email only when the user has `notify_by_email` | `Shop/Listeners/NotifyCustomerOfOrderStatus` |
 | Admin-editable settings | spatie settings class in `Settings/`, its `SettingsMigration` in `Database/Migrations`, routes `GET\|PUT admin/settings/<x>`, nav group `Settings` | `Shop/Settings/ShopSettings` |
@@ -277,7 +277,7 @@ How access is decided:
 | `App\Modules\Toast::success\|info\|warning\|error(string)` | Flash the toast the frontend shows after the redirect |
 | `App\Modules\AuditLog::record(log, event, ?subject, properties, ?causer, ?description)` | Write one activity-log entry (the description defaults to the event slug) |
 | `App\Modules\Concerns\DeletesSelection` → `deleteSelection($request, $records, $deleteOne, fn (int $count) => trans_choice(...))` | A bulk-delete controller's body except the redirect: 403 when nothing is permitted, `DeleteEach`, the "N deleted / M could not be deleted" toast |
-| `App\Actions\DeleteEach::handle(iterable $records, Closure $delete)` | Delete a selection through the single-row action, all or nothing |
+| `App\Actions\DeleteEach(iterable $records, Closure $delete)` | Delete a selection through the single-row action, all or nothing |
 | `App\Modules\Concerns\ValidatesBulkSelection` | Bulk-selection request: `ids` rules (1–100) and `permitted(Model::query(), 'delete')` |
 | `App\Modules\Concerns\ReadsValidatedInput` | Request trait: `validatedString()`, `validatedNullableString()`, `normalizeInput()` (before validation) |
 | `App\Rules\AccountRules::name\|email\|password\|roles()`, `ValidEmail::rules()`, `Money::currencyRules()` | The rule sets for account fields, any email field and any currency code |
@@ -377,7 +377,7 @@ Full contract: `THEMING.md`.
 | `header` | `sticky` · `static` | `sticky` |
 | `direction` | `ltr` · `rtl` | `ltr` |
 
-- **Defaults for everyone:** `ResolveUserPreferences::DEFAULT_LAYOUT`. The default preset and appearance are the fallbacks in its `handle()`. A user's own choice still wins.
+- **Defaults for everyone:** `ResolveUserPreferences::DEFAULT_LAYOUT`. The default preset and appearance are the fallbacks in its `__invoke()`. A user's own choice still wins.
 - **Changing how a variant renders:** `resources/js/layouts/admin-layout.tsx` is the only file that reads the layout config. It assembles `components/admin/admin-sidebar.tsx`, `admin-topbar.tsx` and `admin-header.tsx`. Menu items come from module `navigation()` hooks, never from the layout.
 - **Adding an option or value:**
   1. Add the case to its enum in `app/Enums`.

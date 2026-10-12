@@ -8,7 +8,7 @@ use App\Models\User;
 
 final readonly class CreateUserEmailVerificationNotification
 {
-    public function handle(User $user): void
+    public function __invoke(User $user): void
     {
         $user->sendEmailVerificationNotification();
     }

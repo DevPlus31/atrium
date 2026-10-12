@@ -17,7 +17,7 @@ final readonly class LogoController
 {
     public function update(UpdateLogoRequest $request, GeneralSettings $settings, UpdateLogo $action): RedirectResponse
     {
-        $action->handle($settings, $request->logo());
+        $action($settings, $request->logo());
 
         Toast::success(__('Logo updated.'));
 
@@ -26,7 +26,7 @@ final readonly class LogoController
 
     public function destroy(GeneralSettings $settings, RemoveLogo $action): RedirectResponse
     {
-        $action->handle($settings);
+        $action($settings);
 
         Toast::success(__('Logo removed.'));
 

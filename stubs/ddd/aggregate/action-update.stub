@@ -16,7 +16,7 @@ final readonly class Update{{ aggregate }}
         //
     }
 
-    public function handle({{ aggregate }} ${{ variable }}, string $name, ?string $description): {{ aggregate }}
+    public function __invoke({{ aggregate }} ${{ variable }}, string $name, ?string $description): {{ aggregate }}
     {
         return DB::transaction(function () use (${{ variable }}, $name, $description): {{ aggregate }} {
             ${{ variable }} = $this->{{ variablePlural }}->lockForUpdate(${{ variable }});

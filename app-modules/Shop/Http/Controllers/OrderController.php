@@ -45,7 +45,7 @@ final readonly class OrderController
     #[Authorize('create', Order::class)]
     public function store(StoreOrderRequest $request, CreateOrder $action): RedirectResponse
     {
-        $action->handle(
+        $action(
             customerEmail: $request->customerEmail(),
             totalCents: $request->totalCents(),
             currency: $request->currency(),
@@ -67,7 +67,7 @@ final readonly class OrderController
     #[Authorize('update', 'order')]
     public function update(UpdateOrderRequest $request, Order $order, UpdateOrder $action): RedirectResponse
     {
-        $action->handle(
+        $action(
             order: $order,
             customerEmail: $request->customerEmail(),
             totalCents: $request->totalCents(),
@@ -82,7 +82,7 @@ final readonly class OrderController
     #[Authorize('delete', 'order')]
     public function destroy(Order $order, DeleteOrder $action): RedirectResponse
     {
-        $action->handle($order);
+        $action($order);
 
         Toast::success(__('Order deleted.'));
 

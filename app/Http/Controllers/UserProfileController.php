@@ -25,7 +25,7 @@ final readonly class UserProfileController
 
     public function update(UpdateProfileRequest $request, #[CurrentUser] User $user, UpdateProfile $action): RedirectResponse
     {
-        $action->handle($user, $request->profile());
+        $action($user, $request->profile());
 
         Toast::success(__('Profile updated.'));
 

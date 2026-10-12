@@ -15,7 +15,7 @@ final readonly class UpdateAnnouncement
      * Publish (or change) the site-wide announcement. A change shows it
      * again to people who dismissed the previous one.
      */
-    public function handle(AnnouncementSettings $settings, string $message, AnnouncementLevel $level, ?CarbonInterface $endsAt): void
+    public function __invoke(AnnouncementSettings $settings, string $message, AnnouncementLevel $level, ?CarbonInterface $endsAt): void
     {
         $settings->message = $message;
         $settings->level = $level;

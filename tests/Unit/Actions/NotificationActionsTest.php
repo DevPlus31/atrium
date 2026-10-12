@@ -16,7 +16,7 @@ it('marks one notification read', function (): void {
 
     $notification = DatabaseNotification::query()->firstOrFail();
 
-    resolve(MarkNotificationRead::class)->handle($notification);
+    resolve(MarkNotificationRead::class)($notification);
 
     expect($notification->refresh()->read_at?->toIso8601String())->toBe(now()->toIso8601String())
         ->and($user->unreadNotifications()->count())->toBe(1);
@@ -30,7 +30,7 @@ it("marks all of one user's notifications read", function (): void {
     $other = User::factory()->create();
     $other->notify(new GreetingNotification());
 
-    resolve(MarkAllNotificationsRead::class)->handle($user);
+    resolve(MarkAllNotificationsRead::class)($user);
 
     expect($user->unreadNotifications()->count())->toBe(0)
         ->and($other->unreadNotifications()->count())->toBe(1);
@@ -40,11 +40,11 @@ it('turns notification emails off and on', function (): void {
     $user = User::factory()->create();
     $action = resolve(UpdateNotificationPreferences::class);
 
-    $action->handle($user, false);
+    $action($user, false);
 
     expect($user->refresh()->notify_by_email)->toBeFalse();
 
-    $action->handle($user, true);
+    $action($user, true);
 
     expect($user->refresh()->notify_by_email)->toBeTrue();
 });

@@ -86,6 +86,16 @@ arch('module actions are final and readonly')
     ->toBeFinal()
     ->toBeReadonly();
 
+// One verb, one entry point: an action is called as `$action(...)`, never
+// through a named method, so every caller composes it the same way.
+arch('actions are invokable')
+    ->expect(['App\Actions', ...$moduleActionNamespaces])
+    ->toBeInvokable();
+
+arch('actions expose nothing but __invoke')
+    ->expect(['App\Actions', ...$moduleActionNamespaces])
+    ->not->toHavePublicMethodsBesides(['__construct', '__invoke']);
+
 arch('the shell never depends on a module')
     ->expect('App')
     ->not->toUse('Modules');

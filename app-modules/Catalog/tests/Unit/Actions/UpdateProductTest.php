@@ -9,7 +9,7 @@ use Spatie\Activitylog\Models\Activity;
 it('updates a product with normalized value objects and logs the activity', function (): void {
     $product = Product::factory()->create(['name' => 'Old', 'sku' => 'OLD-01']);
 
-    $updated = resolve(UpdateProduct::class)->handle(
+    $updated = resolve(UpdateProduct::class)(
         product: $product,
         name: 'New',
         sku: 'new-01',

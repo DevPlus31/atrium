@@ -25,7 +25,7 @@ final readonly class LeaveImpersonationController
 
         abort_unless($impersonated instanceof User && $manager->isImpersonating(), 403);
 
-        $action->handle($impersonated);
+        $action($impersonated);
 
         // The session belongs to another account again: drop the history the
         // impersonated user browsed so Back cannot reveal it.

@@ -48,7 +48,7 @@ final class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         $user = $request->user();
-        $preferences = $this->preferences->handle($request);
+        $preferences = ($this->preferences)($request);
 
         return [
             ...parent::share($request),

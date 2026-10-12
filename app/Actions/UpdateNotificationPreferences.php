@@ -11,7 +11,7 @@ final readonly class UpdateNotificationPreferences
     /**
      * Turn notification emails on or off; the in-app bell always receives them.
      */
-    public function handle(User $user, bool $notifyByEmail): void
+    public function __invoke(User $user, bool $notifyByEmail): void
     {
         $user->update(['notify_by_email' => $notifyByEmail]);
     }

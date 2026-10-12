@@ -20,7 +20,7 @@ it('may create a new user password', function (): void {
 
     $action = resolve(CreateUserPassword::class);
 
-    $status = $action->handle([
+    $status = $action([
         'email' => $user->email,
         'token' => $token,
         'password' => 'new-password',
@@ -40,7 +40,7 @@ it('returns invalid token status for incorrect token', function (): void {
 
     $action = resolve(CreateUserPassword::class);
 
-    $status = $action->handle([
+    $status = $action([
         'email' => $user->email,
         'token' => 'invalid-token',
         'password' => 'new-password',
@@ -53,7 +53,7 @@ it('returns invalid token status for incorrect token', function (): void {
 it('returns invalid user status for non-existent email', function (): void {
     $action = resolve(CreateUserPassword::class);
 
-    $status = $action->handle([
+    $status = $action([
         'email' => 'nonexistent@example.com',
         'token' => 'some-token',
         'password' => 'new-password',
@@ -73,7 +73,7 @@ it('updates remember token when resetting password', function (): void {
 
     $action = resolve(CreateUserPassword::class);
 
-    $action->handle([
+    $action([
         'email' => $user->email,
         'token' => $token,
         'password' => 'new-password',
@@ -90,7 +90,7 @@ it('revokes the API tokens when the password is reset', function (): void {
 
     $token = Password::createToken($user);
 
-    $status = resolve(CreateUserPassword::class)->handle(
+    $status = resolve(CreateUserPassword::class)(
         ['email' => 'reset@example.com', 'token' => $token, 'password' => 'new-password-123', 'password_confirmation' => 'new-password-123'],
         'new-password-123',
     );

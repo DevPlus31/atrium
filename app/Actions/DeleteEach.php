@@ -19,7 +19,7 @@ final readonly class DeleteEach
      * @param  iterable<TRecord>  $records
      * @param  Closure(TRecord): void  $delete
      */
-    public function handle(iterable $records, Closure $delete): void
+    public function __invoke(iterable $records, Closure $delete): void
     {
         DB::transaction(function () use ($records, $delete): void {
             foreach ($records as $record) {

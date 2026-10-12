@@ -38,7 +38,7 @@ final readonly class InvitationController
 
     public function store(StoreInvitationRequest $request, #[CurrentUser] User $user, InviteUser $action): RedirectResponse
     {
-        $action->handle($user, $request->email(), $request->roles());
+        $action($user, $request->email(), $request->roles());
 
         Toast::success(__('Invitation sent.'));
 
@@ -47,7 +47,7 @@ final readonly class InvitationController
 
     public function destroy(Invitation $invitation, RevokeInvitation $action): RedirectResponse
     {
-        $action->handle($invitation);
+        $action($invitation);
 
         Toast::success(__('Invitation revoked.'));
 

@@ -10,7 +10,7 @@ it('saves the default currency and records the change', function (): void {
     $settings = resolve(ShopSettings::class);
     $old = $settings->default_currency;
 
-    resolve(UpdateShopSettings::class)->handle($settings, 'EUR');
+    resolve(UpdateShopSettings::class)($settings, 'EUR');
 
     expect(resolve(ShopSettings::class)->refresh()->default_currency)->toBe('EUR')
         ->and(Activity::query()->where('description', 'settings-updated')->sole()->properties->all())->toBe([

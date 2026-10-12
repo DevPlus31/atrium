@@ -28,7 +28,7 @@ final readonly class AnnouncementController
 
     public function update(UpdateAnnouncementRequest $request, AnnouncementSettings $settings, UpdateAnnouncement $action): RedirectResponse
     {
-        $action->handle($settings, $request->message(), $request->level(), $request->endsAt());
+        $action($settings, $request->message(), $request->level(), $request->endsAt());
 
         Toast::success(__('Announcement published.'));
 
@@ -37,7 +37,7 @@ final readonly class AnnouncementController
 
     public function destroy(AnnouncementSettings $settings, RemoveAnnouncement $action): RedirectResponse
     {
-        $action->handle($settings);
+        $action($settings);
 
         Toast::success(__('Announcement removed.'));
 

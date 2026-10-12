@@ -20,7 +20,7 @@ final readonly class CreateRole
     /**
      * @param  list<string>  $permissions
      */
-    public function handle(string $name, array $permissions): Role
+    public function __invoke(string $name, array $permissions): Role
     {
         $name = new RoleName($name);
 

@@ -27,7 +27,7 @@ final readonly class AcceptInvitation
      * checked again inside the transaction, so it is used at most once; the
      * inviter hears about it after commit (InvitationAccepted).
      */
-    public function handle(Invitation $invitation, string $name, #[SensitiveParameter] string $password): User
+    public function __invoke(Invitation $invitation, string $name, #[SensitiveParameter] string $password): User
     {
         [$invitation, $user] = DB::transaction(function () use ($invitation, $name, $password): array {
             $invitation = $this->invitations->lockForUpdate($invitation);
@@ -37,7 +37,7 @@ final readonly class AcceptInvitation
                 throw AccountAlreadyExists::forEmail($invitation->email);
             }
 
-            $user = $this->createUser->handle($name, $invitation->email, $password, $this->grantableRoles($invitation), verified: true);
+            $user = ($this->createUser)($name, $invitation->email, $password, $this->grantableRoles($invitation), verified: true);
 
             $invitation->accept($user);
 

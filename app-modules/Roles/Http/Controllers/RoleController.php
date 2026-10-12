@@ -43,7 +43,7 @@ final readonly class RoleController
     #[Authorize('create', Role::class)]
     public function store(StoreRoleRequest $request, CreateRole $action): RedirectResponse
     {
-        $action->handle(
+        $action(
             name: $request->name(),
             permissions: $request->permissions(),
         );
@@ -65,7 +65,7 @@ final readonly class RoleController
     #[Authorize('update', 'role')]
     public function update(UpdateRoleRequest $request, Role $role, UpdateRole $action): RedirectResponse
     {
-        $action->handle(
+        $action(
             role: $role,
             name: $request->name(),
             permissions: $request->permissions(),
@@ -79,7 +79,7 @@ final readonly class RoleController
     #[Authorize('delete', 'role')]
     public function destroy(Role $role, DeleteRole $action): RedirectResponse
     {
-        $action->handle($role);
+        $action($role);
 
         Toast::success(__('Role deleted.'));
 

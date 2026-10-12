@@ -22,7 +22,7 @@ beforeEach(function (): void {
 it('saves the general settings and records the change', function (): void {
     $settings = resolve(GeneralSettings::class);
 
-    resolve(UpdateGeneralSettings::class)->handle($settings, 'help@example.com', false);
+    resolve(UpdateGeneralSettings::class)($settings, 'help@example.com', false);
 
     $fresh = resolve(GeneralSettings::class)->refresh();
 
@@ -36,10 +36,10 @@ it('stores a new logo and deletes the previous file', function (): void {
     $settings = resolve(GeneralSettings::class);
     $action = resolve(UpdateLogo::class);
 
-    $action->handle($settings, validImage('one.png'));
+    $action($settings, validImage('one.png'));
 
     $first = $settings->logo_path;
-    $action->handle($settings, validImage('two.png'));
+    $action($settings, validImage('two.png'));
 
     expect($first)->not->toBeNull()
         ->and(Storage::disk('public')->exists((string) $first))->toBeFalse()
@@ -49,12 +49,12 @@ it('stores a new logo and deletes the previous file', function (): void {
 
 it('removes the logo, and does nothing without one', function (): void {
     $settings = resolve(GeneralSettings::class);
-    resolve(UpdateLogo::class)->handle($settings, validImage('one.png'));
+    resolve(UpdateLogo::class)($settings, validImage('one.png'));
     $path = (string) $settings->logo_path;
     $action = resolve(RemoveLogo::class);
 
-    $action->handle($settings);
-    $action->handle($settings);
+    $action($settings);
+    $action($settings);
 
     expect($settings->logo_path)->toBeNull()
         ->and(Storage::disk('public')->exists($path))->toBeFalse()
@@ -64,7 +64,7 @@ it('removes the logo, and does nothing without one', function (): void {
 it('publishes and removes the announcement', function (): void {
     $settings = resolve(AnnouncementSettings::class);
 
-    resolve(UpdateAnnouncement::class)->handle($settings, 'Hello', AnnouncementLevel::Warning, now()->addDay());
+    resolve(UpdateAnnouncement::class)($settings, 'Hello', AnnouncementLevel::Warning, now()->addDay());
 
     expect($settings->refresh()->message)->toBe('Hello')
         ->and($settings->level)->toBe(AnnouncementLevel::Warning)
@@ -72,8 +72,8 @@ it('publishes and removes the announcement', function (): void {
         ->and($settings->isActive())->toBeTrue();
 
     $remove = resolve(RemoveAnnouncement::class);
-    $remove->handle($settings);
-    $remove->handle($settings);
+    $remove($settings);
+    $remove($settings);
 
     expect($settings->refresh()->message)->toBeNull()
         ->and($settings->isActive())->toBeFalse()
@@ -82,13 +82,13 @@ it('publishes and removes the announcement', function (): void {
 
 it('keeps the logo file when the settings cannot be saved', function (): void {
     $settings = resolve(GeneralSettings::class);
-    resolve(UpdateLogo::class)->handle($settings, validImage('one.png'));
+    resolve(UpdateLogo::class)($settings, validImage('one.png'));
     $path = (string) $settings->logo_path;
     Event::listen(SavingSettings::class, function (): never {
         throw new RuntimeException('Settings store unavailable.');
     });
 
-    expect(fn () => resolve(RemoveLogo::class)->handle($settings))->toThrow(RuntimeException::class);
+    expect(fn () => resolve(RemoveLogo::class)($settings))->toThrow(RuntimeException::class);
 
     expect(Storage::disk('public')->exists($path))->toBeTrue();
 });

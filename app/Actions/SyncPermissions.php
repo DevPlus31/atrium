@@ -22,7 +22,7 @@ final readonly class SyncPermissions
      * default role assignments in one transaction. Returns the number of
      * declared permissions.
      */
-    public function handle(PermissionRegistry $registry): int
+    public function __invoke(PermissionRegistry $registry): int
     {
         $declared = $registry->permissions();
 

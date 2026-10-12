@@ -9,7 +9,7 @@ use Modules\Shop\Settings\ShopSettings;
 
 final readonly class UpdateShopSettings
 {
-    public function handle(ShopSettings $settings, string $defaultCurrency): void
+    public function __invoke(ShopSettings $settings, string $defaultCurrency): void
     {
         $old = $settings->default_currency;
 

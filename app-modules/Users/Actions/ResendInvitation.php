@@ -19,7 +19,7 @@ final readonly class ResendInvitation
     /**
      * Email the invitation again with a fresh expiry.
      */
-    public function handle(Invitation $invitation): void
+    public function __invoke(Invitation $invitation): void
     {
         $invitation = DB::transaction(function () use ($invitation): Invitation {
             $invitation = $this->invitations->lockForUpdate($invitation);

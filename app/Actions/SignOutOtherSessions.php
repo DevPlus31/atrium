@@ -18,7 +18,7 @@ final readonly class SignOutOtherSessions
      * the other sessions and "remember me" cookies; with database sessions
      * their rows go too, so the sessions list is right at once.
      */
-    public function handle(User $user, #[SensitiveParameter] string $password, string $currentSessionId): void
+    public function __invoke(User $user, #[SensitiveParameter] string $password, string $currentSessionId): void
     {
         Auth::guard('web')->logoutOtherDevices($password);
 

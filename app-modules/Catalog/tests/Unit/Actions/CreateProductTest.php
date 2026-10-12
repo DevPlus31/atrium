@@ -8,7 +8,7 @@ use Modules\Catalog\Infrastructure\Models\Product;
 use Spatie\Activitylog\Models\Activity;
 
 it('creates a product with normalized value objects and logs the activity', function (): void {
-    $product = resolve(CreateProduct::class)->handle(
+    $product = resolve(CreateProduct::class)(
         name: 'Widget',
         sku: 'widget-01',
         priceCents: 1500,
@@ -28,7 +28,7 @@ it('creates a product with normalized value objects and logs the activity', func
 });
 
 it('rejects an invalid sku before creating anything', function (): void {
-    expect(fn (): Product => resolve(CreateProduct::class)->handle(
+    expect(fn (): Product => resolve(CreateProduct::class)(
         name: 'Widget',
         sku: '!',
         priceCents: 100,

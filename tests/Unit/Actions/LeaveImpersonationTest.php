@@ -13,7 +13,7 @@ it('leaves the impersonation and records the real admin as causer', function ():
     $this->actingAs($admin);
     resolve(ImpersonateManager::class)->take($admin, $target);
 
-    resolve(LeaveImpersonation::class)->handle($target);
+    resolve(LeaveImpersonation::class)($target);
 
     $activity = Activity::query()->where('event', 'impersonation-left')->sole();
 

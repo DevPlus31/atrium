@@ -18,7 +18,7 @@ final readonly class CreateProduct
         //
     }
 
-    public function handle(string $name, string $sku, int $priceCents, string $currency, ?string $description): Product
+    public function __invoke(string $name, string $sku, int $priceCents, string $currency, ?string $description): Product
     {
         $product = Product::draft($name, new Sku($sku), new Money($priceCents, $currency), $description);
 

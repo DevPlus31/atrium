@@ -16,8 +16,8 @@ it('stores the photo and replaces the previous one', function (): void {
     $user = User::factory()->create();
     $action = resolve(UpdateAvatar::class);
 
-    $action->handle($user, validImage('one.png'));
-    $action->handle($user, validImage('two.jpg'));
+    $action($user, validImage('one.png'));
+    $action($user, validImage('two.jpg'));
 
     $media = $user->refresh()->getMedia(User::AVATAR);
 
@@ -28,9 +28,9 @@ it('stores the photo and replaces the previous one', function (): void {
 
 it('removes the photo', function (): void {
     $user = User::factory()->create();
-    resolve(UpdateAvatar::class)->handle($user, validImage('me.png'));
+    resolve(UpdateAvatar::class)($user, validImage('me.png'));
 
-    resolve(RemoveAvatar::class)->handle($user);
+    resolve(RemoveAvatar::class)($user);
 
     expect($user->refresh()->hasMedia(User::AVATAR))->toBeFalse()
         ->and(Activity::query()->where('event', 'avatar-removed')->exists())->toBeTrue();
@@ -39,7 +39,7 @@ it('removes the photo', function (): void {
 it('does nothing when there is no photo to remove', function (): void {
     $user = User::factory()->create();
 
-    resolve(RemoveAvatar::class)->handle($user);
+    resolve(RemoveAvatar::class)($user);
 
     expect(Activity::query()->where('event', 'avatar-removed')->exists())->toBeFalse();
 });

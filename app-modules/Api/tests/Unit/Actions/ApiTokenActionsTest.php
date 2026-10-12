@@ -11,7 +11,7 @@ use Spatie\Activitylog\Models\Activity;
 it('issues a token with the given permissions and expiry', function (): void {
     $user = User::factory()->create();
 
-    $token = resolve(CreateApiToken::class)->handle($user, 'Script', ['users.view'], now()->addDays(30));
+    $token = resolve(CreateApiToken::class)($user, 'Script', ['users.view'], now()->addDays(30));
 
     expect($token->accessToken->tokenable_id)->toBe($user->id)
         ->and($token->accessToken->abilities)->toBe(['users.view'])
@@ -25,7 +25,7 @@ it('issues a token with the given permissions and expiry', function (): void {
 });
 
 it('issues a token without permissions', function (): void {
-    $token = resolve(CreateApiToken::class)->handle(User::factory()->create(), 'Profile', [], now()->addDays(30));
+    $token = resolve(CreateApiToken::class)(User::factory()->create(), 'Profile', [], now()->addDays(30));
 
     expect($token->accessToken->abilities)->toBe([]);
 });
@@ -34,7 +34,7 @@ it('revokes a token', function (): void {
     $user = User::factory()->create();
     $token = $user->createToken('Old', [])->accessToken;
 
-    resolve(RevokeApiToken::class)->handle($user, $token);
+    resolve(RevokeApiToken::class)($user, $token);
 
     expect(PersonalAccessToken::query()->exists())->toBeFalse()
         ->and(Activity::query()->where('event', 'api-token-revoked')->sole()->properties['attributes'])->toBe(['name' => 'Old']);
@@ -46,7 +46,7 @@ it('keeps no token when the activity log cannot be written', function (): void {
         throw new RuntimeException('Activity log unavailable.');
     });
 
-    expect(fn () => resolve(CreateApiToken::class)->handle($user, 'Script', [], now()->addDays(30)))
+    expect(fn () => resolve(CreateApiToken::class)($user, 'Script', [], now()->addDays(30)))
         ->toThrow(RuntimeException::class);
 
     expect(PersonalAccessToken::query()->count())->toBe(0);
@@ -59,7 +59,7 @@ it('keeps the token when its revocation cannot be logged', function (): void {
         throw new RuntimeException('Activity log unavailable.');
     });
 
-    expect(fn () => resolve(RevokeApiToken::class)->handle($user, $token))
+    expect(fn () => resolve(RevokeApiToken::class)($user, $token))
         ->toThrow(RuntimeException::class);
 
     expect(PersonalAccessToken::query()->whereKey($token->id)->exists())->toBeTrue();

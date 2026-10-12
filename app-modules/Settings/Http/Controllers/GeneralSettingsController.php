@@ -26,7 +26,7 @@ final readonly class GeneralSettingsController
 
     public function update(UpdateGeneralSettingsRequest $request, GeneralSettings $settings, UpdateGeneralSettings $action): RedirectResponse
     {
-        $action->handle($settings, $request->supportEmail(), $request->registrationOpen());
+        $action($settings, $request->supportEmail(), $request->registrationOpen());
 
         Toast::success(__('Settings saved.'));
 

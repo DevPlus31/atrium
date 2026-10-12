@@ -16,7 +16,7 @@ final class SyncPermissionsCommand extends Command
 {
     public function handle(PermissionRegistry $registry, SyncPermissions $sync): int
     {
-        $count = $sync->handle($registry);
+        $count = $sync($registry);
 
         $this->components->info(sprintf('Synced %d permissions.', $count));
 

@@ -24,7 +24,7 @@ final readonly class UserEmailResetNotificationController
         CreateUserEmailResetNotificationRequest $request,
         CreateUserEmailResetNotification $action
     ): RedirectResponse {
-        $action->handle(['email' => $request->string('email')->value()]);
+        $action(['email' => $request->string('email')->value()]);
 
         return back()->with('status', __('A reset link will be sent if the account exists.'));
     }

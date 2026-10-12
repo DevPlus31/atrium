@@ -17,7 +17,7 @@ final readonly class MarkNotificationsReadController
      */
     public function __invoke(#[CurrentUser] User $user, MarkAllNotificationsRead $action): RedirectResponse
     {
-        $action->handle($user);
+        $action($user);
 
         Toast::success(__('All notifications marked as read.'));
 

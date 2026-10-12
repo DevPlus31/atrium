@@ -14,7 +14,7 @@ final readonly class UpdateAvatar
      * Store the new profile photo (the collection keeps a single file, so the
      * previous photo and its thumbnail are removed) and record the change.
      */
-    public function handle(User $user, UploadedFile $photo): void
+    public function __invoke(User $user, UploadedFile $photo): void
     {
         // The library prunes the old photo through the model's loaded media
         // list; a list loaded before this upload would miss it.

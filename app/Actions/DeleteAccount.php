@@ -16,7 +16,7 @@ final readonly class DeleteAccount
      * Delete the user's own account, unless they are the last one able to
      * run the app (the only admin or super-admin).
      */
-    public function handle(User $user): void
+    public function __invoke(User $user): void
     {
         DB::transaction(function () use ($user): void {
             // Lock the administrative roles first, so two last admins leaving

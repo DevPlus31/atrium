@@ -6,6 +6,7 @@ namespace Modules\Users\Actions;
 
 use App\Models\User;
 use App\Modules\AuditLog;
+use NoDiscard;
 
 final readonly class ImpersonateUser
 {
@@ -13,7 +14,8 @@ final readonly class ImpersonateUser
      * Switch the session to the given user and record who did it. Returns
      * false, recording nothing, when the impersonation is refused.
      */
-    public function handle(User $impersonator, User $user): bool
+    #[NoDiscard('false means the impersonation was refused')]
+    public function __invoke(User $impersonator, User $user): bool
     {
         if (! $impersonator->impersonate($user)) {
             return false;

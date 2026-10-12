@@ -40,7 +40,7 @@ final readonly class {{ aggregate }}Controller
     #[Authorize('create', {{ aggregate }}::class)]
     public function store(Store{{ aggregate }}Request $request, Create{{ aggregate }} $action): RedirectResponse
     {
-        $action->handle(
+        $action(
             name: $request->name(),
             description: $request->description(),
         );
@@ -61,7 +61,7 @@ final readonly class {{ aggregate }}Controller
     #[Authorize('update', '{{ variable }}')]
     public function update(Update{{ aggregate }}Request $request, {{ aggregate }} ${{ variable }}, Update{{ aggregate }} $action): RedirectResponse
     {
-        $action->handle(
+        $action(
             {{ variable }}: ${{ variable }},
             name: $request->name(),
             description: $request->description(),
@@ -75,7 +75,7 @@ final readonly class {{ aggregate }}Controller
     #[Authorize('delete', '{{ variable }}')]
     public function destroy({{ aggregate }} ${{ variable }}, Delete{{ aggregate }} $action): RedirectResponse
     {
-        $action->handle(${{ variable }});
+        $action(${{ variable }});
 
         Toast::success(__('{{ aggregate }} deleted.'));
 

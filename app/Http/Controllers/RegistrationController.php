@@ -32,7 +32,7 @@ final readonly class RegistrationController
         /** @var array<string, mixed> $attributes */
         $attributes = $request->safe()->except('password');
 
-        $user = $action->handle(
+        $user = $action(
             $attributes,
             $request->string('password')->value(),
         );

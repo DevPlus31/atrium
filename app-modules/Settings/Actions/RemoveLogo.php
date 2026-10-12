@@ -14,7 +14,7 @@ final readonly class RemoveLogo
     /**
      * Go back to the built-in mark and delete the uploaded file.
      */
-    public function handle(GeneralSettings $settings): void
+    public function __invoke(GeneralSettings $settings): void
     {
         if ($settings->logo_path === null) {
             return;

@@ -19,7 +19,7 @@ final readonly class RevokeInvitation
     /**
      * Delete the invitation; its link stops working at once.
      */
-    public function handle(Invitation $invitation): void
+    public function __invoke(Invitation $invitation): void
     {
         DB::transaction(function () use ($invitation): void {
             $invitation = $this->invitations->lockForUpdate($invitation);

@@ -104,6 +104,33 @@ it('scaffolds an aggregate and wires the module provider', function (): void {
         ->toContain("Route::resource('widgets'");
 });
 
+it('scaffolds invokable actions and calls them as such', function (): void {
+    $this->artisan('make:module', ['name' => 'Zzdemo'])->assertSuccessful();
+    $this->artisan('make:aggregate', ['module' => 'Zzdemo', 'aggregate' => 'Widget'])->assertSuccessful();
+
+    foreach (['CreateWidget', 'UpdateWidget', 'DeleteWidget'] as $action) {
+        expect(File::get(base_path("app-modules/Zzdemo/Actions/{$action}.php")))
+            ->toContain('public function __invoke(')
+            ->not->toContain('function handle(');
+    }
+
+    expect(File::get(base_path('app-modules/Zzdemo/Http/Controllers/WidgetController.php')))
+        ->toContain('$action(')
+        ->not->toContain('->handle(')
+        ->and(File::get(base_path('app-modules/Zzdemo/tests/Unit/Actions/WidgetActionsTest.php')))
+        ->toContain('resolve(CreateWidget::class)(')
+        ->not->toContain('->handle(');
+});
+
+it('makes shell actions invokable', function (): void {
+    $this->artisan('make:action', ['name' => 'ArchiveWidget'])->assertSuccessful();
+
+    expect(File::get(app_path('Actions/ArchiveWidgetAction.php')))
+        ->toContain('final readonly class ArchiveWidgetAction')
+        ->toContain('public function __invoke(): void')
+        ->not->toContain('function handle(');
+});
+
 it('fails to scaffold an aggregate when the module does not exist', function (): void {
     $this->artisan('make:aggregate', ['module' => 'Nonexistent', 'aggregate' => 'Widget'])->assertFailed();
 });

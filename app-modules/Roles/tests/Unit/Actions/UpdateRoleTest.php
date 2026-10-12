@@ -13,7 +13,7 @@ it('updates the role and syncs permissions', function (): void {
     Permission::findOrCreate('users.view');
     $role = Role::findOrCreate('editor');
 
-    $updated = resolve(UpdateRole::class)->handle(
+    $updated = resolve(UpdateRole::class)(
         role: $role,
         name: 'publisher',
         permissions: ['users.view'],
@@ -28,7 +28,7 @@ it('writes an updated activity with the old and new attributes', function (): vo
     $role = Role::findOrCreate('editor');
     $role->givePermissionTo('users.view');
 
-    resolve(UpdateRole::class)->handle(
+    resolve(UpdateRole::class)(
         role: $role,
         name: 'publisher',
         permissions: [],
@@ -51,7 +51,7 @@ it('writes an updated activity with the old and new attributes', function (): vo
 it('rolls back the transaction when syncing permissions fails', function (): void {
     $role = Role::findOrCreate('editor');
 
-    expect(fn (): Role => resolve(UpdateRole::class)->handle(
+    expect(fn (): Role => resolve(UpdateRole::class)(
         role: $role,
         name: 'publisher',
         permissions: ['missing.permission'],
@@ -65,10 +65,10 @@ it("keeps a system role's name, while its permissions may change", function (): 
     Permission::findOrCreate('users.view');
     $role = Role::findOrCreate('admin');
 
-    expect(fn () => resolve(UpdateRole::class)->handle($role, 'owners', []))
+    expect(fn () => resolve(UpdateRole::class)($role, 'owners', []))
         ->toThrow(SystemRoleProtected::class, 'The [admin] role is a system role and cannot be renamed.');
 
-    resolve(UpdateRole::class)->handle($role, 'admin', ['users.view']);
+    resolve(UpdateRole::class)($role, 'admin', ['users.view']);
 
     expect($role->refresh()->name)->toBe('admin')
         ->and($role->permissions->pluck('name')->all())->toBe(['users.view']);

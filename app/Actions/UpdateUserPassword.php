@@ -14,7 +14,7 @@ final readonly class UpdateUserPassword
      * Change the password and revoke every API token: whoever knew the old
      * password may have minted one.
      */
-    public function handle(User $user, #[SensitiveParameter] string $password): void
+    public function __invoke(User $user, #[SensitiveParameter] string $password): void
     {
         DB::transaction(function () use ($user, $password): void {
             $user->update([

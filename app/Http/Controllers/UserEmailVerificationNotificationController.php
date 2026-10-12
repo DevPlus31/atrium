@@ -27,7 +27,7 @@ final readonly class UserEmailVerificationNotificationController
             return redirect()->intended(route('dashboard', absolute: false));
         }
 
-        $action->handle($user);
+        $action($user);
 
         return back()->with('status', 'verification-link-sent');
     }

@@ -17,7 +17,7 @@ final readonly class ExportUsersController
 {
     public function __invoke(Request $request, UsersIndexQuery $query, RecordUsersExport $record): StreamedResponse
     {
-        $record->handle((array) $request->query('filter', []));
+        $record((array) $request->query('filter', []));
 
         return response()->streamDownload(
             fn () => $this->write($query),

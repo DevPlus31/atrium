@@ -12,7 +12,7 @@ it('may create a user', function (): void {
 
     $action = resolve(RegisterUser::class);
 
-    $user = $action->handle([
+    $user = $action([
         'name' => 'Test User',
         'email' => 'example@email.com',
     ], 'password');

@@ -13,7 +13,7 @@ final readonly class UpdateProfile
     /**
      * @param  array<string, mixed>  $attributes
      */
-    public function handle(User $user, array $attributes): void
+    public function __invoke(User $user, array $attributes): void
     {
         DB::transaction(function () use ($user, $attributes): void {
             $old = $user->only(array_keys($attributes));

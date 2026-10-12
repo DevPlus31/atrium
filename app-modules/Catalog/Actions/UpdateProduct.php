@@ -18,7 +18,7 @@ final readonly class UpdateProduct
         //
     }
 
-    public function handle(Product $product, string $name, string $sku, int $priceCents, string $currency, ?string $description): Product
+    public function __invoke(Product $product, string $name, string $sku, int $priceCents, string $currency, ?string $description): Product
     {
         $sku = new Sku($sku);
         $price = new Money($priceCents, $currency);

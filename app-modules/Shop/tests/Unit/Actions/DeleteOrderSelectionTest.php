@@ -11,9 +11,9 @@ it('deletes no order of a selection when one of them must be kept', function ():
     $pending = Order::factory()->create();
     $paid = Order::factory()->paid()->create();
 
-    expect(fn () => resolve(DeleteEach::class)->handle(
+    expect(fn () => resolve(DeleteEach::class)(
         Order::query()->whereKey([$pending->id, $paid->id])->oldest()->get(),
-        resolve(DeleteOrder::class)->handle(...),
+        resolve(DeleteOrder::class)(...),
     ))
         ->toThrow(OrderNotDeletable::class);
 

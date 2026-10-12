@@ -14,7 +14,7 @@ it('keeps the database rows alone when sessions live elsewhere', function (): vo
     $this->actingAs($user);
     $oldHash = $user->password;
 
-    resolve(SignOutOtherSessions::class)->handle($user, 'password', 'current');
+    resolve(SignOutOtherSessions::class)($user, 'password', 'current');
 
     expect(DB::table('sessions')->count())->toBe(1)
         ->and($user->refresh()->password)->not->toBe($oldHash);
@@ -25,7 +25,7 @@ it('revokes the API tokens too', function (): void {
     $user->createToken('Script', []);
     $this->actingAs($user);
 
-    resolve(SignOutOtherSessions::class)->handle($user, 'password', 'current');
+    resolve(SignOutOtherSessions::class)($user, 'password', 'current');
 
     expect($user->tokens()->count())->toBe(0);
 });

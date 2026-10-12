@@ -9,7 +9,7 @@ use App\Settings\AnnouncementSettings;
 
 final readonly class RemoveAnnouncement
 {
-    public function handle(AnnouncementSettings $settings): void
+    public function __invoke(AnnouncementSettings $settings): void
     {
         if ($settings->message === null) {
             return;

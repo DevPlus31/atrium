@@ -17,7 +17,7 @@ it('tells the customer when their order moves on', function (): void {
     $customer = User::factory()->create(['email' => 'ada@example.com']);
     $order = Order::factory()->create(['customer_email' => 'ada@example.com']);
 
-    resolve(TransitionOrder::class)->handle($order, OrderStatus::Paid);
+    resolve(TransitionOrder::class)($order, OrderStatus::Paid);
 
     $stored = DatabaseNotification::query()->sole();
 
@@ -50,7 +50,7 @@ it('notifies nobody when the customer has no verified account', function (): voi
     User::factory()->unverified()->create(['email' => 'ada@example.com']);
     $order = Order::factory()->create(['customer_email' => 'ada@example.com']);
 
-    resolve(TransitionOrder::class)->handle($order, OrderStatus::Paid);
+    resolve(TransitionOrder::class)($order, OrderStatus::Paid);
 
     Notification::assertNothingSent();
 });
@@ -68,7 +68,7 @@ it('writes to the customer in their language', function (): void {
     User::factory()->create(['email' => 'ada@example.com', 'locale' => 'fr']);
     $order = Order::factory()->paid()->create(['customer_email' => 'ada@example.com']);
 
-    resolve(TransitionOrder::class)->handle($order, OrderStatus::Shipped);
+    resolve(TransitionOrder::class)($order, OrderStatus::Shipped);
 
     expect(DatabaseNotification::query()->sole()->data)->toMatchArray([
         'title' => sprintf('La commande %s est maintenant expédiée', $order->number),

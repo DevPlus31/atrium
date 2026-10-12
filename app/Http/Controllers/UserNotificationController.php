@@ -33,7 +33,7 @@ final readonly class UserNotificationController
     public function update(Request $request, #[CurrentUser] User $user, string $notification, MarkNotificationRead $action): RedirectResponse
     {
         $notification = $user->notifications()->findOrFail($notification);
-        $action->handle($notification);
+        $action($notification);
 
         $url = $notification->data['url'] ?? null;
 
