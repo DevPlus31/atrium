@@ -16,7 +16,7 @@ final readonly class TransitionOrderController
     #[Authorize('transition', 'order')]
     public function __invoke(TransitionOrderRequest $request, Order $order, TransitionOrder $action): RedirectResponse
     {
-        $action->handle($order, $request->status());
+        $action($order, $request->status());
 
         Toast::success(__('Order :number marked as :status.', [
             'number' => $order->number,

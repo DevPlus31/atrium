@@ -16,7 +16,7 @@ final readonly class DeleteUser
         //
     }
 
-    public function handle(User $user): void
+    public function __invoke(User $user): void
     {
         DB::transaction(function () use ($user): void {
             $this->users->delete($user);

@@ -32,7 +32,7 @@ final readonly class AcceptInvitationController
 
     public function store(AcceptInvitationRequest $request, Invitation $invitation, AcceptInvitation $action): RedirectResponse
     {
-        $user = $action->handle(
+        $user = $action(
             $invitation,
             $request->name(),
             $request->password(),

@@ -20,7 +20,7 @@ final readonly class RecordUsersExport
      *
      * @param  array<array-key, mixed>  $filter
      */
-    public function handle(array $filter): void
+    public function __invoke(array $filter): void
     {
         $applied = array_map(
             static fn (mixed $value): string => is_scalar($value) ? Str::limit((string) $value, self::MAX_VALUE_LENGTH, '') : '',

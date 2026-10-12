@@ -16,7 +16,7 @@ final readonly class PublishProduct
         //
     }
 
-    public function handle(Product $product): Product
+    public function __invoke(Product $product): Product
     {
         $product = DB::transaction(function () use ($product): Product {
             $product = $this->products->lockForUpdate($product);

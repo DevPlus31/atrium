@@ -9,7 +9,7 @@ use Modules\{{ module }}\Infrastructure\Models\{{ aggregate }};
 use Spatie\Activitylog\Models\Activity;
 
 it('creates a {{ variable }} and records it', function (): void {
-    ${{ variable }} = resolve(Create{{ aggregate }}::class)->handle('First', 'About it');
+    ${{ variable }} = resolve(Create{{ aggregate }}::class)('First', 'About it');
 
     expect(${{ variable }}->exists)->toBeTrue()
         ->and(${{ variable }}->name)->toBe('First')
@@ -20,7 +20,7 @@ it('creates a {{ variable }} and records it', function (): void {
 it('updates a {{ variable }} and records it', function (): void {
     ${{ variable }} = {{ aggregate }}::factory()->create();
 
-    resolve(Update{{ aggregate }}::class)->handle(${{ variable }}, 'Renamed', null);
+    resolve(Update{{ aggregate }}::class)(${{ variable }}, 'Renamed', null);
 
     expect(${{ variable }}->refresh()->name)->toBe('Renamed')
         ->and(${{ variable }}->description)->toBeNull()
@@ -30,7 +30,7 @@ it('updates a {{ variable }} and records it', function (): void {
 it('deletes a {{ variable }} and records it', function (): void {
     ${{ variable }} = {{ aggregate }}::factory()->create();
 
-    resolve(Delete{{ aggregate }}::class)->handle(${{ variable }});
+    resolve(Delete{{ aggregate }}::class)(${{ variable }});
 
     expect({{ aggregate }}::query()->exists())->toBeFalse()
         ->and(Activity::query()->where('log_name', '{{ slug }}')->where('event', 'deleted')->exists())->toBeTrue();

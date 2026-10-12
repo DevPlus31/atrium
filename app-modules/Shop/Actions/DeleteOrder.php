@@ -16,7 +16,7 @@ final readonly class DeleteOrder
         //
     }
 
-    public function handle(Order $order): void
+    public function __invoke(Order $order): void
     {
         DB::transaction(function () use ($order): void {
             $order = $this->orders->lockForUpdate($order);

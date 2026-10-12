@@ -10,7 +10,7 @@ it('records the export with its filters', function (): void {
     $admin = User::factory()->create();
     $this->actingAs($admin);
 
-    new RecordUsersExport()->handle(['verified' => 'yes']);
+    new RecordUsersExport()(['verified' => 'yes']);
 
     $activity = Activity::query()->where('event', 'exported')->sole();
 
@@ -22,7 +22,7 @@ it('records the export with its filters', function (): void {
 it('logs only the filters the index understands, as bounded strings', function (): void {
     $this->actingAs(User::factory()->create());
 
-    new RecordUsersExport()->handle([
+    new RecordUsersExport()([
         'search' => str_repeat('a', 300),
         'role' => ['nested' => 'array'],
         'injected' => 'anything',

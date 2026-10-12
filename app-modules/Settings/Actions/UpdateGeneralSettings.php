@@ -9,7 +9,7 @@ use App\Settings\GeneralSettings;
 
 final readonly class UpdateGeneralSettings
 {
-    public function handle(GeneralSettings $settings, ?string $supportEmail, bool $registrationOpen): void
+    public function __invoke(GeneralSettings $settings, ?string $supportEmail, bool $registrationOpen): void
     {
         $old = [
             'support_email' => $settings->support_email,

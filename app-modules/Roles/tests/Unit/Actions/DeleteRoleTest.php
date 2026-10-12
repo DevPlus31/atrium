@@ -11,7 +11,7 @@ use Spatie\Permission\Models\Role;
 it('deletes the role', function (): void {
     $role = Role::findOrCreate('editor');
 
-    resolve(DeleteRole::class)->handle($role);
+    resolve(DeleteRole::class)($role);
 
     expect(Role::query()->whereKey($role->id)->exists())->toBeFalse();
 });
@@ -21,7 +21,7 @@ it('writes a deleted activity with the role attributes', function (): void {
     $role = Role::findOrCreate('editor');
     $role->givePermissionTo('users.view');
 
-    resolve(DeleteRole::class)->handle($role);
+    resolve(DeleteRole::class)($role);
 
     $activity = Activity::query()->where('event', 'deleted')->sole();
 
@@ -35,7 +35,7 @@ it('writes a deleted activity with the role attributes', function (): void {
 it('refuses to delete system roles', function (string $name): void {
     $role = Role::findOrCreate($name);
 
-    expect(fn () => resolve(DeleteRole::class)->handle($role))
+    expect(fn () => resolve(DeleteRole::class)($role))
         ->toThrow(SystemRoleProtected::class, sprintf('The [%s] role is a system role and cannot be deleted.', $name));
 
     expect(Role::query()->whereKey($role->id)->exists())->toBeTrue()
@@ -49,7 +49,7 @@ it('rolls back the transaction when logging fails', function (): void {
         throw new RuntimeException('Activity log unavailable.');
     });
 
-    expect(fn () => resolve(DeleteRole::class)->handle($role))
+    expect(fn () => resolve(DeleteRole::class)($role))
         ->toThrow(RuntimeException::class);
 
     expect(Role::query()->whereKey($role->id)->exists())->toBeTrue()

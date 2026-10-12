@@ -44,7 +44,7 @@ final class CreateAdminUserCommand extends Command
 
         $this->call('admin:sync-permissions');
 
-        $user = $createUser->handle(
+        $user = $createUser(
             name: $name,
             email: $email,
             password: $password,

@@ -12,7 +12,7 @@ it('updates the appearance and theme preferences', function (): void {
 
     $action = resolve(UpdateUserPreferences::class);
 
-    $action->handle($user, ['appearance' => 'dark', 'theme' => 'ember']);
+    $action($user, ['appearance' => 'dark', 'theme' => 'ember']);
 
     $user->refresh();
 
@@ -25,7 +25,7 @@ it('updates the locale preference', function (): void {
 
     $action = resolve(UpdateUserPreferences::class);
 
-    $action->handle($user, ['locale' => 'en']);
+    $action($user, ['locale' => 'en']);
 
     expect($user->refresh()->locale)->toBe('en');
 });
@@ -37,7 +37,7 @@ it('merges layout updates over the stored layout', function (): void {
 
     $action = resolve(UpdateUserPreferences::class);
 
-    $action->handle($user, ['layout' => ['content_width' => 'boxed']]);
+    $action($user, ['layout' => ['content_width' => 'boxed']]);
 
     expect($user->refresh()->layout)->toBe([
         'direction' => 'rtl',
@@ -52,7 +52,7 @@ it('ignores a non-array layout value', function (): void {
 
     $action = resolve(UpdateUserPreferences::class);
 
-    $action->handle($user, ['layout' => 'boxed']);
+    $action($user, ['layout' => 'boxed']);
 
     expect($user->refresh()->layout)->toBe(['direction' => 'rtl']);
 });
@@ -63,7 +63,7 @@ it('does not touch the user when no preference keys are given', function (): voi
 
     $action = resolve(UpdateUserPreferences::class);
 
-    $action->handle($user, []);
+    $action($user, []);
 
     $user->refresh();
 

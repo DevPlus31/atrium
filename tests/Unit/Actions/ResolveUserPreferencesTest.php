@@ -20,7 +20,7 @@ function preferencesRequest(array $cookies = [], ?User $user = null): Request
 }
 
 it('falls back to the defaults for a guest without cookies', function (): void {
-    $preferences = new ResolveUserPreferences()->handle(preferencesRequest());
+    $preferences = new ResolveUserPreferences()(preferencesRequest());
 
     expect($preferences['appearance'])->toBe(Appearance::System)
         ->and($preferences['theme'])->toBe(ThemePreset::Default)
@@ -30,7 +30,7 @@ it('falls back to the defaults for a guest without cookies', function (): void {
 });
 
 it("reads a guest's choices from cookies, ignoring invalid ones", function (): void {
-    $preferences = new ResolveUserPreferences()->handle(preferencesRequest([
+    $preferences = new ResolveUserPreferences()(preferencesRequest([
         'appearance' => 'dark',
         'theme' => 'not-a-theme',
         'locale' => 'fr',
@@ -53,7 +53,7 @@ it('prefers what a signed-in user saved over the cookies', function (): void {
         'layout' => ['content_width' => 'boxed'],
     ]);
 
-    $preferences = new ResolveUserPreferences()->handle(preferencesRequest([
+    $preferences = new ResolveUserPreferences()(preferencesRequest([
         'appearance' => 'dark',
         'locale' => 'fr',
         'layout' => json_encode(['content_width' => 'fluid', 'header' => 'static'], JSON_THROW_ON_ERROR),
@@ -70,5 +70,5 @@ it('prefers what a signed-in user saved over the cookies', function (): void {
 it('ignores a saved locale that is no longer offered', function (): void {
     $user = User::factory()->create(['locale' => 'xx']);
 
-    expect(new ResolveUserPreferences()->handle(preferencesRequest(user: $user))['locale'])->toBe(config('app.locale'));
+    expect(new ResolveUserPreferences()(preferencesRequest(user: $user))['locale'])->toBe(config('app.locale'));
 });

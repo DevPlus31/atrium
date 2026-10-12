@@ -15,7 +15,7 @@ it('updates the user and syncs roles', function (): void {
     Role::findOrCreate('editor');
     $user = User::factory()->create(['name' => 'Old Name']);
 
-    $updated = resolve(UpdateUser::class)->handle(
+    $updated = resolve(UpdateUser::class)(
         user: $user,
         name: 'New Name',
         email: $user->email,
@@ -30,7 +30,7 @@ it('resets email verification and notifies when the email changes', function ():
     Notification::fake();
     $user = User::factory()->create(['email' => 'old@example.com']);
 
-    $updated = resolve(UpdateUser::class)->handle(
+    $updated = resolve(UpdateUser::class)(
         user: $user,
         name: $user->name,
         email: 'new@example.com',
@@ -47,7 +47,7 @@ it('keeps email verification when the email stays the same', function (): void {
     Notification::fake();
     $user = User::factory()->create();
 
-    $updated = resolve(UpdateUser::class)->handle(
+    $updated = resolve(UpdateUser::class)(
         user: $user,
         name: 'New Name',
         email: $user->email,
@@ -64,7 +64,7 @@ it('writes an updated activity with the old and new attributes', function (): vo
     $user = User::factory()->create(['name' => 'Old Name', 'email' => 'old@example.com']);
     $user->assignRole('editor');
 
-    resolve(UpdateUser::class)->handle(
+    resolve(UpdateUser::class)(
         user: $user,
         name: 'New Name',
         email: 'old@example.com',
@@ -90,7 +90,7 @@ it('writes an updated activity with the old and new attributes', function (): vo
 it('rolls back the transaction when syncing roles fails', function (): void {
     $user = User::factory()->create(['name' => 'Old Name']);
 
-    expect(fn (): User => resolve(UpdateUser::class)->handle(
+    expect(fn (): User => resolve(UpdateUser::class)(
         user: $user,
         name: 'New Name',
         email: $user->email,
@@ -104,7 +104,7 @@ it('rolls back the transaction when syncing roles fails', function (): void {
 it('rejects an invalid email', function (): void {
     $user = User::factory()->create(['name' => 'Old Name']);
 
-    expect(fn (): User => resolve(UpdateUser::class)->handle(
+    expect(fn (): User => resolve(UpdateUser::class)(
         user: $user,
         name: 'New Name',
         email: 'not-an-email',

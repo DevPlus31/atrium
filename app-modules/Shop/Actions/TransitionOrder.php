@@ -17,7 +17,7 @@ final readonly class TransitionOrder
         //
     }
 
-    public function handle(Order $order, OrderStatus $status): Order
+    public function __invoke(Order $order, OrderStatus $status): Order
     {
         $order = DB::transaction(function () use ($order, $status): Order {
             $order = $this->orders->lockForUpdate($order);

@@ -52,7 +52,7 @@ Explicit non-goals: no runtime plugin install/uninstall, no module dependency re
 ## Backend conventions (kit-aligned)
 
 - Controllers contain only the seven CRUD verbs. Any non-CRUD operation (publish, suspend, impersonate, export) is its own invokable single-action controller.
-- All writes go through `final readonly` Action classes with fully typed `handle()` signatures; Actions own transactions, activity logging, and event dispatch. Nothing else writes to the database.
+- All writes go through `final readonly` Action classes with fully typed, invokable `__invoke()` signatures; Actions own transactions, activity logging, and event dispatch. Nothing else writes to the database.
 - Every index page has a dedicated Query class wrapping `QueryBuilder::for(...)` with explicitly allowed filters/sorts, default sort, and a capped `per_page` (max 100). URL contract: `filter[search]`, `filter[<field>]` (CSV for multi), `sort` / `-sort`, `page`, `per_page`.
 - Every resource has: Model, Policy, `StoreXRequest`/`UpdateXRequest` (Precognition-enabled, `authorize()` via Policy), `XData` DTO with a `can` ability map per row, controller methods ≤ ~5 lines each (authorize → query/action → render/redirect with flash).
 - One-time messages go through `App\Modules\Toast::success()` / `::error()` (it wraps `Inertia::flash('toast', …)`; never session `->with()` or a shared prop); the nav registry, the current user and preferences are shared via `HandleInertiaRequests`.

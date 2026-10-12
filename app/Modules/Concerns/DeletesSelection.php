@@ -29,7 +29,7 @@ trait DeletesSelection
     {
         abort_if($records->isEmpty(), 403);
 
-        resolve(DeleteEach::class)->handle($records, $deleteOne);
+        resolve(DeleteEach::class)($records, $deleteOne);
 
         $skipped = count((array) $request->validated('ids')) - $records->count();
         $message = $deleted($records->count());

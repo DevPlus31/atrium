@@ -26,9 +26,9 @@ final readonly class UserPreferencesController
         UpdateUserPreferences $update,
         ResolveUserPreferences $resolve,
     ): RedirectResponse {
-        $update->handle($user, $request->validated());
+        $update($user, $request->validated());
 
-        $preferences = $resolve->handle($request);
+        $preferences = $resolve($request);
 
         $cookies = [
             'appearance' => $preferences['appearance']->value,

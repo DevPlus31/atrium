@@ -15,7 +15,7 @@ final readonly class PublishProductController
     #[Authorize('publish', 'product')]
     public function __invoke(Product $product, PublishProduct $action): RedirectResponse
     {
-        $action->handle($product);
+        $action($product);
 
         Toast::success(__('Product published.'));
 

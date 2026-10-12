@@ -22,7 +22,7 @@ final readonly class CreateOrder
         //
     }
 
-    public function handle(string $customerEmail, int $totalCents, string $currency): Order
+    public function __invoke(string $customerEmail, int $totalCents, string $currency): Order
     {
         $total = new Money($totalCents, $currency);
 

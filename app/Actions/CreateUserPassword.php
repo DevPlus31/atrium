@@ -16,7 +16,7 @@ final readonly class CreateUserPassword
     /**
      * @param  array<string, mixed>  $credentials
      */
-    public function handle(array $credentials, #[SensitiveParameter] string $password): mixed
+    public function __invoke(array $credentials, #[SensitiveParameter] string $password): mixed
     {
         return DB::transaction(fn (): mixed => Password::reset(
             $credentials,

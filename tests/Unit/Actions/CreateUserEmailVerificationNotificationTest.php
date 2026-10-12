@@ -16,7 +16,7 @@ it('may send email verification notification', function (): void {
 
     $action = resolve(CreateUserEmailVerificationNotification::class);
 
-    $action->handle($user);
+    $action($user);
 
     Notification::assertSentTo($user, VerifyEmail::class);
 });

@@ -33,7 +33,7 @@ final readonly class UserPasswordController
         /** @var array<string, mixed> $credentials */
         $credentials = $request->only('email', 'password', 'password_confirmation', 'token');
 
-        $status = $action->handle(
+        $status = $action(
             $credentials,
             $request->string('password')->value()
         );
@@ -52,7 +52,7 @@ final readonly class UserPasswordController
 
     public function update(UpdateUserPasswordRequest $request, #[CurrentUser] User $user, UpdateUserPassword $action): RedirectResponse
     {
-        $action->handle($user, $request->string('password')->value());
+        $action($user, $request->string('password')->value());
 
         Toast::success(__('Password updated.'));
 

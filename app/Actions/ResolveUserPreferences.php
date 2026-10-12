@@ -17,6 +17,7 @@ use App\Modules\Data\LayoutConfigData;
 use BackedEnum;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
+use NoDiscard;
 
 final readonly class ResolveUserPreferences
 {
@@ -57,7 +58,8 @@ final readonly class ResolveUserPreferences
      *
      * @return array{appearance: Appearance, theme: ThemePreset, layout: LayoutConfigData, locale: string, timezone: string|null}
      */
-    public function handle(Request $request): array
+    #[NoDiscard]
+    public function __invoke(Request $request): array
     {
         $user = $request->user();
         $user = $user instanceof User ? $user : null;

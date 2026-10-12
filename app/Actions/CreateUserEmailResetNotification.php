@@ -11,7 +11,7 @@ final readonly class CreateUserEmailResetNotification
     /**
      * @param  array<string, mixed>  $credentials
      */
-    public function handle(array $credentials): string
+    public function __invoke(array $credentials): string
     {
         return Password::sendResetLink($credentials);
     }

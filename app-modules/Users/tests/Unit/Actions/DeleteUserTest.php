@@ -9,7 +9,7 @@ use Spatie\Activitylog\Models\Activity;
 it('deletes the user', function (): void {
     $user = User::factory()->create();
 
-    resolve(DeleteUser::class)->handle($user);
+    resolve(DeleteUser::class)($user);
 
     expect(User::query()->whereKey($user->id)->exists())->toBeFalse();
 });
@@ -17,7 +17,7 @@ it('deletes the user', function (): void {
 it('writes a deleted activity with the user attributes', function (): void {
     $user = User::factory()->create(['name' => 'Jane Doe', 'email' => 'jane@example.com']);
 
-    resolve(DeleteUser::class)->handle($user);
+    resolve(DeleteUser::class)($user);
 
     $activity = Activity::query()->where('event', 'deleted')->sole();
 
@@ -35,7 +35,7 @@ it('rolls back the transaction when logging fails', function (): void {
         throw new RuntimeException('Activity log unavailable.');
     });
 
-    expect(fn () => resolve(DeleteUser::class)->handle($user))
+    expect(fn () => resolve(DeleteUser::class)($user))
         ->toThrow(RuntimeException::class);
 
     expect(User::query()->whereKey($user->id)->exists())->toBeTrue()

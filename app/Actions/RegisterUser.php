@@ -16,7 +16,7 @@ final readonly class RegisterUser
     /**
      * @param  array<string, mixed>  $attributes
      */
-    public function handle(array $attributes, #[SensitiveParameter] string $password): User
+    public function __invoke(array $attributes, #[SensitiveParameter] string $password): User
     {
         return DB::transaction(function () use ($attributes, $password): User {
             $email = $attributes['email'] ?? null;

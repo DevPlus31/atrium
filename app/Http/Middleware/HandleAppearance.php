@@ -29,7 +29,7 @@ final readonly class HandleAppearance
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $resolved = $this->preferences->handle($request);
+        $resolved = ($this->preferences)($request);
 
         app()->setLocale($resolved['locale']);
 

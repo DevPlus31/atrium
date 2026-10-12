@@ -24,7 +24,7 @@ final readonly class UserNotificationPreferencesController
 
     public function update(UpdateNotificationPreferencesRequest $request, #[CurrentUser] User $user, UpdateNotificationPreferences $action): RedirectResponse
     {
-        $action->handle($user, $request->notifyByEmail());
+        $action($user, $request->notifyByEmail());
 
         Toast::success(__('Notification settings saved.'));
 

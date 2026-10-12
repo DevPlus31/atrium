@@ -14,7 +14,7 @@ final readonly class RevokeApiToken
     /**
      * Delete the token; requests carrying it fail from now on.
      */
-    public function handle(User $user, PersonalAccessToken $token): void
+    public function __invoke(User $user, PersonalAccessToken $token): void
     {
         DB::transaction(function () use ($user, $token): void {
             $token->delete();

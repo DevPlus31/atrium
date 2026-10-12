@@ -12,7 +12,7 @@ final readonly class RemoveAvatar
     /**
      * Delete the profile photo and its thumbnail, if there is one.
      */
-    public function handle(User $user): void
+    public function __invoke(User $user): void
     {
         if (! $user->hasMedia(User::AVATAR)) {
             return;

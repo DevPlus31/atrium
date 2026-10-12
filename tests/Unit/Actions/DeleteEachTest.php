@@ -9,7 +9,7 @@ it('deletes every record through the given delete', function (): void {
     $users = User::factory()->count(2)->create();
     $kept = User::factory()->create();
 
-    resolve(DeleteEach::class)->handle($users, function (User $user): void {
+    resolve(DeleteEach::class)($users, function (User $user): void {
         $user->delete();
     });
 
@@ -19,7 +19,7 @@ it('deletes every record through the given delete', function (): void {
 it('deletes none when one of them cannot be deleted', function (): void {
     $users = User::factory()->count(2)->create();
 
-    expect(fn () => resolve(DeleteEach::class)->handle($users, function (User $user) use ($users): void {
+    expect(fn () => resolve(DeleteEach::class)($users, function (User $user) use ($users): void {
         throw_if($user->is($users->last()), RuntimeException::class, 'Kept.');
 
         $user->delete();

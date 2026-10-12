@@ -20,7 +20,7 @@ final readonly class AccountController
 {
     public function destroy(DeleteAccountRequest $request, #[CurrentUser] User $user, DeleteAccount $action): RedirectResponse
     {
-        $action->handle($user);
+        $action($user);
 
         // Not logout(): it would save the user (a fresh remember token) and
         // so bring the deleted account back.

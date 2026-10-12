@@ -44,7 +44,7 @@ final readonly class UserController
     #[Authorize('create', User::class)]
     public function store(StoreUserRequest $request, CreateUser $action): RedirectResponse
     {
-        $action->handle(
+        $action(
             name: $request->name(),
             email: $request->email(),
             password: $request->password(),
@@ -68,7 +68,7 @@ final readonly class UserController
     #[Authorize('update', 'user')]
     public function update(UpdateUserRequest $request, User $user, UpdateUser $action): RedirectResponse
     {
-        $action->handle(
+        $action(
             user: $user,
             name: $request->name(),
             email: $request->email(),
@@ -83,7 +83,7 @@ final readonly class UserController
     #[Authorize('delete', 'user')]
     public function destroy(User $user, DeleteUser $action): RedirectResponse
     {
-        $action->handle($user);
+        $action($user);
 
         Toast::success(__('User deleted.'));
 

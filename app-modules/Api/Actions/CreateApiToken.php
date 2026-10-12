@@ -9,6 +9,7 @@ use App\Modules\AuditLog;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
 use Laravel\Sanctum\NewAccessToken;
+use NoDiscard;
 
 final readonly class CreateApiToken
 {
@@ -18,7 +19,8 @@ final readonly class CreateApiToken
      *
      * @param  list<string>  $abilities
      */
-    public function handle(User $user, string $name, array $abilities, CarbonInterface $expiresAt): NewAccessToken
+    #[NoDiscard('the plain-text token exists only in the returned object')]
+    public function __invoke(User $user, string $name, array $abilities, CarbonInterface $expiresAt): NewAccessToken
     {
         return DB::transaction(function () use ($user, $name, $abilities, $expiresAt): NewAccessToken {
             $token = $user->createToken($name, $abilities, $expiresAt);

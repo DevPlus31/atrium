@@ -22,7 +22,7 @@ final readonly class CreateUser
     /**
      * @param  list<string>  $roles
      */
-    public function handle(string $name, string $email, #[SensitiveParameter] string $password, array $roles, bool $verified = false): User
+    public function __invoke(string $name, string $email, #[SensitiveParameter] string $password, array $roles, bool $verified = false): User
     {
         $email = (string) new Email($email);
 

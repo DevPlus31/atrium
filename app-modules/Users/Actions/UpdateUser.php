@@ -20,7 +20,7 @@ final readonly class UpdateUser
     /**
      * @param  list<string>  $roles
      */
-    public function handle(User $user, string $name, string $email, array $roles): User
+    public function __invoke(User $user, string $name, string $email, array $roles): User
     {
         $email = (string) new Email($email);
 

@@ -40,7 +40,7 @@ final readonly class ProductController
     #[Authorize('create', Product::class)]
     public function store(StoreProductRequest $request, CreateProduct $action): RedirectResponse
     {
-        $action->handle(
+        $action(
             name: $request->name(),
             sku: $request->sku(),
             priceCents: $request->priceCents(),
@@ -64,7 +64,7 @@ final readonly class ProductController
     #[Authorize('update', 'product')]
     public function update(UpdateProductRequest $request, Product $product, UpdateProduct $action): RedirectResponse
     {
-        $action->handle(
+        $action(
             product: $product,
             name: $request->name(),
             sku: $request->sku(),
@@ -81,7 +81,7 @@ final readonly class ProductController
     #[Authorize('delete', 'product')]
     public function destroy(Product $product, DeleteProduct $action): RedirectResponse
     {
-        $action->handle($product);
+        $action($product);
 
         Toast::success(__('Product deleted.'));
 

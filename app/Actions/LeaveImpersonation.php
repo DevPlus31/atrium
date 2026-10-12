@@ -19,7 +19,7 @@ final readonly class LeaveImpersonation
      * Restore the impersonator's session and record the real admin as the
      * causer, with the impersonated user as the subject.
      */
-    public function handle(User $impersonated): void
+    public function __invoke(User $impersonated): void
     {
         $impersonator = $this->manager->getImpersonator();
 

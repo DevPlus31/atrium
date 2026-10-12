@@ -35,7 +35,7 @@ final readonly class ApiTokenController
      */
     public function store(CreateApiTokenRequest $request, #[CurrentUser] User $user, CreateApiToken $action): RedirectResponse
     {
-        $token = $action->handle(
+        $token = $action(
             $user,
             $request->name(),
             $request->abilities(),
@@ -49,7 +49,7 @@ final readonly class ApiTokenController
 
     public function destroy(#[CurrentUser] User $user, string $token, RevokeApiToken $action): RedirectResponse
     {
-        $action->handle($user, $user->tokens()->findOrFail($token));
+        $action($user, $user->tokens()->findOrFail($token));
 
         Toast::success(__('Token revoked.'));
 

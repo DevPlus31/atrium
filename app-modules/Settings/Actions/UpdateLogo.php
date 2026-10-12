@@ -16,7 +16,7 @@ final readonly class UpdateLogo
      * Store the new logo under a fresh name (so caches never serve the old
      * one), point the settings at it and delete the previous file.
      */
-    public function handle(GeneralSettings $settings, UploadedFile $logo): void
+    public function __invoke(GeneralSettings $settings, UploadedFile $logo): void
     {
         $disk = Storage::disk(Config::string('media-library.disk_name'));
         $previous = $settings->logo_path;

@@ -25,7 +25,7 @@ final readonly class DeleteUsersController
         $this->deleteSelection(
             $request,
             $request->users(),
-            $deleteUser->handle(...),
+            $deleteUser(...),
             static fn (int $count): string => trans_choice(':count user deleted.|:count users deleted.', $count),
         );
 

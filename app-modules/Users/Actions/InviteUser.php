@@ -26,7 +26,7 @@ final readonly class InviteUser
      *
      * @param  list<string>  $roles
      */
-    public function handle(User $inviter, string $email, array $roles): Invitation
+    public function __invoke(User $inviter, string $email, array $roles): Invitation
     {
         $email = new Email($email);
 

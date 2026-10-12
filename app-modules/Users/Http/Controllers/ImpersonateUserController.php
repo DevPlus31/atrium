@@ -22,7 +22,7 @@ final readonly class ImpersonateUserController
 
         abort_unless($admin instanceof User && ! $manager->isImpersonating(), 403);
 
-        if (! $action->handle($admin, $user)) {
+        if (! $action($admin, $user)) {
             Toast::error(__('Unable to impersonate :name.', ['name' => $user->name]));
 
             return back();

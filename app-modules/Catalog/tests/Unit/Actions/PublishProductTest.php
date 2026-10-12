@@ -14,7 +14,7 @@ it('publishes a draft product and dispatches the domain event after commit', fun
 
     $product = Product::factory()->create(['sku' => 'WIDGET-01']);
 
-    $published = resolve(PublishProduct::class)->handle($product);
+    $published = resolve(PublishProduct::class)($product);
 
     expect($published->published_at)->not->toBeNull()
         ->and(Activity::query()->where('event', 'published')->exists())->toBeTrue();
@@ -30,7 +30,7 @@ it('rolls back and dispatches nothing when the product is already published', fu
 
     $product = Product::factory()->published()->create();
 
-    expect(fn (): Product => resolve(PublishProduct::class)->handle($product))
+    expect(fn (): Product => resolve(PublishProduct::class)($product))
         ->toThrow(ProductAlreadyPublished::class);
 
     Event::assertNotDispatched(ProductPublished::class);
@@ -42,7 +42,7 @@ it('publishes only once even when a stale copy asks again', function (): void {
     $product = Product::factory()->create();
     $stale = Product::query()->findOrFail($product->id);
 
-    resolve(PublishProduct::class)->handle($product);
+    resolve(PublishProduct::class)($product);
 
-    expect(fn () => resolve(PublishProduct::class)->handle($stale))->toThrow(ProductAlreadyPublished::class);
+    expect(fn () => resolve(PublishProduct::class)($stale))->toThrow(ProductAlreadyPublished::class);
 });

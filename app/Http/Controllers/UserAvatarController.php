@@ -16,7 +16,7 @@ final readonly class UserAvatarController
 {
     public function update(UpdateAvatarRequest $request, #[CurrentUser] User $user, UpdateAvatar $action): RedirectResponse
     {
-        $action->handle($user, $request->photo());
+        $action($user, $request->photo());
 
         Toast::success(__('Photo updated.'));
 
@@ -25,7 +25,7 @@ final readonly class UserAvatarController
 
     public function destroy(#[CurrentUser] User $user, RemoveAvatar $action): RedirectResponse
     {
-        $action->handle($user);
+        $action($user);
 
         Toast::success(__('Photo removed.'));
 

@@ -23,7 +23,7 @@ it('invites someone and emails the link', function (): void {
     Notification::fake();
     $inviter = User::factory()->create();
 
-    $invitation = resolve(InviteUser::class)->handle($inviter, ' Grace@Example.com ', ['admin']);
+    $invitation = resolve(InviteUser::class)($inviter, ' Grace@Example.com ', ['admin']);
 
     expect($invitation->email)->toBe('grace@example.com')
         ->and($invitation->roles)->toBe(['admin'])
@@ -41,7 +41,7 @@ it('resends an invitation with a fresh expiry', function (): void {
     Notification::fake();
     $invitation = Invitation::factory()->create(['expires_at' => now()->addHour()]);
 
-    resolve(ResendInvitation::class)->handle($invitation);
+    resolve(ResendInvitation::class)($invitation);
 
     expect($invitation->refresh()->expires_at->toIso8601String())->toBe(now()->addDays(Invitation::LIFETIME_DAYS)->toIso8601String());
 
@@ -51,7 +51,7 @@ it('resends an invitation with a fresh expiry', function (): void {
 it('revokes an invitation', function (): void {
     $invitation = Invitation::factory()->create();
 
-    resolve(RevokeInvitation::class)->handle($invitation);
+    resolve(RevokeInvitation::class)($invitation);
 
     expect(Invitation::query()->exists())->toBeFalse()
         ->and(Activity::query()->where('event', 'invitation-revoked')->exists())->toBeTrue();
@@ -68,7 +68,7 @@ it('creates the verified account with the roles that still exist and tells the i
         'invited_by' => $inviter->id,
     ]);
 
-    $user = resolve(AcceptInvitation::class)->handle($invitation, 'Grace Hopper', 'correct horse battery staple');
+    $user = resolve(AcceptInvitation::class)($invitation, 'Grace Hopper', 'correct horse battery staple');
 
     expect($user->email)->toBe('grace@example.com')
         ->and($user->hasVerifiedEmail())->toBeTrue()
@@ -82,10 +82,10 @@ it('accepts an invitation only once, creating no second account', function (): v
     $invitation = Invitation::factory()->create(['email' => 'grace@example.com']);
     $stale = Invitation::query()->findOrFail($invitation->id);
 
-    resolve(AcceptInvitation::class)->handle($invitation, 'Grace Hopper', 'correct horse battery staple');
+    resolve(AcceptInvitation::class)($invitation, 'Grace Hopper', 'correct horse battery staple');
 
     // A second request still holding the old copy is caught under the lock.
-    expect(fn () => resolve(AcceptInvitation::class)->handle($stale, 'Grace Again', 'correct horse battery staple'))
+    expect(fn () => resolve(AcceptInvitation::class)($stale, 'Grace Again', 'correct horse battery staple'))
         ->toThrow(InvitationNotPending::class);
 
     expect(User::query()->where('email', 'grace@example.com')->count())->toBe(1);
@@ -94,7 +94,7 @@ it('accepts an invitation only once, creating no second account', function (): v
 it('cannot resend an accepted invitation', function (): void {
     $invitation = Invitation::factory()->accepted()->create();
 
-    expect(fn () => resolve(ResendInvitation::class)->handle($invitation))->toThrow(InvitationAlreadyAccepted::class);
+    expect(fn () => resolve(ResendInvitation::class)($invitation))->toThrow(InvitationAlreadyAccepted::class);
 });
 
 it('grants only the roles the inviter may still grant', function (): void {
@@ -106,7 +106,7 @@ it('grants only the roles the inviter may still grant', function (): void {
         'invited_by' => $inviter->id,
     ]);
 
-    $user = resolve(AcceptInvitation::class)->handle($invitation, 'Grace', 'correct horse battery staple');
+    $user = resolve(AcceptInvitation::class)($invitation, 'Grace', 'correct horse battery staple');
 
     expect($user->getRoleNames()->all())->toBe([User::PANEL_ROLE]);
 });
@@ -119,7 +119,7 @@ it('grants no role once the inviter may no longer invite, or is gone', function 
         'invited_by' => $inviterRemains ? $inviter->id : null,
     ]);
 
-    $user = resolve(AcceptInvitation::class)->handle($invitation, 'Grace', 'correct horse battery staple');
+    $user = resolve(AcceptInvitation::class)($invitation, 'Grace', 'correct horse battery staple');
 
     expect($user->getRoleNames()->all())->toBe([]);
 })->with(['inviter lost the right' => true, 'inviter deleted' => false]);
@@ -128,7 +128,7 @@ it('refuses to accept for an address that got an account meanwhile', function ()
     $invitation = Invitation::factory()->create(['email' => 'grace@example.com']);
     User::factory()->create(['email' => 'grace@example.com']);
 
-    expect(fn () => resolve(AcceptInvitation::class)->handle($invitation, 'Grace', 'correct horse battery staple'))
+    expect(fn () => resolve(AcceptInvitation::class)($invitation, 'Grace', 'correct horse battery staple'))
         ->toThrow(AccountAlreadyExists::class, 'An account with the email [grace@example.com] already exists.');
 
     expect($invitation->refresh()->accepted_at)->toBeNull();
@@ -141,8 +141,8 @@ it('refuses to invite an existing account or invite twice', function (): void {
     Invitation::factory()->create(['email' => 'pending@example.com']);
     $action = resolve(InviteUser::class);
 
-    expect(fn () => $action->handle($inviter, 'member@example.com', []))->toThrow(AccountAlreadyExists::class)
-        ->and(fn () => $action->handle($inviter, 'pending@example.com', []))->toThrow(InvitationAlreadyPending::class, '[pending@example.com] already has a pending invitation.');
+    expect(fn () => $action($inviter, 'member@example.com', []))->toThrow(AccountAlreadyExists::class)
+        ->and(fn () => $action($inviter, 'pending@example.com', []))->toThrow(InvitationAlreadyPending::class, '[pending@example.com] already has a pending invitation.');
 
     Notification::assertNothingSent();
 });

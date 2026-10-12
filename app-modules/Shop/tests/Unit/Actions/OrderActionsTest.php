@@ -22,7 +22,7 @@ use Spatie\Activitylog\Models\Activity;
 it('places an order, logs it and dispatches the event after commit', function (): void {
     Event::fake([OrderPlaced::class]);
 
-    $order = resolve(CreateOrder::class)->handle('jane@example.com', 4200, 'usd');
+    $order = resolve(CreateOrder::class)('jane@example.com', 4200, 'usd');
 
     expect($order->exists)->toBeTrue()
         ->and($order->number)->toMatch(OrderNumber::PATTERN)
@@ -35,7 +35,7 @@ it('places an order, logs it and dispatches the event after commit', function ()
 });
 
 it('rejects an invalid total before writing anything', function (): void {
-    expect(fn () => resolve(CreateOrder::class)->handle('jane@example.com', -1, 'USD'))
+    expect(fn () => resolve(CreateOrder::class)('jane@example.com', -1, 'USD'))
         ->toThrow(InvalidMoneyException::class)
         ->and(Order::query()->count())->toBe(0);
 });
@@ -43,7 +43,7 @@ it('rejects an invalid total before writing anything', function (): void {
 it('updates a pending order', function (): void {
     $order = Order::factory()->create();
 
-    resolve(UpdateOrder::class)->handle($order, 'new@example.com', 999, 'eur');
+    resolve(UpdateOrder::class)($order, 'new@example.com', 999, 'eur');
 
     expect($order->refresh()->customer_email)->toBe('new@example.com')
         ->and($order->total_cents)->toBe(999)
@@ -54,7 +54,7 @@ it('updates a pending order', function (): void {
 it('refuses to edit an order after payment', function (): void {
     $order = Order::factory()->paid()->create(['customer_email' => 'old@example.com']);
 
-    expect(fn () => resolve(UpdateOrder::class)->handle($order, 'new@example.com', 1, 'USD'))
+    expect(fn () => resolve(UpdateOrder::class)($order, 'new@example.com', 1, 'USD'))
         ->toThrow(OrderNotEditable::class)
         ->and($order->refresh()->customer_email)->toBe('old@example.com');
 });
@@ -63,7 +63,7 @@ it('moves an order along its workflow, logging and dispatching after commit', fu
     Event::fake([OrderStatusChanged::class]);
     $order = Order::factory()->create();
 
-    resolve(TransitionOrder::class)->handle($order, OrderStatus::Paid);
+    resolve(TransitionOrder::class)($order, OrderStatus::Paid);
 
     expect($order->refresh()->status)->toBe(OrderStatus::Paid)
         ->and(Activity::query()->where('event', 'status-changed')->sole()->getProperty('attributes'))
@@ -76,7 +76,7 @@ it('rejects a transition outside the workflow without side effects', function ()
     Event::fake([OrderStatusChanged::class]);
     $order = Order::factory()->shipped()->create();
 
-    expect(fn () => resolve(TransitionOrder::class)->handle($order, OrderStatus::Cancelled))
+    expect(fn () => resolve(TransitionOrder::class)($order, OrderStatus::Cancelled))
         ->toThrow(InvalidOrderTransition::class)
         ->and($order->refresh()->status)->toBe(OrderStatus::Shipped)
         ->and(Activity::query()->where('event', 'status-changed')->exists())->toBeFalse();
@@ -87,7 +87,7 @@ it('rejects a transition outside the workflow without side effects', function ()
 it('deletes an order and logs its number', function (): void {
     $order = Order::factory()->create();
 
-    resolve(DeleteOrder::class)->handle($order);
+    resolve(DeleteOrder::class)($order);
 
     expect(Order::query()->count())->toBe(0)
         ->and(Activity::query()->where('event', 'deleted')->sole()->getProperty('attributes'))
@@ -97,7 +97,7 @@ it('deletes an order and logs its number', function (): void {
 it('refuses to delete a paid or shipped order', function (string $state): void {
     $order = Order::factory()->{$state}()->create();
 
-    expect(fn () => resolve(DeleteOrder::class)->handle($order))
+    expect(fn () => resolve(DeleteOrder::class)($order))
         ->toThrow(OrderNotDeletable::class)
         ->and(Order::query()->whereKey($order->getKey())->exists())->toBeTrue()
         ->and(Activity::query()->where('event', 'deleted')->exists())->toBeFalse();
@@ -108,9 +108,9 @@ it('checks the workflow against the stored order, not a stale copy', function (s
     Order::query()->whereKey($stale->getKey())->update(['status' => OrderStatus::Shipped->value, 'shipped_at' => now()]);
 
     $attempt = match ($action) {
-        'transition' => fn () => resolve(TransitionOrder::class)->handle($stale, OrderStatus::Paid),
-        'update' => fn () => resolve(UpdateOrder::class)->handle($stale, 'new@example.com', 1, 'USD'),
-        'delete' => fn () => resolve(DeleteOrder::class)->handle($stale),
+        'transition' => fn () => resolve(TransitionOrder::class)($stale, OrderStatus::Paid),
+        'update' => fn () => resolve(UpdateOrder::class)($stale, 'new@example.com', 1, 'USD'),
+        'delete' => fn () => resolve(DeleteOrder::class)($stale),
     };
 
     expect($attempt)->toThrow(match ($action) {
@@ -132,10 +132,10 @@ it('rolls back and dispatches nothing when the audit log fails', function (strin
     });
 
     $attempt = match ($action) {
-        'create' => fn () => resolve(CreateOrder::class)->handle('new@example.com', 100, 'USD'),
-        'update' => fn () => resolve(UpdateOrder::class)->handle($order, 'changed@example.com', 1, 'USD'),
-        'transition' => fn () => resolve(TransitionOrder::class)->handle($order, OrderStatus::Paid),
-        'delete' => fn () => resolve(DeleteOrder::class)->handle($order),
+        'create' => fn () => resolve(CreateOrder::class)('new@example.com', 100, 'USD'),
+        'update' => fn () => resolve(UpdateOrder::class)($order, 'changed@example.com', 1, 'USD'),
+        'transition' => fn () => resolve(TransitionOrder::class)($order, OrderStatus::Paid),
+        'delete' => fn () => resolve(DeleteOrder::class)($order),
     };
 
     expect($attempt)->toThrow(RuntimeException::class, 'Activity log unavailable.');
@@ -150,9 +150,9 @@ it('rolls back and dispatches nothing when the audit log fails', function (strin
 
 it('retries with a fresh number when the generated one is taken', function (): void {
     Str::createRandomStringsUsingSequence(['TAKEN1', 'TAKEN1', 'FRESH2']);
-    $existing = resolve(CreateOrder::class)->handle('first@example.com', 100, 'USD');
+    $existing = resolve(CreateOrder::class)('first@example.com', 100, 'USD');
 
-    $order = resolve(CreateOrder::class)->handle('second@example.com', 200, 'USD');
+    $order = resolve(CreateOrder::class)('second@example.com', 200, 'USD');
 
     expect($existing->number)->toEndWith('-TAKEN1')
         ->and($order->number)->toEndWith('-FRESH2')
@@ -162,7 +162,7 @@ it('retries with a fresh number when the generated one is taken', function (): v
 it('stores a revised customer email lowercased', function (): void {
     $order = Order::factory()->create();
 
-    resolve(UpdateOrder::class)->handle($order, ' New@Example.COM ', 100, 'USD');
+    resolve(UpdateOrder::class)($order, ' New@Example.COM ', 100, 'USD');
 
     expect($order->refresh()->customer_email)->toBe('new@example.com');
 });

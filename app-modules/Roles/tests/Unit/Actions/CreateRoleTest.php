@@ -11,7 +11,7 @@ use Spatie\Permission\Models\Role;
 it('creates a role with synced permissions', function (): void {
     Permission::findOrCreate('users.view');
 
-    $role = resolve(CreateRole::class)->handle(name: 'editor', permissions: ['users.view']);
+    $role = resolve(CreateRole::class)(name: 'editor', permissions: ['users.view']);
 
     expect($role->name)->toBe('editor')
         ->and($role->hasPermissionTo('users.view'))->toBeTrue();
@@ -20,7 +20,7 @@ it('creates a role with synced permissions', function (): void {
 it('writes a created activity with the given attributes', function (): void {
     Permission::findOrCreate('users.view');
 
-    $role = resolve(CreateRole::class)->handle(name: 'editor', permissions: ['users.view']);
+    $role = resolve(CreateRole::class)(name: 'editor', permissions: ['users.view']);
 
     $activity = Activity::query()->where('event', 'created')->sole();
 
@@ -33,7 +33,7 @@ it('writes a created activity with the given attributes', function (): void {
 });
 
 it('rolls back the transaction when syncing permissions fails', function (): void {
-    expect(fn (): Role => resolve(CreateRole::class)->handle(name: 'editor', permissions: ['missing.permission']))
+    expect(fn (): Role => resolve(CreateRole::class)(name: 'editor', permissions: ['missing.permission']))
         ->toThrow(PermissionDoesNotExist::class);
 
     expect(Role::query()->where('name', 'editor')->exists())->toBeFalse()

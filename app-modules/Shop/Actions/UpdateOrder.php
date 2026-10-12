@@ -17,7 +17,7 @@ final readonly class UpdateOrder
         //
     }
 
-    public function handle(Order $order, string $customerEmail, int $totalCents, string $currency): Order
+    public function __invoke(Order $order, string $customerEmail, int $totalCents, string $currency): Order
     {
         $total = new Money($totalCents, $currency);
 

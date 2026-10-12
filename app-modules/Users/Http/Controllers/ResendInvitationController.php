@@ -16,7 +16,7 @@ final readonly class ResendInvitationController
     #[Authorize('create', User::class)]
     public function __invoke(Invitation $invitation, ResendInvitation $action): RedirectResponse
     {
-        $action->handle($invitation);
+        $action($invitation);
 
         Toast::success(__('Invitation sent again to :email.', ['email' => $invitation->email]));
 

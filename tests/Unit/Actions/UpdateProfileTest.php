@@ -15,7 +15,7 @@ it('may update a user', function (): void {
 
     $action = resolve(UpdateProfile::class);
 
-    $action->handle($user, [
+    $action($user, [
         'name' => 'New Name',
     ]);
 
@@ -35,7 +35,7 @@ it('resets email verification and sends notification when email changes', functi
 
     $action = resolve(UpdateProfile::class);
 
-    $action->handle($user, [
+    $action($user, [
         'email' => 'new@email.com',
     ]);
 
@@ -57,7 +57,7 @@ it('keeps email verification and does not send notification when email stays the
 
     $action = resolve(UpdateProfile::class);
 
-    $action->handle($user, [
+    $action($user, [
         'email' => 'same@email.com',
         'name' => 'Updated Name',
     ]);

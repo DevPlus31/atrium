@@ -25,7 +25,7 @@ final readonly class DeleteOrdersController
         $this->deleteSelection(
             $request,
             $request->orders(),
-            $deleteOrder->handle(...),
+            $deleteOrder(...),
             static fn (int $count): string => trans_choice(':count order deleted.|:count orders deleted.', $count),
         );
 

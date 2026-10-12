@@ -9,7 +9,7 @@ use Spatie\Activitylog\Models\Activity;
 it('deletes a product and logs the activity', function (): void {
     $product = Product::factory()->create(['name' => 'Widget', 'sku' => 'WIDGET-01']);
 
-    resolve(DeleteProduct::class)->handle($product);
+    resolve(DeleteProduct::class)($product);
 
     expect(Product::query()->whereKey($product->id)->exists())->toBeFalse();
 

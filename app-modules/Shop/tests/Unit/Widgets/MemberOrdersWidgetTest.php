@@ -48,7 +48,7 @@ it('is empty for a member without orders', function (): void {
 
 it('finds orders placed with differently cased email addresses', function (): void {
     $user = User::factory()->create(['email' => 'jane@example.com']);
-    resolve(CreateOrder::class)->handle(' Jane@Example.COM ', 100, 'USD');
+    resolve(CreateOrder::class)(' Jane@Example.COM ', 100, 'USD');
 
     expect(new MemberOrdersWidget()($user)->total)->toBe(1)
         ->and(Order::query()->sole()->customer_email)->toBe('jane@example.com');

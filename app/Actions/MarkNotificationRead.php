@@ -8,7 +8,7 @@ use Illuminate\Notifications\DatabaseNotification;
 
 final readonly class MarkNotificationRead
 {
-    public function handle(DatabaseNotification $notification): void
+    public function __invoke(DatabaseNotification $notification): void
     {
         $notification->markAsRead();
     }

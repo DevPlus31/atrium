@@ -17,7 +17,7 @@ it('creates a user with a hashed password and synced roles', function (): void {
     Role::findOrCreate('editor');
     Event::fake([Registered::class]);
 
-    $user = resolve(CreateUser::class)->handle(
+    $user = resolve(CreateUser::class)(
         name: 'Jane Doe',
         email: 'jane@example.com',
         password: 'super-secret-password',
@@ -35,14 +35,14 @@ it('creates a user with a hashed password and synced roles', function (): void {
 it('creates an unverified user by default and a verified one on demand', function (): void {
     Role::findOrCreate('editor');
 
-    $unverified = resolve(CreateUser::class)->handle(
+    $unverified = resolve(CreateUser::class)(
         name: 'Jane Doe',
         email: 'jane@example.com',
         password: 'super-secret-password',
         roles: ['editor'],
     );
 
-    $verified = resolve(CreateUser::class)->handle(
+    $verified = resolve(CreateUser::class)(
         name: 'John Doe',
         email: 'john@example.com',
         password: 'super-secret-password',
@@ -57,7 +57,7 @@ it('creates an unverified user by default and a verified one on demand', functio
 it('writes a created activity with the given attributes', function (): void {
     Role::findOrCreate('editor');
 
-    $user = resolve(CreateUser::class)->handle(
+    $user = resolve(CreateUser::class)(
         name: 'Jane Doe',
         email: 'jane@example.com',
         password: 'super-secret-password',
@@ -76,7 +76,7 @@ it('writes a created activity with the given attributes', function (): void {
 });
 
 it('rolls back the transaction when syncing roles fails', function (): void {
-    expect(fn (): User => resolve(CreateUser::class)->handle(
+    expect(fn (): User => resolve(CreateUser::class)(
         name: 'Jane Doe',
         email: 'jane@example.com',
         password: 'super-secret-password',
@@ -88,7 +88,7 @@ it('rolls back the transaction when syncing roles fails', function (): void {
 });
 
 it('rejects an invalid email before creating anything', function (): void {
-    expect(fn (): User => resolve(CreateUser::class)->handle(
+    expect(fn (): User => resolve(CreateUser::class)(
         name: 'Jane Doe',
         email: 'not-an-email',
         password: 'super-secret-password',
@@ -103,7 +103,7 @@ it('announces the new account only once it is committed', function (): void {
 
     try {
         DB::transaction(function (): void {
-            resolve(CreateUser::class)->handle('Rolled Back', 'rolled@example.com', 'password', []);
+            resolve(CreateUser::class)('Rolled Back', 'rolled@example.com', 'password', []);
 
             throw new RuntimeException('Something later failed.');
         });
@@ -114,7 +114,7 @@ it('announces the new account only once it is committed', function (): void {
     Event::assertNotDispatched(Registered::class);
     expect(User::query()->where('email', 'rolled@example.com')->exists())->toBeFalse();
 
-    resolve(CreateUser::class)->handle('Kept', 'kept@example.com', 'password', []);
+    resolve(CreateUser::class)('Kept', 'kept@example.com', 'password', []);
 
     Event::assertDispatched(Registered::class);
 });

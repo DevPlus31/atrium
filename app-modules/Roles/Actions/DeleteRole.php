@@ -18,7 +18,7 @@ final readonly class DeleteRole
         //
     }
 
-    public function handle(Role $role): void
+    public function __invoke(Role $role): void
     {
         DB::transaction(function () use ($role): void {
             $role = $this->roles->lockForUpdate($role);
