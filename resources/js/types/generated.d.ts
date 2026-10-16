@@ -6,6 +6,7 @@ declare namespace App {
         export type ConsentCategory = 'analytics' | 'marketing';
         export type ContentWidth = 'fluid' | 'boxed';
         export type Direction = 'ltr' | 'rtl';
+        export type DistanceUnit = 'km' | 'mi';
         export type HeaderMode = 'sticky' | 'static';
         export type LegalDocument = 'terms' | 'privacy' | 'cookies';
         export type NavPlacement = 'sidebar-left' | 'sidebar-right' | 'topbar';
@@ -28,6 +29,12 @@ declare namespace App {
                 avatar: string | null;
                 created_at: string;
                 updated_at: string;
+            };
+            export type BusinessData = {
+                timezone: string;
+                locale: string;
+                currency: string;
+                distance_unit: App.Enums.DistanceUnit;
             };
             export type ConsentCategoryData = {
                 value: App.Enums.ConsentCategory;

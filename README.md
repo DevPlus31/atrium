@@ -283,6 +283,8 @@ How access is decided:
 | `App\Rules\AccountRules::name\|email\|password\|roles()`, `ValidEmail::rules()`, `Money::currencyRules()` | The rule sets for account fields, any email field and any currency code |
 | `App\Modules\RoleOptions::roleNames\|permissionNames()` | Sorted role and permission names for forms |
 | `User::PANEL_ROLE`, `User::SUPER_ADMIN_ROLE` | The role names; never write `'admin'` / `'super-admin'` |
+| `App\Modules\Format::money(int $minorUnits, ?string $currency)`, `::percent(float $ratio)`, `::distance(float $km)` | Figures in the business's regional format, currency and distance unit (Settings → Business), for emails, notifications and exports |
+| `App\Modules\BusinessTime::toUtc()`, `::fromUtc()`, `::now()`, `::dayInUtc()` | Between the business clock and UTC (the only zone stored): read typed business times, show stored instants, query a business day (`whereBetween('created_at', BusinessTime::dayInUtc())`) |
 | `App\Modules\IndexQuery::whereLikeAny()` / `App\Modules\TextSearch::whereLikeAny()` | Case-insensitive "any of these columns contains the term" (index filters, command-palette searchers) |
 | `App\Modules\Data\SearchResultData::forRecord()` | A command-palette result linking to the edit page, or to the filtered list without `update` |
 | `App\Domain\ValueObjects\Email::normalize()`, `Money::normalizeCurrency()` | The one place an email or a currency code is trimmed and cased |
@@ -307,6 +309,8 @@ How access is decided:
 | `components/badge-list` → `BadgeList`; `user-info` → `UserInfo` | Badges with "+N more"; avatar with name and email |
 | `components/empty-state` → `EmptyState`; `widget-card` → `WidgetCard`; `item-list` → `ItemList`/`ItemRow` | Empty messages (optional icon); dashboard widget cards; bordered record lists with " · "-joined details |
 | `components/mark-all-read-button` → `MarkAllReadButton` | Marks every notification read (bell and notifications page) |
+| `components/combobox-field` → `ComboboxField` | A labelled, searchable dropdown for long lists (time zones, currencies) |
+| `hooks/use-consent` → `useConsent()` (`allows(category)`) | Whether the visitor allows an optional cookie category; load analytics or ads only behind it |
 | `lib/utils` → `handleSubmit(submit)`; `hooks/use-breadcrumbs` → `useBreadcrumbs(...items)` | `onSubmit` that prevents the default; the page's breadcrumb trail, inline |
 
 | Tests (`tests/Pest.php`) | What it does |
@@ -319,7 +323,8 @@ How access is decided:
 
 **Shared Inertia props** (typed in `resources/js/types/global.d.ts`):
 - the user: `auth.user`, `impersonation`;
-- localisation: `locale`, `locales`, `timezone`;
+- localisation: `locale`, `locales`, `timezone`, `business` (timezone, regional format, currency, distance unit);
+- privacy: `consent` (read it through `useConsent()`);
 - navigation: `nav`, `settingsNav`;
 - theming: `layout`, `theme`, `appearance`;
 - branding: `logo`, `supportEmail`;
@@ -448,7 +453,10 @@ After a change, check light and dark, each preset, `rtl`, and the `topbar` layou
   2. Add `lang/<code>/*.php`; start from the French ones.
   3. Register the locale in `config/app.php` under `available_locales`.
   4. Translate the legal documents into `resources/legal/<code>/` (until then they show in the fallback language).
-- **Formatting:** dates, numbers and money go through `useFormatters()`, in the user's locale and timezone.
+- **Formatting:** everything goes through `useFormatters()` (`Format` on the server).
+  - Dates follow the user's language and timezone.
+  - Figures follow the business (admin **Settings → Business**), so they read the same for everyone: `money(minorUnits, currency?)` (the business currency by default), `percent(ratio)` (`0.125` → "12.5%"), `distance(km)` (in the business unit) and `number(value)`.
+  - Times on the business clock: `businessToUtc()` / `utcToBusiness()` in `@/lib/format`, `BusinessTime` in PHP.
 
 ## Testing and quality gates (all must pass)
 
@@ -523,6 +531,7 @@ php artisan test --compact app-modules/Catalog/tests/Feature/ProductControllerTe
 5. **First admin:** `docker compose --env-file .env.production -f docker-compose.prod.yml exec app php artisan admin:create-user`.
 6. **Before going live:**
    - Decide on public sign-up (admin **Settings → General**, open by default).
+   - Set the business timezone, regional format, currency and distance unit (admin **Settings → Business**).
    - Fill in and have a lawyer review `resources/legal/*/*.md`, and set `config/privacy.php` (consent categories, terms version, retention).
    - Remove the example modules (see "Using Atrium as a template").
    - Decide on tenancy.

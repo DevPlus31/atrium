@@ -320,5 +320,7 @@
     "terms-accepted": "Terms accepted",
     "personal-data-exported": "Personal data exported",
     "personal-data-erased": "Personal data erased",
-    "retention-pruned": "Expired data deleted"
+    "retention-pruned": "Expired data deleted",
+    "Kilometres": "Kilometres",
+    "Miles": "Miles"
 }

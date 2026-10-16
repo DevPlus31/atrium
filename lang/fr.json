@@ -320,5 +320,7 @@
     "terms-accepted": "Conditions acceptées",
     "personal-data-exported": "Données personnelles exportées",
     "personal-data-erased": "Données personnelles effacées",
-    "retention-pruned": "Données expirées supprimées"
+    "retention-pruned": "Données expirées supprimées",
+    "Kilometres": "Kilomètres",
+    "Miles": "Miles"
 }

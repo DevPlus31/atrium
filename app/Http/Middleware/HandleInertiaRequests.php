@@ -10,10 +10,12 @@ use App\Enums\Area;
 use App\Models\User;
 use App\Modules\Data\AnnouncementData;
 use App\Modules\Data\AuthUserData;
+use App\Modules\Data\BusinessData;
 use App\Modules\Data\ImpersonationData;
 use App\Modules\Data\NotificationData;
 use App\Modules\NavRegistry;
 use App\Settings\AnnouncementSettings;
+use App\Settings\BusinessSettings;
 use App\Settings\GeneralSettings;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -38,6 +40,7 @@ final class HandleInertiaRequests extends Middleware
         private readonly GeneralSettings $settings,
         private readonly AnnouncementSettings $announcement,
         private readonly ResolveConsent $consent,
+        private readonly BusinessSettings $business,
     ) {
         //
     }
@@ -72,6 +75,7 @@ final class HandleInertiaRequests extends Middleware
             'supportEmail' => $this->settings->support_email,
             'announcement' => $this->announcement($request),
             'consent' => ($this->consent)($request),
+            'business' => BusinessData::fromSettings($this->business),
             'unreadNotifications' => fn (): int => $user instanceof User ? $user->unreadNotifications()->count() : 0,
             // Loaded only when the bell opens (a partial reload asks for it).
             'recentNotifications' => Inertia::optional(fn (): array => $user instanceof User ? $this->recentNotifications($user) : []),

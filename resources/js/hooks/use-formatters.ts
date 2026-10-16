@@ -6,13 +6,15 @@ import type { Formatters } from '@/lib/format';
 const noSubscription = (): (() => void) => () => {};
 
 /**
- * Formatters in the app's chosen language and the user's timezone. A user
+ * Formatters: dates in the app's chosen language and the user's timezone,
+ * figures (money, percentages, distances) in the business's regional format,
+ * currency and distance unit (Settings → Business). A user
  * who picked a timezone gets it everywhere, server render included; for
  * everyone else the server renders UTC (the only zone it can know) and the
  * browser's zone takes over right after hydration.
  */
 export function useFormatters(): Formatters {
-    const { locale, timezone } = usePage().props;
+    const { locale, timezone, business } = usePage().props;
     const hydrated = useSyncExternalStore(
         noSubscription,
         () => true,
@@ -24,7 +26,8 @@ export function useFormatters(): Formatters {
             createFormatters(
                 locale,
                 timezone ?? (hydrated ? undefined : 'UTC'),
+                business,
             ),
-        [locale, timezone, hydrated],
+        [locale, timezone, hydrated, business],
     );
 }

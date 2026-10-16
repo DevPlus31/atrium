@@ -24,5 +24,21 @@
     "announcement-updated": "Annonce mise à jour",
     "general-updated": "Paramètres généraux modifiés",
     "logo-removed": "Logo retiré",
-    "logo-updated": "Logo modifié"
+    "logo-updated": "Logo modifié",
+    "Business settings": "Paramètres de l’entreprise",
+    "How the business works. Everyone reads dates in their own language and time zone; amounts, percentages and distances read the same for everyone.": "Le fonctionnement de l’entreprise. Chacun lit les dates dans sa langue et son fuseau horaire ; les montants, pourcentages et distances s’affichent de la même façon pour tous.",
+    "Time zone": "Fuseau horaire",
+    "The business clock: business days, opening hours and reports follow it.": "L’horloge de l’entreprise : les jours ouvrés, les horaires et les rapports la suivent.",
+    "Regional format": "Format régional",
+    "A language and region code, such as en-US or fr-FR: it decides the decimal and thousands separators and where the currency symbol goes.": "Un code de langue et de région, comme en-US ou fr-FR : il détermine les séparateurs décimaux et de milliers, et la place du symbole monétaire.",
+    "Used for amounts that have no currency of their own.": "Utilisée pour les montants sans devise propre.",
+    "Search currencies...": "Rechercher une devise...",
+    "Distance unit": "Unité de distance",
+    "Preview": "Aperçu",
+    "How figures will read once saved.": "L’affichage des chiffres une fois enregistré.",
+    "Amount": "Montant",
+    "Percentage": "Pourcentage",
+    "Distance": "Distance",
+    "Business": "Entreprise",
+    "business-updated": "Paramètres de l’entreprise modifiés"
 }
