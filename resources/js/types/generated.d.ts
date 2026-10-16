@@ -3,9 +3,11 @@ declare namespace App {
         export type AnnouncementLevel = 'info' | 'warning';
         export type Appearance = 'light' | 'dark' | 'system';
         export type Area = 'admin' | 'member' | 'settings';
+        export type ConsentCategory = 'analytics' | 'marketing';
         export type ContentWidth = 'fluid' | 'boxed';
         export type Direction = 'ltr' | 'rtl';
         export type HeaderMode = 'sticky' | 'static';
+        export type LegalDocument = 'terms' | 'privacy' | 'cookies';
         export type NavPlacement = 'sidebar-left' | 'sidebar-right' | 'topbar';
         export type SidebarCollapsible = 'offcanvas' | 'icon' | 'none';
         export type SidebarVariant = 'sidebar' | 'floating' | 'inset';
@@ -27,6 +29,18 @@ declare namespace App {
                 created_at: string;
                 updated_at: string;
             };
+            export type ConsentCategoryData = {
+                value: App.Enums.ConsentCategory;
+                label: string;
+                description: string;
+                sale_or_sharing: boolean;
+            };
+            export type ConsentData = {
+                categories: App.Modules.Data.ConsentCategoryData[];
+                granted: App.Enums.ConsentCategory[];
+                decided: boolean;
+                gpc: boolean;
+            };
             export type ImpersonationData = {
                 impersonator: string;
             };
@@ -37,6 +51,11 @@ declare namespace App {
                 content_width: App.Enums.ContentWidth;
                 header: App.Enums.HeaderMode;
                 direction: App.Enums.Direction;
+            };
+            export type LegalDocumentData = {
+                document: App.Enums.LegalDocument;
+                title: string;
+                html: string;
             };
             export type NavItemData = {
                 label: string;

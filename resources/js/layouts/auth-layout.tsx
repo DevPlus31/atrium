@@ -5,6 +5,8 @@ import { useState } from 'react';
 import { AnnouncementBanner } from '@/components/announcement-banner';
 import { AtriumHallArt } from '@/components/auth/atrium-hall-art';
 import { BrandMark } from '@/components/brand-mark';
+import { ConsentBanner } from '@/components/privacy/consent-banner';
+import { LegalLinks } from '@/components/privacy/legal-links';
 import { home } from '@/routes';
 import type { AuthLayoutProps } from '@/types';
 
@@ -84,8 +86,10 @@ export default function AuthLayout({
                         )}
                     </header>
                     {children}
+                    <LegalLinks className="mt-10" />
                 </div>
             </main>
+            <ConsentBanner />
         </div>
     );
 }

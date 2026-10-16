@@ -16,6 +16,7 @@ it('closes sign-up when General settings turn registration off', function (): vo
         'email' => 'late@example.com',
         'password' => 'a-Strong-passw0rd!',
         'password_confirmation' => 'a-Strong-passw0rd!',
+        'terms' => '1',
     ])->assertNotFound();
 
     $this->get(route('login'))->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->where('canRegister', false));

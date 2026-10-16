@@ -1,6 +1,8 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import { useLaravelReactI18n } from 'laravel-react-i18n';
 import { BrandMark } from '@/components/brand-mark';
+import { ConsentBanner } from '@/components/privacy/consent-banner';
+import { LegalLinks } from '@/components/privacy/legal-links';
 import { Button } from '@/components/ui/button';
 import { home } from '@/routes';
 
@@ -97,7 +99,10 @@ export default function ErrorPage({ status }: { status: number }) {
                         </>
                     )}
                 </div>
+
+                <LegalLinks />
             </main>
+            <ConsentBanner />
         </>
     );
 }

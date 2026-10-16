@@ -27,6 +27,7 @@ final readonly class AcceptInvitationController
             'email' => $invitation->email,
             'status' => $this->status($invitation),
             'submitUrl' => $invitation->acceptUrl(),
+            'requiresTerms' => User::currentTermsVersion() !== null,
         ]);
     }
 

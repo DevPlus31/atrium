@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Exceptions\DomainException;
+use App\Http\Middleware\EnsureTermsAccepted;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\SecurityHeaders;
@@ -44,6 +45,7 @@ return Application::configure(basePath: dirname(__DIR__))
             SecurityHeaders::class,
             HandleAppearance::class,
             HandleInertiaRequests::class,
+            EnsureTermsAccepted::class,
             AddLinkHeadersForPreloadedAssets::class,
         ]);
     })

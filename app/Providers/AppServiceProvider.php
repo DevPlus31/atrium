@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Modules\ListenerClassResolver;
 use App\Modules\NavRegistry;
 use App\Modules\PermissionRegistry;
+use App\Modules\PersonalDataRegistry;
 use App\Modules\SearchRegistry;
 use App\Modules\Toast;
 use App\Modules\WidgetRegistry;
@@ -46,6 +47,7 @@ final class AppServiceProvider extends ServiceProvider
         $this->app->singleton(PermissionRegistry::class);
         $this->app->singleton(WidgetRegistry::class);
         $this->app->singleton(SearchRegistry::class);
+        $this->app->singleton(PersonalDataRegistry::class);
 
         DiscoverEvents::guessClassNamesUsing(ListenerClassResolver::classFromFile(...));
     }

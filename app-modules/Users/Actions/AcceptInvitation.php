@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Users\Actions;
 
+use App\Actions\AcceptTerms;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Modules\Users\Domain\Exceptions\AccountAlreadyExists;
@@ -17,13 +18,15 @@ final readonly class AcceptInvitation
     public function __construct(
         private CreateUser $createUser,
         private InvitationRepository $invitations,
+        private AcceptTerms $acceptTerms,
     ) {
         //
     }
 
     /**
      * Create the invitee's account, verified (the link proved the address),
-     * with the invited roles the inviter may still grant. The invitation is locked and
+     * with the invited roles the inviter may still grant, and the Terms of
+     * Service accepted on the same form. The invitation is locked and
      * checked again inside the transaction, so it is used at most once; the
      * inviter hears about it after commit (InvitationAccepted).
      */
@@ -38,6 +41,8 @@ final readonly class AcceptInvitation
             }
 
             $user = ($this->createUser)($name, $invitation->email, $password, $this->grantableRoles($invitation), verified: true);
+
+            ($this->acceptTerms)($user);
 
             $invitation->accept($user);
 

@@ -70,6 +70,7 @@ abstract class ModuleServiceProvider extends ServiceProvider
         $this->permissions($this->app->make(PermissionRegistry::class));
         $this->widgets($this->app->make(WidgetRegistry::class));
         $this->search($this->app->make(SearchRegistry::class));
+        $this->personalData($this->app->make(PersonalDataRegistry::class));
     }
 
     /**
@@ -100,6 +101,15 @@ abstract class ModuleServiceProvider extends ServiceProvider
      * Declare the module's global search: what the command palette finds.
      */
     protected function search(SearchRegistry $search): void
+    {
+        //
+    }
+
+    /**
+     * Declare the personal data the module stores about users: what a user's
+     * data export includes, and what is erased with their account.
+     */
+    protected function personalData(PersonalDataRegistry $personalData): void
     {
         //
     }

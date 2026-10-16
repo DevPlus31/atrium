@@ -24,6 +24,7 @@ final class AcceptInvitationRequest extends FormRequest
         return [
             'name' => AccountRules::name(),
             'password' => AccountRules::password(),
+            ...(User::currentTermsVersion() === null ? [] : ['terms' => ['accepted']]),
         ];
     }
 

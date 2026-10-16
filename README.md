@@ -339,6 +339,42 @@ A new external origin means editing `policy()`, which is a shell change.
 - **Communication:** notifications (bell and email), branded emails, an announcement banner.
 - **Admin tools:** the audit log, plus Pulse, Horizon and Log Viewer (System module).
 - **Platform:** theming (below), plus security headers and CSP.
+- **Privacy:** cookie consent, data export and erasure, legal pages, terms acceptance, retention (see "Privacy").
+
+## Privacy (GDPR, CCPA/CPRA and the US state laws)
+
+Everything is set in `config/privacy.php`. The legal texts are Markdown files: `resources/legal/<locale>/{terms,privacy,cookies}.md`. They are **templates**: fill in the bracketed parts and have a lawyer review them before going live. `:app` becomes the app name. `:contact` becomes the support email (Settings → General), or the mail-from address when none is set. A language without a file falls back to `app.fallback_locale`.
+
+| Piece | Where | What it does |
+|---|---|---|
+| Legal pages | `GET /legal/{terms,privacy,cookies}` (`LegalDocumentController`) | Public, in the visitor's language. Rendered on the server with raw HTML stripped. The Cookie Policy page ends with the cookie choices form |
+| Cookie consent | `ConsentBanner` (in every layout), `POST /privacy/consent`, `ResolveConsent`, the `consent` shared prop | Opt-in: nothing optional runs before the visitor chooses. "Reject all" is as easy as "Accept all". Each choice is stored as a `ConsentRecord` (proof of consent) plus the encrypted `consent` cookie. The banner returns when `privacy.consent.version` changes or after `lifetime_days` |
+| US opt-out | `Sec-GPC: 1`, `ConsentCategory::isSaleOrSharing()`, the "Your privacy choices" link (`LegalLinks`) | A Global Privacy Control signal switches off the "sale or sharing" categories (marketing), whatever the visitor chose |
+| Terms acceptance | `privacy.terms_version`, `users.terms_version`/`terms_accepted_at`, `EnsureTermsAccepted`, `/terms/accept` | Sign-up requires it. When the version changes, every page visit goes to the acceptance page first. Invited and admin-created users accept on their first visit. The privacy rights, the legal pages and log out stay open; an admin impersonating someone is never asked |
+| Data export | Settings → Privacy, `GET /settings/privacy/export` (password confirmed), `ExportPersonalData` | One JSON file: the account, sign-in methods, sessions, notifications, cookie choices, audit entries and every module's data. Secrets are left out. The request is audit-logged |
+| Erasure | `ErasePersonalData`, called by `DeleteAccount` and the Users module's `DeleteUser` | Runs every module's eraser, then deletes tokens, notifications and sessions. Consent records stay, unlinked |
+| Retention | `privacy:prune` (scheduled daily), `privacy.retention` | Deletes read notifications, old consent records and sign-ups never verified and never given a role. The audit log keeps its own `activitylog:clean` |
+
+**A module that stores personal data** declares it in its provider, so exports and erasure include it:
+
+```php
+protected function personalData(PersonalDataRegistry $personalData): void
+{
+    // exporter: invokable `__invoke(User $user): array`; eraser (optional): `__invoke(User $user): void`
+    $personalData->add(module: $this->name(), key: 'billing.invoices', exporter: InvoicesPersonalData::class, eraser: EraseInvoices::class);
+}
+```
+
+- Sources live in `PersonalData/`, as `final readonly` invokable classes (`ArchTest` checks this).
+- Leave out the eraser for records the law obliges you to keep, and say so in the privacy policy. `Shop`'s `OrdersPersonalData` is the example.
+- Sources run even while their module is switched off.
+
+**Optional scripts** (analytics, ads) load only with consent:
+- On the client: `const { allows } = useConsent(); if (allows('analytics')) …`.
+- On the server: `resolve(ResolveConsent::class)($request)->allows(ConsentCategory::Analytics)`.
+- A new purpose needs a case in `App\Enums\ConsentCategory` (label, description, `isSaleOrSharing()`) and its value in `privacy.consent.categories`. Then bump `privacy.consent.version` and describe it in `cookies.md`.
+- The third-party origin also has to be added to the CSP (`SecurityHeaders::policy()`).
+- With no category listed, no banner shows.
 
 ## Styling and layout
 
@@ -411,6 +447,7 @@ After a change, check light and dark, each preset, `rtl`, and the `topbar` layou
   1. Copy every `en.json`.
   2. Add `lang/<code>/*.php`; start from the French ones.
   3. Register the locale in `config/app.php` under `available_locales`.
+  4. Translate the legal documents into `resources/legal/<code>/` (until then they show in the fallback language).
 - **Formatting:** dates, numbers and money go through `useFormatters()`, in the user's locale and timezone.
 
 ## Testing and quality gates (all must pass)
@@ -486,6 +523,7 @@ php artisan test --compact app-modules/Catalog/tests/Feature/ProductControllerTe
 5. **First admin:** `docker compose --env-file .env.production -f docker-compose.prod.yml exec app php artisan admin:create-user`.
 6. **Before going live:**
    - Decide on public sign-up (admin **Settings → General**, open by default).
+   - Fill in and have a lawyer review `resources/legal/*/*.md`, and set `config/privacy.php` (consent categories, terms version, retention).
    - Remove the example modules (see "Using Atrium as a template").
    - Decide on tenancy.
 7. **Backups:** nothing is backed up for you.

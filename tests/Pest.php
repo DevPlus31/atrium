@@ -39,6 +39,10 @@ pest()->extend(TestCase::class)
 // of the production build. Fail fast rather than test the wrong thing.
 pest()->beforeEach(function (): void {
     throw_if(is_file(public_path('hot')), RuntimeException::class, 'Stop `composer run dev` (public/hot exists) and run `bun run build`: browser tests run against the production build.');
+
+    // The cookie consent banner sits over the bottom of every page; browser
+    // tests click through pages, so it stays away unless a test asks for it.
+    config(['privacy.consent.categories' => []]);
 })->in('Browser', '../app-modules/*/tests/Browser');
 
 // Feature tests assert Inertia responses, not the built assets.

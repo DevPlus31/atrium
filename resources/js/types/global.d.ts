@@ -34,6 +34,8 @@ declare module '@inertiajs/core' {
             logo: string | null;
             supportEmail: string | null;
             announcement: App.Modules.Data.AnnouncementData | null;
+            /** Cookie consent; read it through `useConsent()`. */
+            consent: App.Modules.Data.ConsentData;
             unreadNotifications: number;
             /** Only after the bell asks for it (a partial reload). */
             recentNotifications?: AppNotification[];

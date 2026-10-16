@@ -9,10 +9,12 @@ use App\Models\User;
 use App\Modules\ModuleServiceProvider;
 use App\Modules\NavRegistry;
 use App\Modules\PermissionRegistry;
+use App\Modules\PersonalDataRegistry;
 use App\Modules\SearchRegistry;
 use App\Modules\WidgetRegistry;
 use Modules\Shop\Domain\Repositories\OrderRepository;
 use Modules\Shop\Infrastructure\Repositories\EloquentOrderRepository;
+use Modules\Shop\PersonalData\OrdersPersonalData;
 use Modules\Shop\Search\OrdersSearch;
 use Modules\Shop\Widgets\MemberOrdersWidget;
 
@@ -82,5 +84,10 @@ final class ShopServiceProvider extends ModuleServiceProvider
             permission: 'orders.view',
             sort: 40,
         );
+    }
+
+    protected function personalData(PersonalDataRegistry $personalData): void
+    {
+        $personalData->add(module: $this->name(), key: 'shop.orders', exporter: OrdersPersonalData::class);
     }
 }

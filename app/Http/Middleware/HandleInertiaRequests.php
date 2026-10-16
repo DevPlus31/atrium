@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Actions\ResolveConsent;
 use App\Actions\ResolveUserPreferences;
 use App\Enums\Area;
 use App\Models\User;
@@ -36,6 +37,7 @@ final class HandleInertiaRequests extends Middleware
         private readonly ImpersonateManager $impersonate,
         private readonly GeneralSettings $settings,
         private readonly AnnouncementSettings $announcement,
+        private readonly ResolveConsent $consent,
     ) {
         //
     }
@@ -69,6 +71,7 @@ final class HandleInertiaRequests extends Middleware
             'logo' => $this->settings->logoUrl(),
             'supportEmail' => $this->settings->support_email,
             'announcement' => $this->announcement($request),
+            'consent' => ($this->consent)($request),
             'unreadNotifications' => fn (): int => $user instanceof User ? $user->unreadNotifications()->count() : 0,
             // Loaded only when the bell opens (a partial reload asks for it).
             'recentNotifications' => Inertia::optional(fn (): array => $user instanceof User ? $this->recentNotifications($user) : []),

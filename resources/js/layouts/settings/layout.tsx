@@ -11,6 +11,7 @@ import { edit as editAppearance } from '@/routes/appearance';
 import { edit as editNotificationPreferences } from '@/routes/notification-preferences';
 import { show as showPasskeys } from '@/routes/passkeys';
 import { edit as editPassword } from '@/routes/password';
+import { edit as editPrivacy } from '@/routes/privacy';
 import { index as sessions } from '@/routes/sessions';
 import { show as showTwoFactor } from '@/routes/two-factor';
 import { edit } from '@/routes/user-profile';
@@ -28,6 +29,7 @@ const sidebarNavItems: SettingsNavItem[] = [
     { title: 'Sessions', href: sessions() },
     { title: 'Appearance', href: editAppearance() },
     { title: 'Notifications', href: editNotificationPreferences() },
+    { title: 'Privacy', href: editPrivacy() },
 ];
 
 export default function SettingsLayout({ children }: PropsWithChildren) {

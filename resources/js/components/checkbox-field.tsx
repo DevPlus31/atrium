@@ -12,6 +12,7 @@ export function CheckboxField({
     hint,
     error,
     checked,
+    disabled,
     onCheckedChange,
 }: {
     id: string;
@@ -21,6 +22,7 @@ export function CheckboxField({
     hint?: ReactNode;
     error?: string;
     checked: boolean;
+    disabled?: boolean;
     onCheckedChange: (checked: boolean) => void;
 }) {
     return (
@@ -34,6 +36,7 @@ export function CheckboxField({
                 id={id}
                 name={name}
                 checked={checked}
+                disabled={disabled}
                 onCheckedChange={(value) => onCheckedChange(value === true)}
             />
             <div className="grid gap-1">

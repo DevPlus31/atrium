@@ -30,6 +30,8 @@ final class UserFactory extends Factory
             'locale' => null,
             'timezone' => null,
             'notify_by_email' => true,
+            'terms_version' => User::currentTermsVersion(),
+            'terms_accepted_at' => now(),
         ];
     }
 
@@ -37,6 +39,17 @@ final class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes): array => [
             'email_verified_at' => null,
+        ]);
+    }
+
+    /**
+     * A user who has not accepted the current Terms of Service (yet).
+     */
+    public function withoutAcceptedTerms(): self
+    {
+        return $this->state(fn (array $attributes): array => [
+            'terms_version' => null,
+            'terms_accepted_at' => null,
         ]);
     }
 

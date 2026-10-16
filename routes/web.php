@@ -3,13 +3,17 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\ConsentController;
 use App\Http\Controllers\DismissAnnouncementController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\LeaveImpersonationController;
+use App\Http\Controllers\LegalDocumentController;
 use App\Http\Controllers\MarkNotificationsReadController;
+use App\Http\Controllers\PersonalDataExportController;
 use App\Http\Controllers\RegistrationController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SessionController;
+use App\Http\Controllers\TermsAcceptanceController;
 use App\Http\Controllers\UserAvatarController;
 use App\Http\Controllers\UserEmailResetNotificationController;
 use App\Http\Controllers\UserEmailVerificationController;
@@ -19,6 +23,7 @@ use App\Http\Controllers\UserNotificationPreferencesController;
 use App\Http\Controllers\UserPasskeysController;
 use App\Http\Controllers\UserPasswordController;
 use App\Http\Controllers\UserPreferencesController;
+use App\Http\Controllers\UserPrivacyController;
 use App\Http\Controllers\UserProfileController;
 use App\Http\Controllers\UserSessionController;
 use App\Http\Controllers\UserTwoFactorAuthenticationController;
@@ -32,6 +37,12 @@ Route::get('/', fn () => to_route('dashboard'))->name('home');
 Route::post('announcement/dismiss', DismissAnnouncementController::class)
     ->middleware('throttle:30,1')
     ->name('announcement.dismiss');
+
+// Privacy: the legal pages and the cookie choice, open to everyone.
+Route::get('legal/{document}', LegalDocumentController::class)->name('legal.show');
+Route::post('privacy/consent', [ConsentController::class, 'store'])
+    ->middleware('throttle:30,1')
+    ->name('consent.store');
 
 Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::get('dashboard', LandingController::class)->name('dashboard');
@@ -89,6 +100,16 @@ Route::middleware('auth')->group(function (): void {
     // User Notification Preferences...
     Route::get('settings/notifications', [UserNotificationPreferencesController::class, 'edit'])->name('notification-preferences.edit');
     Route::put('settings/notifications', [UserNotificationPreferencesController::class, 'update'])->name('notification-preferences.update');
+
+    // User Privacy (data export, cookie choices, accepted documents)...
+    Route::get('settings/privacy', [UserPrivacyController::class, 'edit'])->name('privacy.edit');
+    Route::get('settings/privacy/export', PersonalDataExportController::class)
+        ->middleware(['password.confirm', 'throttle:6,1'])
+        ->name('privacy.export');
+
+    // Terms of Service (accepting them after they changed)...
+    Route::get('terms/accept', [TermsAcceptanceController::class, 'create'])->name('terms-acceptance.create');
+    Route::post('terms/accept', [TermsAcceptanceController::class, 'store'])->name('terms-acceptance.store');
 
     // User Two-Factor Authentication...
     Route::get('settings/two-factor', [UserTwoFactorAuthenticationController::class, 'show'])

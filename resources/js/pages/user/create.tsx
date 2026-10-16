@@ -3,13 +3,19 @@ import { useLaravelReactI18n } from 'laravel-react-i18n';
 import { AuthSubmit } from '@/components/auth/auth-submit';
 import { FormField } from '@/components/form-field';
 import PasswordInput from '@/components/password-input';
+import { TermsAgreement } from '@/components/privacy/terms-agreement';
 import TextLink from '@/components/text-link';
 import { Input } from '@/components/ui/input';
 import AuthLayout from '@/layouts/auth-layout';
 import { login } from '@/routes';
 import { store } from '@/routes/register';
 
-export default function Register() {
+type RegisterProps = {
+    /** Signing up requires accepting the Terms of Service (config/privacy.php). */
+    requiresTerms: boolean;
+};
+
+export default function Register({ requiresTerms }: RegisterProps) {
     const { t } = useLaravelReactI18n();
 
     return (
@@ -87,6 +93,10 @@ export default function Register() {
                                     placeholder={t('Confirm password')}
                                 />
                             </FormField>
+
+                            {requiresTerms && (
+                                <TermsAgreement error={errors.terms} />
+                            )}
 
                             <AuthSubmit
                                 processing={processing}
