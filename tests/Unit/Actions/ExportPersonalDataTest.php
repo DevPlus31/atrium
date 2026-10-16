@@ -23,7 +23,7 @@ function userWithEveryKindOfPersonalData(): User
     $user->createToken('Script', ['orders.view']);
     $user->notifications()->create(['id' => (string) Str::uuid(), 'type' => 'example', 'data' => ['title' => 'Hello']]);
     DB::table('sessions')->insert(['id' => 'one', 'user_id' => $user->id, 'ip_address' => '203.0.113.9', 'user_agent' => 'Firefox', 'payload' => '', 'last_activity' => now()->getTimestamp()]);
-    DB::table('sessions')->insert(['id' => 'two', 'user_id' => $user->id, 'payload' => '', 'last_activity' => 'never']);
+    DB::table('sessions')->insert(['id' => 'two', 'user_id' => $user->id, 'payload' => '', 'last_activity' => now()->subHour()->getTimestamp()]);
     ConsentRecord::factory()->create(['user_id' => $user->id, 'granted' => ['analytics'], 'gpc' => true]);
     AuditLog::record(log: 'users', event: 'updated', subject: User::factory()->create(), properties: ['attributes' => ['email' => 'someone@else.test']], causer: $user);
     AuditLog::record(log: 'users', event: 'updated', subject: $user);
@@ -55,7 +55,7 @@ it('exports the sign-in methods, sessions, notifications and cookie choices', fu
         ->and($export['api_tokens'][0])->toMatchArray(['name' => 'Script', 'abilities' => ['orders.view']])
         ->and($export['api_tokens'][0])->not->toHaveKey('token')
         ->and($export['sessions'])->toContain(['ip_address' => '203.0.113.9', 'user_agent' => 'Firefox', 'last_active' => now()->toIso8601String()])
-        ->and($export['sessions'])->toContain(['ip_address' => null, 'user_agent' => null, 'last_active' => null])
+        ->and($export['sessions'])->toContain(['ip_address' => null, 'user_agent' => null, 'last_active' => now()->subHour()->toIso8601String()])
         ->and($export['notifications'])->toBe([['data' => ['title' => 'Hello'], 'read_at' => null, 'created_at' => now()->toIso8601String()]])
         ->and($export['cookie_choices'])->toBe([[
             'version' => config('privacy.consent.version'),
