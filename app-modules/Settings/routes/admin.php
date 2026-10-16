@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Illuminate\Foundation\Http\Middleware\HandlePrecognitiveRequests;
 use Illuminate\Support\Facades\Route;
 use Modules\Settings\Http\Controllers\AnnouncementController;
+use Modules\Settings\Http\Controllers\BusinessSettingsController;
 use Modules\Settings\Http\Controllers\GeneralSettingsController;
 use Modules\Settings\Http\Controllers\LogoController;
 
@@ -12,6 +13,11 @@ Route::get('settings/general', [GeneralSettingsController::class, 'edit'])->name
 Route::put('settings/general', [GeneralSettingsController::class, 'update'])
     ->middleware(HandlePrecognitiveRequests::class)
     ->name('settings.general.update');
+
+Route::get('settings/business', [BusinessSettingsController::class, 'edit'])->name('settings.business.edit');
+Route::put('settings/business', [BusinessSettingsController::class, 'update'])
+    ->middleware(HandlePrecognitiveRequests::class)
+    ->name('settings.business.update');
 
 // Uploads travel as multipart POST (PUT cannot carry files in PHP).
 Route::post('settings/logo', [LogoController::class, 'update'])->name('settings.logo.update');

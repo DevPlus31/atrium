@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -54,9 +55,12 @@ use Spatie\Permission\Traits\HasRoles;
  * @property-read string|null $locale
  * @property-read string|null $timezone
  * @property-read bool $notify_by_email
+ * @property-read string|null $terms_version
+ * @property-read CarbonInterface|null $terms_accepted_at
  * @property-read CarbonInterface $created_at
  * @property-read CarbonInterface $updated_at
  * @property-read Collection<int, Passkey> $passkeys
+ * @property-read Collection<int, ConsentRecord> $consentRecords
  */
 #[Hidden([
     'password',
@@ -111,6 +115,17 @@ final class User extends Authenticatable implements HasLocalePreference, HasMedi
     private ?PersonalAccessToken $apiToken = null;
 
     /**
+     * The Terms of Service version users must have accepted
+     * (config/privacy.php), or null when acceptance is switched off.
+     */
+    public static function currentTermsVersion(): ?string
+    {
+        $version = Config::get('privacy.terms_version');
+
+        return is_string($version) && $version !== '' ? $version : null;
+    }
+
+    /**
      * Move the account to another address (stored normalised). A new address
      * is unverified until its owner confirms it: the verification mail goes
      * out when the surrounding transaction commits, so call this inside the
@@ -131,6 +146,27 @@ final class User extends Authenticatable implements HasLocalePreference, HasMedi
         });
 
         return true;
+    }
+
+    /**
+     * Whether the user accepted the current Terms of Service (always true
+     * when acceptance is switched off).
+     */
+    public function hasAcceptedCurrentTerms(): bool
+    {
+        $version = self::currentTermsVersion();
+
+        return $version === null || $this->terms_version === $version;
+    }
+
+    /**
+     * The cookie choices the user made while signed in.
+     *
+     * @return HasMany<ConsentRecord, $this>
+     */
+    public function consentRecords(): HasMany
+    {
+        return $this->hasMany(ConsentRecord::class);
     }
 
     public function canAccessPanel(): bool
@@ -346,6 +382,8 @@ final class User extends Authenticatable implements HasLocalePreference, HasMedi
             'locale' => 'string',
             'timezone' => 'string',
             'notify_by_email' => 'boolean',
+            'terms_version' => 'string',
+            'terms_accepted_at' => 'datetime',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];

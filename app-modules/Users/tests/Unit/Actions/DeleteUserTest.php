@@ -41,3 +41,13 @@ it('rolls back the transaction when logging fails', function (): void {
     expect(User::query()->whereKey($user->id)->exists())->toBeTrue()
         ->and(Activity::query()->count())->toBe(0);
 });
+
+it('erases the personal data the account leaves behind', function (): void {
+    $user = User::factory()->create();
+    $user->createToken('Script', []);
+
+    resolve(DeleteUser::class)($user);
+
+    expect($user->tokens()->count())->toBe(0)
+        ->and(Activity::query()->where('event', 'personal-data-erased')->sole()->subject_id)->toBe($user->id);
+});

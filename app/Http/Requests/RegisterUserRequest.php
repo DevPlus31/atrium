@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Models\User;
 use App\Rules\AccountRules;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -18,6 +19,7 @@ final class RegisterUserRequest extends FormRequest
             'name' => AccountRules::name(),
             'email' => AccountRules::email(),
             'password' => AccountRules::password(),
+            ...(User::currentTermsVersion() === null ? [] : ['terms' => ['accepted']]),
         ];
     }
 }

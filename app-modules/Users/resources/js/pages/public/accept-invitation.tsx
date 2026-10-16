@@ -2,6 +2,7 @@ import { Form, Head } from '@inertiajs/react';
 import { useLaravelReactI18n } from 'laravel-react-i18n';
 import { FormField } from '@/components/form-field';
 import PasswordInput from '@/components/password-input';
+import { TermsAgreement } from '@/components/privacy/terms-agreement';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +15,8 @@ type AcceptInvitationProps = {
     status: 'pending' | 'accepted' | 'expired' | 'registered';
     /** The signed link itself: the form posts back to it. */
     submitUrl: string;
+    /** Creating the account requires accepting the Terms of Service. */
+    requiresTerms: boolean;
 };
 
 /**
@@ -24,6 +27,7 @@ export default function AcceptInvitation({
     email,
     status,
     submitUrl,
+    requiresTerms,
 }: AcceptInvitationProps) {
     const { t } = useLaravelReactI18n();
 
@@ -121,6 +125,10 @@ export default function AcceptInvitation({
                                 placeholder={t('Confirm password')}
                             />
                         </FormField>
+
+                        {requiresTerms && (
+                            <TermsAgreement error={errors.terms} />
+                        )}
 
                         <Button
                             type="submit"

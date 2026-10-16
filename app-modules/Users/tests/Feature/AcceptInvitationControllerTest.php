@@ -24,7 +24,8 @@ it('shows the form for a pending invitation', function (): void {
             ->component('users::public/accept-invitation')
             ->where('email', 'new@example.com')
             ->where('status', 'pending')
-            ->where('submitUrl', $invitation->acceptUrl()));
+            ->where('submitUrl', $invitation->acceptUrl())
+            ->where('requiresTerms', true));
 });
 
 it('explains why an invitation cannot be used', function (Closure $invitation, string $status): void {
@@ -71,6 +72,7 @@ it('creates the verified account with the invited roles and signs it in', functi
         'name' => 'Grace Hopper',
         'password' => 'correct horse battery staple',
         'password_confirmation' => 'correct horse battery staple',
+        'terms' => '1',
     ])
         ->assertRedirectToRoute('dashboard')
         ->assertToast('Welcome to '.config('app.name').'!');
@@ -82,7 +84,8 @@ it('creates the verified account with the invited roles and signs it in', functi
     expect($user->name)->toBe('Grace Hopper')
         ->and($user->hasVerifiedEmail())->toBeTrue()
         ->and($user->getRoleNames()->all())->toBe(['admin'])
-        ->and($invitation->refresh()->accepted_at)->not->toBeNull();
+        ->and($invitation->refresh()->accepted_at)->not->toBeNull()
+        ->and($user->hasAcceptedCurrentTerms())->toBeTrue();
 
     $notice = DatabaseNotification::query()->sole();
 
@@ -99,6 +102,7 @@ it('works when the inviter has since been deleted', function (): void {
         'name' => 'Grace Hopper',
         'password' => 'correct horse battery staple',
         'password_confirmation' => 'correct horse battery staple',
+        'terms' => '1',
     ])->assertRedirectToRoute('dashboard');
 
     expect(User::query()->where('email', 'new@example.com')->exists())->toBeTrue()
@@ -112,6 +116,7 @@ it('refuses an invitation that can no longer be used', function (Closure $invita
         'name' => 'Grace Hopper',
         'password' => 'correct horse battery staple',
         'password_confirmation' => 'correct horse battery staple',
+        'terms' => '1',
     ])->assertSessionHasErrors(['invitation' => $message]);
 
     $this->assertGuest();
@@ -129,7 +134,7 @@ it('validates the name and password', function (): void {
     $invitation = Invitation::factory()->create();
 
     $this->post($invitation->acceptUrl(), ['name' => '', 'password' => 'short', 'password_confirmation' => 'other'])
-        ->assertSessionHasErrors(['name', 'password']);
+        ->assertSessionHasErrors(['name', 'password', 'terms']);
 
     expect(User::query()->exists())->toBeFalse()
         ->and($invitation->refresh()->accepted_at)->toBeNull();
@@ -140,4 +145,20 @@ it('is not found while the Users module is switched off', function (): void {
     $invitation = Invitation::factory()->create();
 
     $this->get($invitation->acceptUrl())->assertNotFound();
+});
+
+it('needs no terms while acceptance is switched off', function (): void {
+    config(['privacy.terms_version' => null]);
+    $invitation = Invitation::factory()->create(['email' => 'new@example.com']);
+
+    $this->get($invitation->acceptUrl())
+        ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->where('requiresTerms', false));
+
+    $this->post($invitation->acceptUrl(), [
+        'name' => 'Grace Hopper',
+        'password' => 'correct horse battery staple',
+        'password_confirmation' => 'correct horse battery staple',
+    ])->assertRedirectToRoute('dashboard');
+
+    expect(User::query()->where('email', 'new@example.com')->sole()->terms_version)->toBeNull();
 });

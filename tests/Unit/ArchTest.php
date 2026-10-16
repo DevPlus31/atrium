@@ -7,6 +7,7 @@ use App\Modules\IndexQuery;
 use App\Modules\ModuleServiceProvider;
 use App\Modules\NavRegistry;
 use App\Modules\PermissionRegistry;
+use App\Modules\PersonalDataRegistry;
 use App\Modules\WidgetRegistry;
 use App\Notifications\AppNotification;
 use App\Providers\HorizonServiceProvider;
@@ -62,6 +63,7 @@ arch('module contract registries are final')
     ->expect([
         NavRegistry::class,
         PermissionRegistry::class,
+        PersonalDataRegistry::class,
         WidgetRegistry::class,
     ])
     ->toBeFinal();
@@ -113,5 +115,16 @@ arch('module widget resolvers are final and readonly')
     ->expect($moduleWidgetNamespaces)
     ->toBeFinal()
     ->toBeReadonly();
+
+$modulePersonalDataNamespaces = array_map(
+    static fn (string $path): string => 'Modules\\'.basename(dirname($path)).'\\PersonalData',
+    glob(dirname(__DIR__, 2).'/app-modules/*/PersonalData', GLOB_ONLYDIR) ?: [],
+);
+
+arch('module personal data sources are final, readonly and invokable')
+    ->expect($modulePersonalDataNamespaces)
+    ->toBeFinal()
+    ->toBeReadonly()
+    ->toBeInvokable();
 
 //

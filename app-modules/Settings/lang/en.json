@@ -24,5 +24,21 @@
     "announcement-updated": "Announcement updated",
     "general-updated": "General settings updated",
     "logo-removed": "Logo removed",
-    "logo-updated": "Logo updated"
+    "logo-updated": "Logo updated",
+    "Business settings": "Business settings",
+    "How the business works. Everyone reads dates in their own language and time zone; amounts, percentages and distances read the same for everyone.": "How the business works. Everyone reads dates in their own language and time zone; amounts, percentages and distances read the same for everyone.",
+    "Time zone": "Time zone",
+    "The business clock: business days, opening hours and reports follow it.": "The business clock: business days, opening hours and reports follow it.",
+    "Regional format": "Regional format",
+    "A language and region code, such as en-US or fr-FR: it decides the decimal and thousands separators and where the currency symbol goes.": "A language and region code, such as en-US or fr-FR: it decides the decimal and thousands separators and where the currency symbol goes.",
+    "Used for amounts that have no currency of their own.": "Used for amounts that have no currency of their own.",
+    "Search currencies...": "Search currencies...",
+    "Distance unit": "Distance unit",
+    "Preview": "Preview",
+    "How figures will read once saved.": "How figures will read once saved.",
+    "Amount": "Amount",
+    "Percentage": "Percentage",
+    "Distance": "Distance",
+    "Business": "Business",
+    "business-updated": "Business settings updated"
 }

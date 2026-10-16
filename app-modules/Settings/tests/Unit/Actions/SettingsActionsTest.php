@@ -3,13 +3,16 @@
 declare(strict_types=1);
 
 use App\Enums\AnnouncementLevel;
+use App\Enums\DistanceUnit;
 use App\Settings\AnnouncementSettings;
+use App\Settings\BusinessSettings;
 use App\Settings\GeneralSettings;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
 use Modules\Settings\Actions\RemoveAnnouncement;
 use Modules\Settings\Actions\RemoveLogo;
 use Modules\Settings\Actions\UpdateAnnouncement;
+use Modules\Settings\Actions\UpdateBusinessSettings;
 use Modules\Settings\Actions\UpdateGeneralSettings;
 use Modules\Settings\Actions\UpdateLogo;
 use Spatie\Activitylog\Models\Activity;
@@ -91,4 +94,17 @@ it('keeps the logo file when the settings cannot be saved', function (): void {
     expect(fn () => resolve(RemoveLogo::class)($settings))->toThrow(RuntimeException::class);
 
     expect(Storage::disk('public')->exists($path))->toBeTrue();
+});
+
+it('saves the business settings and records the change', function (): void {
+    $settings = resolve(BusinessSettings::class);
+
+    resolve(UpdateBusinessSettings::class)($settings, 'America/New_York', 'en-US', 'USD', DistanceUnit::Mile);
+
+    $fresh = resolve(BusinessSettings::class)->refresh();
+
+    expect($fresh->timezone)->toBe('America/New_York')
+        ->and($fresh->distance_unit)->toBe(DistanceUnit::Mile)
+        ->and(Activity::query()->where('description', 'business-updated')->sole()->properties['attributes'])
+        ->toBe(['timezone' => 'America/New_York', 'locale' => 'en-US', 'currency' => 'USD', 'distance_unit' => 'mi']);
 });

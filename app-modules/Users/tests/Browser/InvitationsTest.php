@@ -40,6 +40,7 @@ it('creates an account from the invitation link', function (): void {
         ->type('#name', 'Grace Hopper')
         ->type('#password', 'correct horse battery staple')
         ->type('#password_confirmation', 'correct horse battery staple')
+        ->click('#terms')
         ->click('[data-test="accept-invitation-button"]')
         ->assertSee('Welcome to')
         ->assertNoJavaScriptErrors();

@@ -184,6 +184,71 @@
     }
 }
 
+/* Long-form text rendered from Markdown (the legal documents). Spacing and
+   type come from the tokens, so every preset and the dark mode apply. */
+@layer components {
+    .legal-prose {
+        @apply max-w-none text-base leading-7 text-foreground;
+
+        & > * + * {
+            @apply mt-5;
+        }
+
+        & h2 {
+            @apply mt-12 font-display text-3xl leading-tight tracking-tight;
+        }
+
+        & h3 {
+            @apply mt-8 text-lg font-semibold;
+        }
+
+        & a {
+            @apply font-medium underline underline-offset-4;
+        }
+
+        & strong {
+            @apply font-semibold;
+        }
+
+        & ul,
+        & ol {
+            @apply space-y-2 ps-6;
+        }
+
+        & ul {
+            @apply list-disc;
+        }
+
+        & ol {
+            @apply list-decimal;
+        }
+
+        & li::marker {
+            @apply text-muted-foreground;
+        }
+
+        & blockquote {
+            @apply rounded-lg border bg-muted px-4 py-3 text-sm text-muted-foreground;
+        }
+
+        & table {
+            @apply block w-full overflow-x-auto text-sm;
+        }
+
+        & th {
+            @apply border-b px-3 py-2 text-start font-semibold;
+        }
+
+        & td {
+            @apply border-b px-3 py-2 align-top text-muted-foreground;
+        }
+
+        & code {
+            @apply rounded bg-muted px-1 py-0.5 font-mono text-[0.85em];
+        }
+    }
+}
+
 /* Respect prefers-reduced-motion globally: collapse transitions and
    animations to imperceptible durations instead of removing them, so
    JS listening for animation/transition events keeps working. */

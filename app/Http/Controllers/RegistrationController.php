@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Actions\RegisterUser;
 use App\Http\Requests\RegisterUserRequest;
+use App\Models\User;
 use App\Settings\GeneralSettings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -22,7 +23,9 @@ final readonly class RegistrationController
     {
         abort_unless($settings->registration_open, 404);
 
-        return Inertia::render('user/create');
+        return Inertia::render('user/create', [
+            'requiresTerms' => User::currentTermsVersion() !== null,
+        ]);
     }
 
     public function store(RegisterUserRequest $request, RegisterUser $action, GeneralSettings $settings): RedirectResponse
@@ -30,7 +33,7 @@ final readonly class RegistrationController
         abort_unless($settings->registration_open, 404);
 
         /** @var array<string, mixed> $attributes */
-        $attributes = $request->safe()->except('password');
+        $attributes = $request->safe()->except(['password', 'terms']);
 
         $user = $action(
             $attributes,

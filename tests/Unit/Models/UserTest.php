@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Models\ConsentRecord;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Notifications\VerifyEmail;
@@ -28,6 +29,8 @@ test('to array', function (): void {
             'locale',
             'timezone',
             'notify_by_email',
+            'terms_version',
+            'terms_accepted_at',
         ]);
 });
 
@@ -129,4 +132,39 @@ it('keeps the verification when the email does not change', function (): void {
         ->and($user->email_verified_at)->not->toBeNull();
 
     Notification::assertNothingSent();
+});
+
+test('the current terms version comes from the privacy config', function (): void {
+    config(['privacy.terms_version' => '2030-01-01']);
+
+    expect(User::currentTermsVersion())->toBe('2030-01-01');
+
+    config(['privacy.terms_version' => '']);
+
+    expect(User::currentTermsVersion())->toBeNull();
+
+    config(['privacy.terms_version' => null]);
+
+    expect(User::currentTermsVersion())->toBeNull();
+});
+
+test('a user has accepted the terms when they accepted the current version, or none is required', function (): void {
+    config(['privacy.terms_version' => '2030-01-01']);
+
+    expect(User::factory()->make(['terms_version' => '2030-01-01'])->hasAcceptedCurrentTerms())->toBeTrue()
+        ->and(User::factory()->make(['terms_version' => '2029-01-01'])->hasAcceptedCurrentTerms())->toBeFalse()
+        ->and(User::factory()->withoutAcceptedTerms()->make()->hasAcceptedCurrentTerms())->toBeFalse();
+
+    config(['privacy.terms_version' => null]);
+
+    expect(User::factory()->withoutAcceptedTerms()->make()->hasAcceptedCurrentTerms())->toBeTrue();
+});
+
+test('a user has the consent records they made while signed in', function (): void {
+    $user = User::factory()->create();
+    $record = ConsentRecord::factory()->create(['user_id' => $user->id]);
+    ConsentRecord::factory()->create();
+
+    expect($user->consentRecords->modelKeys())->toBe([$record->id])
+        ->and($record->user?->is($user))->toBeTrue();
 });

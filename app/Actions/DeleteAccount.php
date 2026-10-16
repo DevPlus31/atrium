@@ -12,9 +12,15 @@ use Spatie\Permission\Models\Role;
 
 final readonly class DeleteAccount
 {
+    public function __construct(private ErasePersonalData $erase)
+    {
+        //
+    }
+
     /**
-     * Delete the user's own account, unless they are the last one able to
-     * run the app (the only admin or super-admin).
+     * Delete the user's own account, with the personal data it leaves
+     * behind, unless they are the last one able to run the app (the only
+     * admin or super-admin).
      */
     public function __invoke(User $user): void
     {
@@ -31,6 +37,8 @@ final readonly class DeleteAccount
             if ($role !== null) {
                 throw LastAdministrator::forRole($role);
             }
+
+            ($this->erase)($user);
 
             $user->delete();
 

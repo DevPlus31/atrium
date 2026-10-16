@@ -13,7 +13,15 @@ use SensitiveParameter;
 
 final readonly class RegisterUser
 {
+    public function __construct(private AcceptTerms $acceptTerms)
+    {
+        //
+    }
+
     /**
+     * Create a self-registered account. Signing up requires accepting the
+     * Terms of Service, so the acceptance is recorded with it.
+     *
      * @param  array<string, mixed>  $attributes
      */
     public function __invoke(array $attributes, #[SensitiveParameter] string $password): User
@@ -34,6 +42,8 @@ final readonly class RegisterUser
                 properties: ['attributes' => $user->only(['name', 'email'])],
                 causer: $user,
             );
+
+            ($this->acceptTerms)($user);
 
             DB::afterCommit(static function () use ($user): void {
                 event(new Registered($user));

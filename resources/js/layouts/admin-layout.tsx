@@ -10,6 +10,7 @@ import { ImpersonationBanner } from '@/components/admin/impersonation-banner';
 import { AnnouncementBanner } from '@/components/announcement-banner';
 import { AppContent } from '@/components/app-content';
 import { AppShell } from '@/components/app-shell';
+import { ConsentBanner } from '@/components/privacy/consent-banner';
 import { cn } from '@/lib/utils';
 import type { BreadcrumbItem } from '@/types';
 
@@ -66,6 +67,7 @@ export default function AdminLayout({
                     />
                     <main className={contentClassName}>{children}</main>
                     {commandPalette}
+                    <ConsentBanner />
                 </div>
             </DirectionProvider>
         );
@@ -95,6 +97,7 @@ export default function AdminLayout({
                     <div className={contentClassName}>{children}</div>
                 </AppContent>
                 {commandPalette}
+                <ConsentBanner />
             </AppShell>
         </DirectionProvider>
     );

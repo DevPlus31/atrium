@@ -77,6 +77,7 @@ it('signs up a new user who is asked to verify their email, not shown a 403', fu
         ->type('email', 'new.person@example.com')
         ->type('password', 'a-Strong-passw0rd!')
         ->type('password_confirmation', 'a-Strong-passw0rd!')
+        ->click('#terms')
         ->click('[data-test="register-user-button"]')
         ->assertPathIs('/verify-email')
         ->assertSee('Verify')

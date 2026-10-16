@@ -14,3 +14,7 @@ Schedule::command('horizon:snapshot')->everyFiveMinutes();
 Schedule::command('activitylog:clean')->daily()->onOneServer();
 Schedule::command('queue:prune-failed', ['--hours' => 168])->daily()->onOneServer();
 Schedule::command('sanctum:prune-expired', ['--hours' => 24])->daily()->onOneServer();
+
+// Privacy retention (config/privacy.php): read notifications, old consent
+// records and sign-ups that were never verified.
+Schedule::command('privacy:prune')->daily()->onOneServer();

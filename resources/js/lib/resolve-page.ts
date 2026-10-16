@@ -45,6 +45,7 @@ const adminAppPages = new Set([
     'user-notifications/index',
     'user-passkeys/show',
     'user-password/edit',
+    'user-privacy/edit',
     'user-profile/edit',
     'user-sessions/index',
     'user-two-factor-authentication/show',

@@ -10,9 +10,9 @@ use App\Modules\NavRegistry;
 use App\Modules\PermissionRegistry;
 
 /**
- * The admin "Settings" area: app-wide settings (App\Settings\GeneralSettings,
- * read by the shell). Other modules add their own settings pages to the same
- * menu group ("Settings") — see the Shop module.
+ * The admin "Settings" area: app-wide settings (App\Settings\GeneralSettings
+ * and BusinessSettings, read by the shell). Other modules add their own
+ * settings pages to the same menu group ("Settings") — see the Shop module.
  */
 final class SettingsServiceProvider extends ModuleServiceProvider
 {
@@ -31,6 +31,16 @@ final class SettingsServiceProvider extends ModuleServiceProvider
             permission: 'settings.update',
             group: 'Settings',
             sort: 0,
+        );
+
+        $nav->add(
+            module: $this->name(),
+            label: 'Business',
+            routeName: 'admin.settings.business.edit',
+            icon: 'sliders-horizontal',
+            permission: 'settings.update',
+            group: 'Settings',
+            sort: 2,
         );
 
         $nav->add(

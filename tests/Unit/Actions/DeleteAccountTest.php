@@ -57,3 +57,13 @@ it('checks the last-admin rule after locking the administrative roles', function
     expect($lock)->toBeInt()
         ->and($count)->toBeGreaterThan($lock);
 });
+
+it('erases the personal data the account leaves behind', function (): void {
+    $user = User::factory()->create();
+    $user->createToken('Script', []);
+
+    resolve(DeleteAccount::class)($user);
+
+    expect($user->tokens()->count())->toBe(0)
+        ->and(Activity::query()->where('event', 'personal-data-erased')->sole()->subject_id)->toBe($user->id);
+});

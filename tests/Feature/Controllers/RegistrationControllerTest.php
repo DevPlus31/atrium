@@ -25,6 +25,7 @@ it('may register a new user', function (): void {
             'email' => 'test@example.com',
             'password' => 'password1234',
             'password_confirmation' => 'password1234',
+            'terms' => '1',
         ]);
 
     $response->assertRedirectToRoute('dashboard');
@@ -52,6 +53,7 @@ it('throttles registration attempts per client', function (): void {
         'email' => 'test@example.com',
         'password' => 'password1234',
         'password_confirmation' => 'password1234',
+        'terms' => '1',
     ])->assertTooManyRequests();
 
     expect(User::query()->where('email', 'test@example.com')->exists())->toBeFalse();
@@ -161,6 +163,7 @@ it('records self-registration in the audit log', function (): void {
         'email' => 'test@example.com',
         'password' => 'password1234',
         'password_confirmation' => 'password1234',
+        'terms' => '1',
     ])->assertSessionDoesntHaveErrors();
 
     $user = User::query()->where('email', 'test@example.com')->sole();
@@ -169,4 +172,54 @@ it('records self-registration in the audit log', function (): void {
     expect($activity->causer_id)->toBe($user->id)
         ->and($activity->subject_id)->toBe($user->id)
         ->and($activity->properties->get('attributes'))->toBe(['name' => 'Test User', 'email' => 'test@example.com']);
+});
+
+it('asks for the terms on the registration page', function (): void {
+    $this->get(route('register'))
+        ->assertInertia(fn ($page) => $page->where('requiresTerms', true));
+});
+
+it('requires accepting the terms to register', function (): void {
+    $this->fromRoute('register')
+        ->post(route('register.store'), [
+            'name' => 'Test User',
+            'email' => 'test@example.com',
+            'password' => 'password1234',
+            'password_confirmation' => 'password1234',
+        ])
+        ->assertRedirectToRoute('register')
+        ->assertSessionHasErrors('terms');
+
+    expect(User::query()->where('email', 'test@example.com')->exists())->toBeFalse();
+});
+
+it('records the accepted terms version with the new account', function (): void {
+    $this->post(route('register.store'), [
+        'name' => 'Test User',
+        'email' => 'test@example.com',
+        'password' => 'password1234',
+        'password_confirmation' => 'password1234',
+        'terms' => '1',
+    ])->assertRedirectToRoute('dashboard');
+
+    $user = User::query()->where('email', 'test@example.com')->sole();
+
+    expect($user->terms_version)->toBe(config('privacy.terms_version'))
+        ->and($user->terms_accepted_at?->toIso8601String())->toBe(now()->toIso8601String());
+});
+
+it('registers without the terms while acceptance is switched off', function (): void {
+    config(['privacy.terms_version' => null]);
+
+    $this->get(route('register'))
+        ->assertInertia(fn ($page) => $page->where('requiresTerms', false));
+
+    $this->post(route('register.store'), [
+        'name' => 'Test User',
+        'email' => 'test@example.com',
+        'password' => 'password1234',
+        'password_confirmation' => 'password1234',
+    ])->assertRedirectToRoute('dashboard');
+
+    expect(User::query()->where('email', 'test@example.com')->sole()->terms_version)->toBeNull();
 });
