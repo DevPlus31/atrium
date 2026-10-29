@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Vite;
 
 beforeEach(function (): void {
@@ -57,7 +58,7 @@ it('allows the vite dev server while it is running', function (): void {
     expect($policy)->toContain('http://localhost:5173')
         ->toContain('ws://localhost:5173');
 
-    unlink($hot);
+    File::delete($hot);
 });
 
 it('enforces https in production', function (): void {
