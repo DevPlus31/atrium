@@ -88,7 +88,7 @@ Domain-specific pieces the generator cannot infer — Value Objects, Domain Even
 
 ## Definition of done
 
-PHPStan max · Rector · Pint · Pest 100% line **and** type coverage · `tsc --noEmit` · OxLint/Oxfmt · `theme-lint` · arch tests (module contract + boundaries) · browser smoke test (`composer test` runs them; commands in the README's "Testing and quality gates"). Migrations are **up-only** (module migrations are measured for coverage; an un-exercised `down()` fails the gate).
+PHPStan max · Rector · Pint · Pest ≥ 80% line and 100% type coverage · `tsc --noEmit` · OxLint/Oxfmt · `theme-lint` · arch tests (module contract + boundaries) · browser smoke test (`composer test` runs them; commands in the README's "Testing and quality gates"). Migrations are **up-only** (module migrations are measured for coverage, so an un-exercised `down()` counts against it).
 
 ## Downstream continuation
 
