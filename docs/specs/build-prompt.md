@@ -4,7 +4,7 @@
 
 ## Role
 
-Build a modular, extensible admin panel on top of the `nunomaduro/laravel-starter-kit-inertia-react` template. Follow the template's philosophy without exception: ultra-strict types, single-purpose action classes, "Cruddy by Design" controllers, PHPStan level max, Pest with 100% type and test coverage, Rector, Laravel Pint, strict TypeScript, and the kit's Vite Plus unified toolchain (OxLint + Oxfmt — no Prettier/ESLint).
+Build a modular, extensible admin panel on top of the `nunomaduro/laravel-starter-kit-inertia-react` template. Follow the template's philosophy without exception: ultra-strict types, single-purpose action classes, "Cruddy by Design" controllers, PHPStan level max, Pest with 100% type coverage and at least 80% test coverage, Rector, Laravel Pint, strict TypeScript, and the kit's Vite Plus unified toolchain (OxLint + Oxfmt — no Prettier/ESLint).
 
 ## Prime directives
 

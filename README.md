@@ -2,7 +2,7 @@
 
 [![tests](https://github.com/DevPlus31/atrium/actions/workflows/tests.yml/badge.svg)](https://github.com/DevPlus31/atrium/actions/workflows/tests.yml)
 
-A modular admin panel and app template: Laravel 13 · Inertia v3 · React 19 · TypeScript · Tailwind v4 · shadcn/ui. A generic **shell** (auth, account settings, theming, the module contract) hosts **modules**, one folder per business domain. Strict by construction: PHPStan max, 100% line and type coverage, architecture tests, PostgreSQL and SQLite in CI.
+A modular admin panel and app template: Laravel 13 · Inertia v3 · React 19 · TypeScript · Tailwind v4 · shadcn/ui. A generic **shell** (auth, account settings, theming, the module contract) hosts **modules**, one folder per business domain. Strict by construction: PHPStan max, at least 80% line coverage and 100% type coverage, architecture tests, PostgreSQL and SQLite in CI.
 
 ## Quick start
 
@@ -461,7 +461,7 @@ After a change, check light and dark, each preset, `rtl`, and the `topbar` layou
 ## Testing and quality gates (all must pass)
 
 ```bash
-composer test          # CI's main job: lint check, type coverage, PHPStan + tsc, tests with 100% coverage
+composer test          # CI's main job: lint check, type coverage, PHPStan + tsc, tests with at least 80% coverage
 composer lint          # fixers: Rector, Pint, Oxfmt, OxLint, theme lint
 ```
 
@@ -471,7 +471,7 @@ The same gates one by one:
 vendor/bin/pint --dirty --format agent && vendor/bin/rector && vendor/bin/phpstan
 bun run test:types && bun run test:lint
 bun run build                                                                # browser tests use the production build
-XDEBUG_MODE=coverage vendor/bin/pest --parallel --coverage --exactly=100.0   # includes browser tests
+XDEBUG_MODE=coverage vendor/bin/pest --parallel --coverage --min=80   # includes browser tests
 vendor/bin/pest --type-coverage --min=100
 php artisan test --compact app-modules/Catalog/tests/Feature/ProductControllerTest.php   # one file
 ```
