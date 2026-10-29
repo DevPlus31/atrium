@@ -85,7 +85,7 @@ export function ThemeSettingsMenu() {
                                 updateLayout({ nav_placement: option.value })
                             }
                         >
-                            <option.icon className="me-2 size-4" />
+                            <option.icon className="me-2 size-4 rtl:-scale-x-100" />
                             {t(option.label)}
                         </DropdownMenuRadioItem>
                     ))}

@@ -17,12 +17,11 @@
  *     utilities instead).
  *
  * Scope:
- *   - resources/js/{layouts,components,pages,hooks} (excluding components/ui):
- *     all three rules.
- *   - resources/js/components/ui: raw-palette + color-literal only. Vendored
- *     shadcn primitives keep physical positioning because floating UI
- *     (popovers, submenus, sheets) is genuinely directional; Radix flips it
- *     through the DirectionProvider, not through logical CSS properties.
+ *   - resources/js/{layouts,components,pages,hooks}, components/ui included:
+ *     all three rules. Radix flips floating UI (popovers, submenus) through
+ *     the DirectionProvider, but the classes on a primitive still read the
+ *     same both ways, so the vendored shadcn ones are logical too; the few
+ *     genuinely physical lines (a sheet's `side`, centring) are allowlisted.
  *   - app-modules/[star]/resources/js: all three rules.
  *   - resources/js/lib and the entry points (app.tsx, ssr.tsx): color rules.
  *
@@ -174,22 +173,11 @@ const colorRulesOnly = rules.filter(
     (rule) => rule.name !== 'physical-direction',
 );
 
-// resources/js/{layouts,components,pages,hooks} minus components/ui.
+// resources/js/{layouts,components,pages,hooks}, components/ui included.
 for (const scope of ['layouts', 'components', 'pages', 'hooks']) {
     for (const file of listFiles(join(root, 'resources', 'js', scope))) {
-        const normalized = relative(root, file).split(sep).join('/');
-
-        if (normalized.startsWith('resources/js/components/ui/')) {
-            continue;
-        }
-
         scanFile(file, allRules);
     }
-}
-
-// components/ui: color rules only (vendored primitives keep physical CSS).
-for (const file of listFiles(join(root, 'resources', 'js', 'components', 'ui'))) {
-    scanFile(file, colorRulesOnly);
 }
 
 // lib/ and the entry points: color rules (no markup, but colors still leak).

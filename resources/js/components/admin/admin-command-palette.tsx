@@ -219,7 +219,7 @@ export function AdminCommandPalette({
                                 updateLayout({ nav_placement: option.value });
                             }}
                         >
-                            <option.icon />
+                            <option.icon className="rtl:-scale-x-100" />
                             <span>
                                 {t('Navigation')}: {t(option.label)}
                             </span>

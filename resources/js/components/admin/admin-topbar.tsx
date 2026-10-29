@@ -247,7 +247,10 @@ export function AdminTopbar({
                     >
                         <Search />
                         <span className="hidden sm:inline">{t('Search')}</span>
-                        <kbd className="pointer-events-none hidden text-xs select-none sm:inline">
+                        <kbd
+                            dir="ltr"
+                            className="pointer-events-none hidden text-xs select-none sm:inline"
+                        >
                             {shortcutLabel}
                         </kbd>
                     </Button>
