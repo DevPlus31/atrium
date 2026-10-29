@@ -1,0 +1,21 @@
+{
+    "Dashboard": "Panel",
+    "No widgets available.": "No hay widgets disponibles.",
+    "Home": "Inicio",
+    "Welcome, :name": "Hola, :name",
+    "Here is where your account stands.": "Este es el estado de tu cuenta.",
+    "Nothing here yet.": "Aún no hay nada aquí.",
+    "Waiting for access": "Esperando acceso",
+    "Your account is set up, but an administrator hasn't given it any access yet. There's nothing you need to do.": "Tu cuenta está lista, pero un administrador todavía no le ha dado acceso. No tienes que hacer nada.",
+    "If they ask, your account email is :email.": "Si te lo piden, el correo electrónico de tu cuenta es :email.",
+    "Your account": "Tu cuenta",
+    "Sign-in security": "Seguridad del inicio de sesión",
+    "On": "Activada",
+    "Off": "Desactivada",
+    "Manage": "Administrar",
+    "Set up": "Configurar",
+    ":count passkey|:count passkeys": ":count llave de acceso|:count llaves de acceso",
+    "None yet": "Ninguna todavía",
+    "Add": "Agregar",
+    "Member since :date": "Miembro desde el :date"
+}

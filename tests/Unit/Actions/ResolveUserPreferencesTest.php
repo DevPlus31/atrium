@@ -72,3 +72,19 @@ it('ignores a saved locale that is no longer offered', function (): void {
 
     expect(new ResolveUserPreferences()(preferencesRequest(user: $user))['locale'])->toBe(config('app.locale'));
 });
+
+it('reads a right-to-left locale right to left by default', function (): void {
+    config()->set('app.available_locales', ['en' => 'English', 'ar' => 'العربية']);
+
+    $preferences = new ResolveUserPreferences()(preferencesRequest(['locale' => 'ar']));
+
+    expect($preferences['locale'])->toBe('ar')
+        ->and($preferences['layout']->direction->value)->toBe('rtl');
+});
+
+it('keeps a direction the user chose over the one their locale implies', function (): void {
+    config()->set('app.available_locales', ['en' => 'English', 'ar' => 'العربية']);
+    $user = User::factory()->create(['locale' => 'ar', 'layout' => ['direction' => 'ltr']]);
+
+    expect(new ResolveUserPreferences()(preferencesRequest(user: $user))['layout']->direction->value)->toBe('ltr');
+});

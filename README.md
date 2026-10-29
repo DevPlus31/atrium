@@ -448,7 +448,7 @@ After a change, check light and dark, each preset, `rtl`, and the `topbar` layou
   - missing keys, empty lines and dropped `:placeholders`, across all locales.
 
   A key passed as a variable (`t(orderStatuses[status].label)`) is not checked: add those strings to the catalogue yourself.
-- **Languages:** English and French ship. To add a locale:
+- **Languages:** English, French, Spanish and Arabic ship. Arabic (like any right-to-left language) switches the layout to right to left unless the user picked a direction. To add a locale:
   1. Copy every `en.json`.
   2. Add `lang/<code>/*.php`; start from the French ones.
   3. Register the locale in `config/app.php` under `available_locales`.

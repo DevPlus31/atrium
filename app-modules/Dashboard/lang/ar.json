@@ -1,0 +1,21 @@
+{
+    "Dashboard": "لوحة التحكم",
+    "No widgets available.": "لا توجد أدوات متاحة.",
+    "Home": "الرئيسية",
+    "Welcome, :name": "مرحبًا، :name",
+    "Here is where your account stands.": "إليك وضع حسابك الحالي.",
+    "Nothing here yet.": "لا يوجد شيء هنا بعد.",
+    "Waiting for access": "في انتظار الوصول",
+    "Your account is set up, but an administrator hasn't given it any access yet. There's nothing you need to do.": "حسابك جاهز، لكن لم يمنحه أي مسؤول صلاحيات وصول بعد. لا يلزمك فعل أي شيء.",
+    "If they ask, your account email is :email.": "إذا سُئلت، فالبريد الإلكتروني لحسابك هو :email.",
+    "Your account": "حسابك",
+    "Sign-in security": "أمان تسجيل الدخول",
+    "On": "مفعّل",
+    "Off": "معطّل",
+    "Manage": "إدارة",
+    "Set up": "إعداد",
+    ":count passkey|:count passkeys": ":count مفتاح مرور|:count مفتاح مرور|مفتاحا مرور|:count مفاتيح مرور|:count مفتاح مرور|:count مفتاح مرور",
+    "None yet": "لا يوجد بعد",
+    "Add": "إضافة",
+    "Member since :date": "عضو منذ :date"
+}

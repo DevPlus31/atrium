@@ -1,0 +1,20 @@
+{
+    ":count field|:count fields": ":count campo|:count campos",
+    "Audit log": "Registro de auditoría",
+    "Causer": "Autor",
+    "Changes": "Cambios",
+    "Date": "Fecha",
+    "Event": "Evento",
+    "Log": "Registro",
+    "No activity found.": "No se encontró actividad.",
+    "Search audit log...": "Buscar en el registro…",
+    "Subject": "Objeto",
+    "Recent activity": "Actividad reciente",
+    "Changes to your account": "Cambios en tu cuenta",
+    "No one has changed your account.": "Nadie ha modificado tu cuenta.",
+    ":name created your account": ":name creó tu cuenta",
+    ":name updated your account": ":name actualizó tu cuenta",
+    ":name signed in as you": ":name inició sesión como tú",
+    ":name changed your account": ":name modificó tu cuenta",
+    "An administrator": "Un administrador"
+}

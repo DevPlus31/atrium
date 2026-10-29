@@ -76,8 +76,22 @@ it('serves server-sent nav labels in the active locale', function (): void {
         );
 });
 
-it('ships French out of the box', function (): void {
-    expect(config('app.available_locales'))->toBe(['en' => 'English', 'fr' => 'Français']);
+it('ships French, Spanish and Arabic out of the box', function (): void {
+    expect(config('app.available_locales'))->toBe([
+        'en' => 'English',
+        'fr' => 'Français',
+        'es' => 'Español',
+        'ar' => 'العربية',
+    ]);
+});
+
+it('lays an Arabic page out right to left', function (): void {
+    $user = User::factory()->create(['locale' => 'ar']);
+
+    $this->actingAs($user)->get(route('user-profile.edit'))
+        ->assertOk()
+        ->assertSee('dir="rtl"', escape: false)
+        ->assertInertia(fn ($page) => $page->where('layout.direction', 'rtl'));
 });
 
 it("answers validation errors in the user's language", function (): void {

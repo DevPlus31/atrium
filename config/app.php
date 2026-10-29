@@ -98,6 +98,8 @@ return [
     'available_locales' => [
         'en' => 'English',
         'fr' => 'Français',
+        'es' => 'Español',
+        'ar' => 'العربية',
     ],
 
     'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),

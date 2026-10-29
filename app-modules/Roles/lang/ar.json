@@ -1,0 +1,18 @@
+{
+    "Add a new role and choose its permissions.": "أضف دورًا جديدًا واختر صلاحياته.",
+    "Create role": "إنشاء دور",
+    "Delete role": "حذف الدور",
+    "Edit role": "تعديل الدور",
+    "No permissions available.": "لا توجد صلاحيات متاحة.",
+    "No roles found.": "لم يُعثر على أدوار.",
+    "Role created.": "أُنشئ الدور.",
+    "Role deleted.": "حُذف الدور.",
+    "Role name": "اسم الدور",
+    "Role updated.": "حُدّث الدور.",
+    "Search roles...": "البحث عن أدوار…",
+    "Select all :prefix permissions": "تحديد كل صلاحيات :prefix",
+    "System role names cannot be changed.": "لا يمكن تغيير أسماء أدوار النظام.",
+    "System roles cannot be renamed.": "لا يمكن إعادة تسمية أدوار النظام.",
+    "this role": "هذا الدور",
+    "Update the role's name and permissions.": "حدّث اسم الدور وصلاحياته."
+}

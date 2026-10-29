@@ -34,6 +34,17 @@ const listeners = new Set<() => void>();
 let currentAppearance: Appearance = 'system';
 let currentTheme: ThemePreset = 'default';
 
+/** The layout options stored in the cookie (the server validates them). */
+const chosenLayout = (): Partial<LayoutConfig> => {
+    try {
+        const parsed: unknown = JSON.parse(getCookie('layout') ?? '{}');
+
+        return typeof parsed === 'object' && parsed !== null ? parsed : {};
+    } catch {
+        return {};
+    }
+};
+
 const prefersDark = (): boolean => {
     if (typeof window === 'undefined') {
         return false;
@@ -207,7 +218,9 @@ export function useThemePreference(): UseThemePreferenceReturn {
     };
 
     const updateLayout = (options: Partial<LayoutConfig>): void => {
-        setCookie('layout', JSON.stringify({ ...layout, ...options }));
+        // Only what was chosen: an untouched direction keeps following the
+        // locale (Arabic reads right to left), as on the users table.
+        setCookie('layout', JSON.stringify({ ...chosenLayout(), ...options }));
 
         if (options.direction && typeof document !== 'undefined') {
             document.documentElement.dir = options.direction;
