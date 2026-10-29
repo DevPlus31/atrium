@@ -62,7 +62,10 @@ export function AdminSidebar({
                         >
                             <Search />
                             <span>{t('Search')}</span>
-                            <kbd className="pointer-events-none ms-auto text-xs text-muted-foreground select-none group-data-[collapsible=icon]:hidden">
+                            <kbd
+                                dir="ltr"
+                                className="pointer-events-none ms-auto text-xs text-muted-foreground select-none group-data-[collapsible=icon]:hidden"
+                            >
                                 {shortcutLabel}
                             </kbd>
                         </SidebarMenuButton>

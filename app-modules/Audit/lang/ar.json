@@ -1,0 +1,20 @@
+{
+    ":count field|:count fields": ":count حقل|:count حقل|حقلان|:count حقول|:count حقلًا|:count حقل",
+    "Audit log": "سجل التدقيق",
+    "Causer": "المنفّذ",
+    "Changes": "التغييرات",
+    "Date": "التاريخ",
+    "Event": "الحدث",
+    "Log": "السجل",
+    "No activity found.": "لم يُعثر على أي نشاط.",
+    "Search audit log...": "البحث في سجل التدقيق…",
+    "Subject": "العنصر",
+    "Recent activity": "النشاط الأخير",
+    "Changes to your account": "التغييرات على حسابك",
+    "No one has changed your account.": "لم يغيّر أحد حسابك.",
+    ":name created your account": "أنشأ :name حسابك",
+    ":name updated your account": "حدّث :name حسابك",
+    ":name signed in as you": "سجّل :name الدخول بهويتك",
+    ":name changed your account": "غيّر :name حسابك",
+    "An administrator": "أحد المسؤولين"
+}

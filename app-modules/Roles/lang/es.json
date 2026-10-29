@@ -1,0 +1,18 @@
+{
+    "Add a new role and choose its permissions.": "Agrega un nuevo rol y elige sus permisos.",
+    "Create role": "Crear rol",
+    "Delete role": "Eliminar rol",
+    "Edit role": "Editar rol",
+    "No permissions available.": "No hay permisos disponibles.",
+    "No roles found.": "No se encontraron roles.",
+    "Role created.": "Rol creado.",
+    "Role deleted.": "Rol eliminado.",
+    "Role name": "Nombre del rol",
+    "Role updated.": "Rol actualizado.",
+    "Search roles...": "Buscar roles…",
+    "Select all :prefix permissions": "Marcar todos los permisos de :prefix",
+    "System role names cannot be changed.": "El nombre de un rol del sistema no se puede cambiar.",
+    "System roles cannot be renamed.": "Los roles del sistema no se pueden renombrar.",
+    "this role": "este rol",
+    "Update the role's name and permissions.": "Modifica el nombre y los permisos del rol."
+}

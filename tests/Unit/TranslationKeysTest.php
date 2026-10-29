@@ -99,14 +99,16 @@ function otherLocales(): array
 }
 
 /**
- * The `:placeholders` of a string, sorted, so a translation keeps them all.
+ * The distinct `:placeholders` of a string, sorted, so a translation keeps
+ * them all — however many plural forms its language repeats them across
+ * (Arabic has six).
  *
  * @return list<string>
  */
 function placeholdersOf(string $text): array
 {
     preg_match_all('/:[a-z_]+/', $text, $matches);
-    $placeholders = $matches[0];
+    $placeholders = array_values(array_unique($matches[0]));
     sort($placeholders);
 
     return $placeholders;

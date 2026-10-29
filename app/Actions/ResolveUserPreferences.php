@@ -54,7 +54,8 @@ final readonly class ResolveUserPreferences
      * Resolve the effective appearance, theme preset, layout config, and
      * locale for the current request. Database preferences are the source of
      * truth for authenticated users; cookies cover guests; invalid or missing
-     * values fall back to the defaults.
+     * values fall back to the defaults. Unless a direction was chosen, it
+     * follows the locale (Arabic reads right to left).
      *
      * @return array{appearance: Appearance, theme: ThemePreset, layout: LayoutConfigData, locale: string, timezone: string|null}
      */
@@ -63,6 +64,10 @@ final readonly class ResolveUserPreferences
     {
         $user = $request->user();
         $user = $user instanceof User ? $user : null;
+
+        $locale = $this->validLocale($user?->locale)
+            ?? $this->validLocale($this->cookieValue($request, 'locale'))
+            ?? Config::string('app.locale');
 
         return [
             'appearance' => $user->appearance
@@ -73,12 +78,11 @@ final readonly class ResolveUserPreferences
                 ?? ThemePreset::Default,
             'layout' => LayoutConfigData::from([
                 ...self::DEFAULT_LAYOUT,
+                'direction' => Direction::forLocale($locale)->value,
                 ...$this->validLayoutOptions($this->cookieLayout($request)),
                 ...$this->validLayoutOptions($user->layout ?? []),
             ]),
-            'locale' => $this->validLocale($user?->locale)
-                ?? $this->validLocale($this->cookieValue($request, 'locale'))
-                ?? Config::string('app.locale'),
+            'locale' => $locale,
             // Only signed-in users choose one; null means "the browser's".
             'timezone' => $user?->timezone,
         ];

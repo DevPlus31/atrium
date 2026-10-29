@@ -15,7 +15,7 @@ How the admin panel re-skins and re-shapes itself. Governed by
 over `resources/js/{layouts,components,pages,hooks}` and every
 `app-modules/*/resources/js` (color rules also cover `resources/js/lib` and
 the `app.tsx`/`ssr.tsx` entry points; the vendored shadcn components in
-`resources/js/components/ui` get the color rules only). Structural sizes come from tokens too:
+`resources/js/components/ui` are covered too). Structural sizes come from tokens too:
 `--header-height` and `--content-max-width` (boxed layout). A genuinely-directional exception is silenced
 with `// theme-lint-allow-next-line <rule>` on the line above.
 
@@ -67,10 +67,11 @@ prop) — enumerated options only, no free-form layout:
 | `sidebar_collapsible` | `offcanvas` · `icon` · `none` |
 | `content_width` | `fluid` · `boxed` |
 | `header` | `sticky` · `static` |
-| `direction` | `ltr` · `rtl` |
+| `direction` | `ltr` · `rtl` (unset, it follows the locale: Arabic is `rtl`) |
 
 `AdminLayout` is the **single interpreter** of this config (sidebar variants
-via the shadcn Sidebar primitive as-is; the topbar variant composed from
+via the shadcn Sidebar primitive, whose `side` is logical: `sidebar-left` is
+the reading start, so the right in `rtl`; the topbar variant composed from
 shadcn primitives; Radix `DirectionProvider` wired from `direction`). No
 page, component, or module may branch on layout config — modules render
 into the content region and are layout-agnostic.
