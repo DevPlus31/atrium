@@ -4,17 +4,25 @@ declare(strict_types=1);
 
 use App\Models\ConsentRecord;
 use App\Models\User;
+use Pest\Browser\Execution;
 
 beforeEach(function (): void {
     config(['privacy.consent.categories' => ['analytics', 'marketing']]);
 });
 
 it('asks a new visitor for cookie consent and remembers a refusal', function (): void {
-    visit(route('login'))
+    $page = visit(route('login'))
         ->assertPresent('[data-test="consent-banner"]')
         ->click('[data-test="consent-reject-all"]')
-        ->assertNotPresent('[data-test="consent-banner"]')
-        ->navigate(route('login'))
+        ->assertNotPresent('[data-test="consent-banner"]');
+
+    // The banner hides optimistically: wait for the choice to be stored (and
+    // its cookie set) before reloading, or the reload can beat the request.
+    Execution::instance()->waitForExpectation(function (): void {
+        expect(ConsentRecord::query()->exists())->toBeTrue();
+    });
+
+    $page->navigate(route('login'))
         ->assertNotPresent('[data-test="consent-banner"]')
         ->assertNoJavaScriptErrors();
 
@@ -28,6 +36,10 @@ it('lets a visitor choose category by category', function (): void {
         ->click('[data-test="save-consent"]')
         ->assertNotPresent('[data-test="consent-banner"]')
         ->assertNoJavaScriptErrors();
+
+    Execution::instance()->waitForExpectation(function (): void {
+        expect(ConsentRecord::query()->exists())->toBeTrue();
+    });
 
     expect(ConsentRecord::query()->sole()->granted->pluck('value')->all())->toBe(['analytics']);
 });

@@ -18,7 +18,7 @@ RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
 
 # Keep in step with "playwright" in package.json: the browser build must
 # match the version the browser tests drive.
-ARG PLAYWRIGHT_VERSION=1.64.0
+ARG PLAYWRIGHT_VERSION=1.64.1
 ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 RUN npm install -g playwright@${PLAYWRIGHT_VERSION} \
     && playwright install --with-deps chromium \
